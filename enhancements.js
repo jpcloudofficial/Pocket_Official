@@ -15,14 +15,32 @@
   const storedTitle = () => { try { return localStorage.getItem(TITLE_KEY) || 'My Finance'; } catch { return 'My Finance'; } };
   const isHidden = () => { try { return localStorage.getItem(PRIVACY_KEY) === '1'; } catch { return false; } };
 
-  const addStyles = () => {
-    if (document.querySelector('#pocket-autocategory-style')) return;
+  const installStyles = () => {
+    if (document.querySelector('#pocket-dashboard-style')) return;
     const style = document.createElement('style');
-    style.id = 'pocket-autocategory-style';
+    style.id = 'pocket-dashboard-style';
     style.textContent = `
+      .pocket-carousel{display:block;width:100%;overflow:hidden;margin-top:16px;touch-action:pan-y;user-select:none;-webkit-user-select:none}
+      .pocket-carousel-track{display:flex;width:100%;transition:transform .35s cubic-bezier(.22,.8,.25,1);will-change:transform}
+      .pocket-carousel-track>.hero{position:relative;display:block;flex:0 0 100%;width:100%;min-width:100%;margin:0;padding-right:66px}
+      .pocket-carousel-track.is-dragging{transition:none!important}
+      .pocket-carousel-controls{display:none!important}
+      .pocket-privacy-button{position:absolute;right:14px;top:14px;width:40px;height:40px;padding:0;display:grid;place-items:center;border:1px solid var(--bd);border-radius:11px;background:var(--cd);color:var(--mu);cursor:pointer;z-index:2}
+      .pocket-privacy-button svg{display:block}
+      .pocket-fab-menu{position:fixed;right:20px;bottom:calc(82px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:8px;z-index:30}
+      .pocket-fab-menu button{border:0;border-radius:12px;padding:10px 14px;min-width:156px;min-height:48px;background:var(--cd);color:var(--tx);box-shadow:0 8px 22px #0004;display:flex;align-items:center;gap:10px;font-weight:700;cursor:pointer}
+      .pocket-fab-menu button .mini{display:grid;place-items:center;width:26px;height:26px;border-radius:8px;background:var(--sq)}
+      .pocket-fab-menu button[data-kind="expense"] .mini{color:var(--ex)}
+      .pocket-fab-menu button[data-kind="income"] .mini{color:var(--in)}
+      .pocket-fab-menu button[data-kind="transfer"] .mini{color:var(--tr)}
+      .pocket-hidden{display:none!important}
+      .fab{z-index:22;transition:opacity .2s ease,transform .2s ease}
+      .fab.pocket-fab-open{opacity:0;transform:scale(.7);pointer-events:none}
       .pocket-category-hint{display:block;color:var(--mu);font-size:12px;margin:6px 2px 0;min-height:17px}
       .pocket-category-hint[data-active="true"]{color:var(--in)}
-      .pocket-category-hint[data-manual="true"]{color:var(--mu)}
+      #m.pocket-private .hb,#m.pocket-private .hn,#m.pocket-private .av,#m.pocket-private .tx>b{filter:blur(8px);user-select:none}
+      @media(max-width:760px){.pocket-fab-menu{right:16px;bottom:calc(94px + env(safe-area-inset-bottom,0px))}}
+      @media(prefers-reduced-motion:reduce){.pocket-carousel-track,.fab{transition:none!important}}
     `;
     document.head.append(style);
   };
@@ -34,7 +52,6 @@
     if (heading.textContent !== storedTitle()) heading.textContent = storedTitle();
   };
 
-  // Local keyword rules for automatic categorization.
   const CATEGORY_RULES = [
     { category: 'Transportation', words: ['jeepney','jeep','bus','taxi','grab','uber','train','mrt','lrt','commute','fare','parking','toll','gasoline','fuel'] },
     { category: 'Food & Drinks', words: ['jollibee','mcdonald','mcdo','restaurant','lunch','dinner','breakfast','coffee','cafe','food','meal','eatery','pizza','kfc','chowking'] },
@@ -54,11 +71,7 @@
     { category: 'Refund', words: ['refund','reimbursement','cashback'] }
   ];
   const normalize = value => String(value || '').toLocaleLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
-  const keywordMatch = (title, word) => {
-    const full = ` ${normalize(title)} `;
-    const target = ` ${normalize(word)} `;
-    return full.includes(target);
-  };
+  const keywordMatch = (title, word) => ` ${normalize(title)} `.includes(` ${normalize(word)} `);
 
   const attachAutoCategory = form => {
     if (!form || form.dataset.pocketAutoCategoryReady) return;
@@ -67,69 +80,30 @@
     const catEl = form.querySelector('[name="cat"]');
     if (!titleEl || !typeEl || !catEl) return;
     form.dataset.pocketAutoCategoryReady = '1';
-
     const hint = document.createElement('small');
     hint.className = 'pocket-category-hint';
     hint.setAttribute('aria-live', 'polite');
     catEl.insertAdjacentElement('afterend', hint);
-
     let manuallyChanged = false;
     let applying = false;
-
-    const updateHint = message => {
-      hint.textContent = message || '';
-      hint.dataset.active = message ? 'true' : 'false';
-      if (message) hint.dataset.manual = 'true';
-      else delete hint.dataset.manual;
-    };
-
     catEl.addEventListener('change', () => {
-      if (!applying) {
-        manuallyChanged = true;
-        updateHint('Category selected manually.');
-      }
+      if (!applying) { manuallyChanged = true; hint.textContent = 'Category selected manually.'; hint.dataset.active = 'true'; }
     });
-
     const infer = () => {
-      const type = typeEl.value;
-      const title = titleEl.value.trim();
-      if (type === 'transfer' || !title) {
-        hint.textContent = '';
-        delete hint.dataset.active;
-        delete hint.dataset.manual;
-        return;
-      }
+      if (typeEl.value === 'transfer' || !titleEl.value.trim()) { hint.textContent = ''; delete hint.dataset.active; return; }
       if (manuallyChanged) return;
-      const rule = CATEGORY_RULES.find(item => item.words.some(word => keywordMatch(title, word)));
-      if (!rule) {
-        hint.textContent = '';
-        delete hint.dataset.active;
-        return;
-      }
-      const option = [...catEl.options].find(item => normalize(item.textContent) === normalize(rule.category));
-      if (!option) {
-        hint.textContent = '';
-        delete hint.dataset.active;
-        return;
-      }
-      applying = true;
-      catEl.value = option.value;
-      applying = false;
+      const rule = CATEGORY_RULES.find(item => item.words.some(word => keywordMatch(titleEl.value, word)));
+      const option = rule && [...catEl.options].find(item => normalize(item.textContent) === normalize(rule.category));
+      if (!option) { hint.textContent = ''; delete hint.dataset.active; return; }
+      applying = true; catEl.value = option.value; applying = false;
       hint.textContent = `Suggested: ${option.textContent} · change if needed`;
       hint.dataset.active = 'true';
-      delete hint.dataset.manual;
     };
-
     titleEl.addEventListener('input', infer);
     titleEl.addEventListener('change', infer);
-    typeEl.addEventListener('change', () => {
-      manuallyChanged = false;
-      infer();
-    });
+    typeEl.addEventListener('change', () => { manuallyChanged = false; infer(); });
   };
-
   const watchTransactionForm = () => {
-    addStyles();
     const form = document.querySelector('#f');
     if (form) attachAutoCategory(form);
   };
@@ -159,7 +133,6 @@
       button.setAttribute('aria-pressed', String(hidden));
     });
   };
-
   const makePrivacyButton = () => {
     const button = document.createElement('button');
     button.type = 'button'; button.className = 'pocket-privacy-button';
@@ -180,7 +153,6 @@
     track.classList.remove('is-dragging');
     track.style.transform = `translateX(-${slide * 100}%)`;
   };
-
   const addCarousel = () => {
     let carousel = main.querySelector(':scope > .pocket-carousel');
     let balance = main.querySelector(':scope > .hero:not(.hs)') || main.querySelector('.pocket-carousel-track > .hero:not(.hs)');
@@ -190,16 +162,14 @@
       carousel = document.createElement('section');
       carousel.className = 'pocket-carousel';
       carousel.setAttribute('aria-label', 'Balance and savings cards. Swipe left or right to switch cards.');
-      const track = document.createElement('div');
-      track.className = 'pocket-carousel-track';
-      carousel.append(track);
+      carousel.append(document.createElement('div'));
+      carousel.firstElementChild.className = 'pocket-carousel-track';
       if (balance.parentElement === main) balance.before(carousel);
     }
     let track = carousel.querySelector('.pocket-carousel-track');
     if (!track) { track = document.createElement('div'); track.className = 'pocket-carousel-track'; carousel.append(track); }
     if (balance.parentElement !== track) track.append(balance);
     if (savings.parentElement !== track) track.append(savings);
-    track.style.width = '100%';
     if (!track.dataset.pocketSwipeReady) {
       track.dataset.pocketSwipeReady = '1';
       track.addEventListener('touchstart', event => {
@@ -238,7 +208,6 @@
     menu.classList.add('pocket-hidden'); menu.setAttribute('aria-hidden', 'true');
     fab.setAttribute('aria-expanded', 'false'); fab.classList.remove('pocket-fab-open');
   };
-
   const wireQuickAdd = () => {
     const fab = document.querySelector('.fab');
     if (!fab || fab.dataset.pocketQuickMenuReady) return;
@@ -268,6 +237,7 @@
   let queued = false;
   const enhance = () => {
     queued = false;
+    installStyles();
     const settingsPage = [...main.querySelectorAll('h2')].some(item => item.textContent.trim() === 'Settings');
     if (settingsPage) addTitleSetting();
     else {
@@ -279,14 +249,11 @@
     updatePrivacy();
     watchTransactionForm();
   };
-
   const observer = new MutationObserver(() => {
     if (!queued) { queued = true; requestAnimationFrame(enhance); }
   });
-
   observer.observe(main, { childList: true, subtree: true });
-  const formObserver = new MutationObserver(watchTransactionForm);
   const formRoot = document.querySelector('#ovc');
-  if (formRoot) formObserver.observe(formRoot, { childList: true, subtree: true });
+  if (formRoot) new MutationObserver(watchTransactionForm).observe(formRoot, { childList: true, subtree: true });
   enhance();
 })();
