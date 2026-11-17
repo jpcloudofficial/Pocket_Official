@@ -1,4 +1,4 @@
-const CACHE = 'pera-v6';
+const CACHE = 'pera-v7';
 const FILES = [
   './',
   'index.html',
@@ -14,24 +14,6 @@ self.addEventListener('install', event => {
   event.waitUntil((async () => {
     const cache = await caches.open(CACHE);
     await cache.addAll(FILES);
-
-    // Load the small enhancement module after the existing app has rendered.
-    for (const request of await cache.keys()) {
-      const url = new URL(request.url);
-      if (url.pathname.endsWith('/') || url.pathname.endsWith('/index.html')) {
-        const response = await cache.match(request);
-        if (!response) continue;
-        const html = await response.text();
-        if (!html.includes('src="enhancements.js"')) {
-          const updated = html.replace('</body>', '<script src="enhancements.js"></script></body>');
-          await cache.put(request, new Response(updated, {
-            status: response.status,
-            statusText: response.statusText,
-            headers: response.headers
-          }));
-        }
-      }
-    }
     await self.skipWaiting();
   })());
 });

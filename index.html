@@ -1,6 +1,6 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><title>Pocket – Expenses Tracker</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#000000"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Pocket"><link rel="icon" href="icon-192.png"><link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#000000"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Pocket"><link rel="icon" href="icon-192.png"><link rel="apple-touch-icon" href="apple-touch-icon.png">
 <style>
 :root{color-scheme:light;--bg:#f5f5f4;--cd:#fff;--tx:#1c1917;--mu:#78716c;--bd:#e7e5e4;--in:#16a34a;--ex:#ea580c;--tr:#2563eb;--sq:#ece9e6;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 :root[data-theme=dark]{color-scheme:dark;--bg:#000;--cd:#141414;--tx:#f5f5f5;--mu:#9a9a9a;--bd:#2a2a2a;--sq:#262626;--in:#4caf50;--ex:#e5483d}
@@ -35,7 +35,7 @@ label{display:block;font-weight:600;font-size:12px;margin-top:10px}label>*{margi
 const K='pera.v1',$=s=>document.querySelector(s),uid=()=>Math.random().toString(36).slice(2,9),pad=n=>String(n).padStart(2,'0');
 const iso=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()),today=()=>iso(new Date()),fd=s=>s?s.split('-').reverse().join('/'):'';
 const peso=(n,f)=>(n<0?'−':'')+'₱'+Math.abs(n).toLocaleString('en-PH',{minimumFractionDigits:f?2:Number.isInteger(Math.abs(n))?0:2,maximumFractionDigits:2});
-const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const esc=s=>String(s??'').replace(/[&<>\"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const MO=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 const ICONS=['wallet','banknote','landmark','smartphone','piggy-bank','credit-card','coins','tag','bus','utensils','shopping-cart','cookie','heart','shopping-bag','home','zap','repeat','film','activity','shield','trending-up','briefcase','laptop','gift','calendar','rotate-ccw','arrow-left-right','car','book','plane','target'].map(x=>[x,x]);
 const TYPES=['Cash','E-Wallet','Digital Bank','Traditional Bank','Savings','Credit Card','Other'].map(x=>[x,x]);
@@ -85,6 +85,7 @@ t||{type:'expense',date:today(),acc:'cash',to:'gcash'},v=>{const amt=+v.amount,t
 if(tr){if(v.acc===v.to)return'Choose two different accounts';const a=A(v.acc),b=bal(a,today(),id);if(!od(a)&&b<amt)return`Insufficient funds in ${a.name} (${peso(b)} available)`}
 const sig=[v.type,amt,v.date,v.acc,title,tr?v.to:''].join('|');if(!t&&window._dup!==sig&&D.tx.some(x=>x.type===v.type&&x.amount===amt&&x.date===v.date&&x.acc===v.acc&&x.title===title&&(x.to||'')===(tr?v.to:'')))return window._dup=sig,'Looks like a duplicate. Tap Save again to add it anyway.';
 const o={id:t?t.id:uid(),type:v.type,title,amount:amt,cat:tr?'c_transfers':v.cat,acc:v.acc,to:tr?v.to:null,date:v.date,time:v.time,note:v.note};t?Object.assign(t,o):D.tx.push(o)},'type')}
+function quickAdd(type){txForm();const t=document.querySelector('#f [name="type"]');if(t){t.value=type;t.onchange&&t.onchange();}}
 const editTx=id=>txForm(id),delTx=id=>ask('Delete this transaction? Account balances will be recalculated.',()=>{D.tx=D.tx.filter(t=>t.id!==id)});
 function row(t,act){const c=C(t.cat),tr=t.type==='transfer',col=tr?'var(--tx)':t.type==='income'?'var(--in)':'var(--ex)',cc=tr?'#2563eb':c?c.color:'#78716c';
 return`<div class="tx"><span class="dot" style="background:var(--sq);color:var(--tx)">${ic(tr?'arrow-left-right':c?c.icon:'tag')}</span><div class="gr"><b>${esc(t.title)}</b><br><small>${tr?esc(A(t.acc)?.name)+' → '+esc(A(t.to)?.name):esc(c?c.name:'Uncategorized')+' · '+esc(A(t.acc)?.name)} · ${fd(t.date)}${t.time?' '+t.time:''}</small></div><b style="color:${col}">${t.type==='expense'?'−':t.type==='income'?'+':''}${peso(t.amount)}</b>${act?`<button class="ib" onclick="editTx('${t.id}')" aria-label="Edit">${ic('pencil')}</button><button class="ib" onclick="delTx('${t.id}')" aria-label="Delete">${ic('trash-2')}</button>`:''}</div>`}
@@ -105,6 +106,7 @@ const card=(l,v,c,s='')=>`<div class="card"><small>${l}</small><div class="big" 
 return`<div class="row sp"><h2 style="font-size:26px">My Finance</h2><select class="pill" aria-label="Period" onchange="U.f=this.value;render()">${fl.map(f=>`<option value="${f[0]}"${U.f===f[0]?' selected':''}>${f[1]}</option>`).join('')}</select></div>
 <div class="row" style="margin-top:10px">${U.f==='custom'?`<input type="date" value="${U.cf||''}" style="width:auto" onchange="U.cf=this.value;render()"><input type="date" value="${U.ct||''}" style="width:auto" onchange="U.ct=this.value;render()">`:''}</div>${alerts()}
 <div class="hero"><small>Total Balance</small><div class="hb">${peso(tot,1)}</div><div class="two"><div><small>Income</small><div class="hn" style="color:var(--in)">${peso(inc)}</div></div><div><small>Expenses</small><div class="hn" style="color:var(--ex)">${peso(exp)}</div></div></div><small>Available ${peso(av)} · Net ${peso(inc-exp)}${cr<0?' · Card owed '+peso(-cr):''}</small></div><div class="hero hs" onclick="go('acc')"><div class="row sp"><small>Savings</small><span class="dot" style="background:#0ea5e922;color:#0ea5e9">${ic('piggy-bank')}</span></div><div class="hb" style="margin-bottom:4px">${peso(sv,1)}</div><small>${(n=>n?n+' savings account'+(n>1?'s':'')+' · not included in Total Balance':'Add an account with type “Savings” to track it here')(D.acc.filter(isSav).length)}</small></div><div class="row mo" style="margin-top:12px"><button class="chip" onclick="go('bud')">Budgets</button><button class="chip" onclick="go('goal')">Savings goals</button><button class="chip" onclick="go('cat')">Categories</button></div>
+<div class="row end" style="margin-top:18px"><button class="b2" onclick="quickAdd('expense')">${ic('plus')} Expense</button><button class="b2" onclick="quickAdd('income')">${ic('plus')} Income</button><button class="b2" onclick="quickAdd('transfer')">${ic('arrow-left-right')} Transfer</button></div>
 <h3 class="sec">My Accounts</h3><div class="ag">${D.acc.map(x=>`<div class="ac" onclick="go('acc')"><div class="row" style="flex-wrap:nowrap;gap:8px"><span style="display:inline-flex">${ic(x.icon||'wallet')}</span><b>${esc(x.name)}</b></div><div class="av" style="color:${bal(x)<0?'var(--ex)':'inherit'}">${peso(bal(x))}</div></div>`).join('')}</div><div class="row sp" style="margin-top:22px"><h3 class="sec" style="margin:0">Recent Transactions</h3><button class="chip" onclick="go('tx')">View all</button></div><div style="margin-top:6px">${D.tx.length?sorted().slice(0,6).map(t=>row(t)).join(''):'<div class="empty">No transactions yet.</div>'}</div><div class="g g2"><div class="card"><h3>Income vs. expenses</h3>${bars([ks.map(k=>sum(D.tx.filter(t=>ym(t.date)===k),'income')),ks.map(k=>sum(D.tx.filter(t=>ym(t.date)===k),'expense'))],L,['#16a34a','#ea580c'])}</div>
 <div class="card"><h3>Expenses by category</h3>${catBars(T)}</div>
 
@@ -160,4 +162,6 @@ if(!D){try{const raw=localStorage.getItem(K);if(raw)localStorage.setItem(K+'.old
 try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}
 $('#ov').onclick=e=>{if(e.target.id==='ov'&&!$('#f'))cl()};render();
 if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol))navigator.serviceWorker.register('sw.js').catch(()=>{})
-</script></body></html>
+</script>
+<script src="enhancements.js"></script>
+</body></html>
