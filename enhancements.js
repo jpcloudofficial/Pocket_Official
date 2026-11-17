@@ -17,35 +17,67 @@
     return `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths[name]}</svg>`;
   };
 
-  const storedTitle = () => { try { return localStorage.getItem(TITLE_KEY) || 'My Finance'; } catch { return 'My Finance'; } };
-  const isHidden = () => { try { return localStorage.getItem(PRIVACY_KEY) === '1'; } catch { return false; } };
+  const storedTitle = () => {
+    try { return localStorage.getItem(TITLE_KEY) || 'My Finance'; }
+    catch { return 'My Finance'; }
+  };
+  const isHidden = () => {
+    try { return localStorage.getItem(PRIVACY_KEY) === '1'; }
+    catch { return false; }
+  };
 
-  const styles = () => {
+  const installStyles = () => {
     if (document.querySelector('#pocket-enhancements-style-v4')) return;
     const style = document.createElement('style');
     style.id = 'pocket-enhancements-style-v4';
     style.textContent = `
-      .pocket-carousel{overflow:hidden;margin-top:16px;touch-action:pan-y}
-      .pocket-carousel-track{display:flex;transition:transform .28s ease;will-change:transform}
-      .pocket-carousel-track>.hero{position:relative;flex:0 0 100%;width:100%;min-width:100%;margin:0;padding-right:66px}
-      .pocket-privacy-button{position:absolute;right:14px;top:14px;width:40px;height:40px;display:grid;place-items:center;border:1px solid var(--bd);border-radius:11px;background:var(--cd);color:var(--mu);cursor:pointer;z-index:2}
-      .pocket-privacy-button svg{display:block}
-      .pocket-fab-menu{position:fixed;right:22px;bottom:90px;display:flex;flex-direction:column;gap:10px;z-index:7}
-      .pocket-fab-menu button{border:0;border-radius:12px;padding:10px 14px;background:var(--cd);color:var(--tx);box-shadow:0 6px 18px rgba(0,0,0,.24);display:flex;align-items:center;justify-content:flex-start;gap:10px;min-width:148px;font-weight:700;cursor:pointer}
-      .pocket-fab-menu button .mini{display:grid;place-items:center;width:26px;height:26px;border-radius:8px;background:var(--sq);color:var(--tx)}
-      .pocket-fab-menu button[data-kind="expense"] .mini{color:var(--ex)}
-      .pocket-fab-menu button[data-kind="income"] .mini{color:var(--in)}
-      .pocket-fab-menu button[data-kind="transfer"] .mini{color:var(--tr)}
-      .pocket-hidden{display:none!important}
-      #m.pocket-private .hb,#m.pocket-private .hn,#m.pocket-private .av,#m.pocket-private .tx>b{filter:blur(8px);user-select:none}
-      @media(prefers-reduced-motion:reduce){.pocket-carousel-track{transition:none}}
+      .pocket-fab-menu {
+        position: fixed;
+        right: 20px;
+        bottom: calc(82px + env(safe-area-inset-bottom, 0px));
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        z-index: 30;
+        pointer-events: auto;
+      }
+      .pocket-fab-menu button {
+        border: 0;
+        border-radius: 12px;
+        padding: 10px 14px;
+        min-width: 156px;
+        background: var(--cd);
+        color: var(--tx);
+        box-shadow: 0 8px 22px rgba(0,0,0,.26);
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        gap: 10px;
+        font-weight: 700;
+        cursor: pointer;
+      }
+      .pocket-fab-menu button .mini {
+        display: grid;
+        place-items: center;
+        width: 26px;
+        height: 26px;
+        border-radius: 8px;
+        background: var(--sq);
+      }
+      .pocket-fab-menu button[data-kind="expense"] .mini { color: var(--ex); }
+      .pocket-fab-menu button[data-kind="income"] .mini { color: var(--in); }
+      .pocket-fab-menu button[data-kind="transfer"] .mini { color: var(--tr); }
+      .pocket-hidden { display: none !important; }
+      .fab { z-index: 22; }
+      @media (max-width: 760px) {
+        .pocket-fab-menu { right: 16px; bottom: calc(94px + env(safe-area-inset-bottom, 0px)); }
+      }
     `;
     document.head.append(style);
   };
 
-  const titleHeading = () => main.querySelector('.row.sp h2');
   const setTitle = () => {
-    const heading = titleHeading();
+    const heading = main.querySelector('.row.sp h2');
     if (heading) heading.textContent = storedTitle();
   };
 
@@ -140,62 +172,29 @@
     });
   };
 
-  const cleanExtraDashboardControls = () => {
-    main.querySelectorAll('.pocket-carousel-controls').forEach(element => element.remove());
-    [...main.querySelectorAll('.row')].forEach(row => {
-      const labels = [...row.querySelectorAll('button')].map(button => button.textContent.trim());
-      if (labels.includes('Expense') && labels.includes('Income') && labels.includes('Transfer')) row.remove();
-    });
-    main.querySelectorAll('.pocket-title-edit').forEach(element => element.remove());
-    main.querySelectorAll('.pocket-privacy-button').forEach(button => {
-      if (!button.closest('.pocket-carousel-track > .hero')) button.remove();
-    });
-  };
-
-  let slide = 0;
-  const showSlide = index => {
-    slide = Math.max(0, Math.min(1, index));
-    const track = main.querySelector('.pocket-carousel-track');
-    if (track) track.style.transform = `translateX(-${slide * 100}%)`;
-  };
-
   const addCarousel = () => {
+    const balance = main.querySelector(':scope > .hero:not(.hs)');
+    const savings = main.querySelector(':scope > .hero.hs');
+    if (!balance || !savings) return;
+
     let carousel = main.querySelector('.pocket-carousel');
     if (!carousel) {
-      const balance = main.querySelector(':scope > .hero:not(.hs)');
-      const savings = main.querySelector(':scope > .hero.hs');
-      if (!balance || !savings) return;
       carousel = document.createElement('section');
       carousel.className = 'pocket-carousel';
-      carousel.setAttribute('aria-label', 'Balance and savings cards. Swipe horizontally to switch cards.');
       const track = document.createElement('div');
       track.className = 'pocket-carousel-track';
-      balance.before(carousel);
       track.append(balance, savings);
       carousel.append(track);
-      let startX = null;
-      track.addEventListener('touchstart', event => { startX = event.touches[0].clientX; }, { passive: true });
-      track.addEventListener('touchend', event => {
-        if (startX === null) return;
-        const delta = event.changedTouches[0].clientX - startX;
-        startX = null;
-        if (Math.abs(delta) > 45) showSlide(slide + (delta < 0 ? 1 : -1));
-      }, { passive: true });
+      balance.before(carousel);
     }
-    const cards = main.querySelectorAll('.pocket-carousel-track > .hero');
-    cards.forEach(card => {
-      if (!card.querySelector('.pocket-privacy-button')) card.append(makePrivacyButton());
-    });
-    showSlide(slide);
   };
 
   let queued = false;
   const enhance = () => {
     queued = false;
-    styles();
+    installStyles();
     setTitle();
     addCarousel();
-    cleanExtraDashboardControls();
     wireQuickAddMenu();
     updatePrivacy();
   };
