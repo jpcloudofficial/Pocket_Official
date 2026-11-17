@@ -480,6 +480,45 @@
             overflow: auto
         }
 
+        #ov.form-open>div {
+            display: flex;
+            overflow: hidden
+        }
+
+        #f {
+            display: flex;
+            flex: 1;
+            flex-direction: column;
+            min-height: 0;
+            max-height: calc(92vh - 40px)
+        }
+
+        #f>h3,
+        #f>.er,
+        #f>.row {
+            flex: none
+        }
+
+        .form-fields {
+            flex: 1;
+            min-height: 0;
+            overflow-y: auto;
+            overscroll-behavior: contain;
+            scrollbar-width: none;
+            -ms-overflow-style: none
+        }
+
+        .form-fields::-webkit-scrollbar {
+            display: none
+        }
+
+        #m.pocket-private .hb,
+        #m.pocket-private .hn,
+        #m.pocket-private .av,
+        #m.pocket-private .tx>b {
+            filter: none !important
+        }
+
         #ov select {
             appearance: none;
             -webkit-appearance: none;
@@ -957,6 +996,7 @@
         }
         const cl = () => {
             $('#ov').style.display = 'none';
+            $('#ov').classList.remove('form-open');
             document.body.classList.remove('pocket-modal-open')
         };
 
@@ -984,7 +1024,8 @@
                 return `<label>${x.l}${x.req?' *':''}${i}</label>`
             };
             ov(
-            `<div id="f"><h3>${title}</h3>${f.map(fld).join('')}<p class="er" id="er"></p><div class="row end"><button type="button" class="b2" onclick="cl()">Cancel</button><button type="button" class="b1" id="sv">Save</button></div></div>`);
+            `<div id="f"><h3>${title}</h3><div class="form-fields">${f.map(fld).join('')}</div><p class="er" id="er"></p><div class="row end"><button type="button" class="b2" onclick="cl()">Cancel</button><button type="button" class="b1" id="sv">Save</button></div></div>`);
+            $('#ov').classList.add('form-open');
             const F = $('#f'),
                 el = k => F.querySelector('[name="' + k + '"]'),
                 get = () => {
@@ -1502,7 +1543,7 @@
                 `<div class="card"><small>${l}</small><div class="big" style="color:${c||'inherit'}">${peso(v)}</div><small>${s}</small></div>`;
             return `<div class="row sp"><h2 style="font-size:26px">My Finance</h2><select class="pill" aria-label="Period" onchange="U.f=this.value;render()">${fl.map(f=>`<option value="${f[0]}"${U.f===f[0]?' selected':''}>${f[1]}</option>`).join('')}</select></div>
 <div class="row" style="margin-top:10px">${U.f==='custom'?`<input type="date" value="${U.cf||''}" style="width:auto" onchange="U.cf=this.value;render()"><input type="date" value="${U.ct||''}" style="width:auto" onchange="U.ct=this.value;render()">`:''}</div>${alerts()}
-<div class="hero"><small>Total Balance</small><div class="hb">${peso(tot,1)}</div><div class="two"><div><small>Income</small><div class="hn" style="color:var(--in)">${peso(inc)}</div></div><div><small>Expenses</small><div class="hn" style="color:var(--ex)">${peso(exp)}</div></div></div><small>Available ${peso(av)} · Net ${peso(inc-exp)}${cr<0?' · Card owed '+peso(-cr):''}</small></div><div class="hero hs" onclick="go('acc')"><div class="row sp"><small>Savings</small><span class="dot" style="background:#0ea5e922;color:#0ea5e9">${ic('piggy-bank')}</span></div><div class="hb" style="margin-bottom:4px">${peso(sv,1)}</div><small>${(n=>n?n+' savings account'+(n>1?'s':'')+' · not included in Total Balance':'Add an account with type “Savings” to track it here')(D.acc.filter(isSav).length)}</small></div><div class="row mo" style="margin-top:12px"><button class="chip" onclick="go('bud')">Budgets</button><button class="chip" onclick="go('goal')">Savings goals</button><button class="chip" onclick="go('cat')">Categories</button></div>
+<div class="hero"><small>Total Balance</small><div class="hb">${peso(tot,1)}</div><div class="two"><div><small>Income</small><div class="hn" style="color:var(--in)">${peso(inc)}</div></div><div><small>Expenses</small><div class="hn" style="color:var(--ex)">${peso(exp)}</div></div></div><small class="pocket-summary-amounts">Available ${peso(av)} · Net ${peso(inc-exp)}${cr<0?' · Card owed '+peso(-cr):''}</small></div><div class="hero hs" onclick="go('acc')"><div class="row sp"><small>Savings</small><span class="dot" style="background:#0ea5e922;color:#0ea5e9">${ic('piggy-bank')}</span></div><div class="hb" style="margin-bottom:4px">${peso(sv,1)}</div><small>${(n=>n?n+' savings account'+(n>1?'s':'')+' · not included in Total Balance':'Add an account with type “Savings” to track it here')(D.acc.filter(isSav).length)}</small></div><div class="row mo" style="margin-top:12px"><button class="chip" onclick="go('bud')">Budgets</button><button class="chip" onclick="go('goal')">Savings goals</button><button class="chip" onclick="go('cat')">Categories</button></div>
 <div class="row end" style="margin-top:18px"><button class="b2" onclick="quickAdd('expense')">${ic('plus')} Expense</button><button class="b2" onclick="quickAdd('income')">${ic('plus')} Income</button><button class="b2" onclick="quickAdd('transfer')">${ic('arrow-left-right')} Transfer</button></div>
 <h3 class="sec">My Accounts</h3><div class="ag">${D.acc.map(x=>`<div class="ac" onclick="go('acc')"><div class="row" style="flex-wrap:nowrap;gap:8px"><span style="display:inline-flex">${ic(x.icon||'wallet')}</span><b>${esc(x.name)}</b></div><div class="av" style="color:${bal(x)<0?'var(--ex)':'inherit'}">${peso(bal(x))}</div></div>`).join('')}</div><div class="row sp" style="margin-top:22px"><h3 class="sec" style="margin:0">Recent Transactions</h3><button class="chip" onclick="go('tx')">View all</button></div><div style="margin-top:6px">${D.tx.length?sorted().slice(0,6).map(t=>row(t,false,true)).join(''):'<div class="empty">No transactions yet.</div>'}</div><div class="g g2"><div class="card"><h3>Income vs. expenses</h3>${bars([ks.map(k=>sum(D.tx.filter(t=>ym(t.date)===k),'income')),ks.map(k=>sum(D.tx.filter(t=>ym(t.date)===k),'expense'))],L,['#16a34a','#ea580c'])}</div>
 <div class="card"><h3>Expenses by category</h3>${catBars(T)}</div>
@@ -2032,7 +2073,7 @@
             navigator.storage && navigator.storage.persist && navigator.storage.persist()
         } catch (e) {}
         $('#ov').onclick = e => {
-            if (e.target.id === 'ov' && !$('#f')) cl()
+            if (e.target.id === 'ov') cl()
         };
         render();
         const runDueRecurring = () => {
@@ -2049,7 +2090,45 @@
         if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) navigator.serviceWorker.register(
             'sw.js').catch(() => {})
     </script>
-    <script src="enhancements.js?v=20261117-form-spacing-2"></script>
+    <script src="enhancements.js?v=20261117-privacy-stars-2"></script>
+    <script>
+        (() => {
+            const main = document.querySelector('#m');
+            const maskAmounts = () => {
+                const hidden = main.classList.contains('pocket-private');
+                main.querySelectorAll('.hb, .hn, .av, .tx>b').forEach(amount => {
+                    if (hidden) {
+                        if (!Object.prototype.hasOwnProperty.call(amount.dataset, 'pocketAmount')) {
+                            amount.dataset.pocketAmount = amount.textContent;
+                        }
+                        if (amount.textContent !== '****') amount.textContent = '****';
+                    } else if (Object.prototype.hasOwnProperty.call(amount.dataset, 'pocketAmount')) {
+                        amount.textContent = amount.dataset.pocketAmount;
+                        delete amount.dataset.pocketAmount;
+                    }
+                });
+                main.querySelectorAll('.pocket-summary-amounts').forEach(summary => {
+                    if (hidden) {
+                        if (!Object.prototype.hasOwnProperty.call(summary.dataset, 'pocketAmount')) {
+                            summary.dataset.pocketAmount = summary.textContent;
+                        }
+                        const masked = summary.dataset.pocketAmount.replace(/[−-]?₱[\d,.]+/g, '****');
+                        if (summary.textContent !== masked) summary.textContent = masked;
+                    } else if (Object.prototype.hasOwnProperty.call(summary.dataset, 'pocketAmount')) {
+                        summary.textContent = summary.dataset.pocketAmount;
+                        delete summary.dataset.pocketAmount;
+                    }
+                });
+            };
+            new MutationObserver(maskAmounts).observe(main, {
+                childList: true,
+                subtree: true,
+                attributes: true,
+                attributeFilter: ['class']
+            });
+            maskAmounts();
+        })();
+    </script>
     <script>
         (() => {
             const titles = {
