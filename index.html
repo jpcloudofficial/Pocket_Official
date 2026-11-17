@@ -274,6 +274,19 @@
             border-top: 0
         }
 
+        .tx.recent-link {
+            cursor: pointer;
+            border-radius: 10px;
+            padding-left: 8px;
+            padding-right: 8px
+        }
+
+        .tx.recent-link:hover,
+        .tx.recent-link:focus-visible {
+            background: var(--sq);
+            outline: none
+        }
+
         .dot {
             width: 44px;
             height: 44px;
@@ -959,6 +972,11 @@
                 ...vals,
                 ...get()
             }, submit, rr);
+            if (el('acc') && el('cashbackAccount')) {
+                el('acc').addEventListener('change', () => {
+                    el('cashbackAccount').value = el('acc').value
+                });
+            }
             const go2 = () => {
                 const v = get();
                 for (const x of f) {
@@ -1053,7 +1071,7 @@
                             pos: 1
                         }, {
                             k: 'cashbackAccount',
-                            l: 'Cashback deposit account',
+                            l: 'Cashback deposit account (defaults to expense account)',
                             t: 'sel',
                             o: ac
                         }] : [])
@@ -1101,7 +1119,8 @@
                     };
                     if (linkedCashback) {
                         linkedCashback.expenseTitle = title;
-                        linkedCashback.expenseDate = v.date
+                        linkedCashback.expenseDate = v.date;
+                        linkedCashback.account = v.acc
                     }
                     t ? Object.assign(t, o) : D.tx.push(o);
                     if (!t && v.type === 'expense' && cashbackAmount > 0) {
@@ -1346,13 +1365,23 @@
                 if (transaction?.cashbackId) D.cashbacks = D.cashbacks.filter(claim => claim.id !== transaction.cashbackId)
             });
 
-        function row(t, act) {
+        function openRecentTransaction(id) {
+            const transaction = D.tx.find(item => item.id === id);
+            if (!transaction) return;
+            U.v = 'tx';
+            U.q = transaction.title;
+            U.c = U.a = U.ty = U.tf = U.tt = '';
+            render();
+            scrollTo(0, 0)
+        }
+
+        function row(t, act, recentLink = false) {
             const c = C(t.cat),
                 tr = t.type === 'transfer',
                 col = tr ? 'var(--tx)' : t.type === 'income' ? 'var(--in)' : 'var(--ex)',
                 cc = tr ? '#2563eb' : c ? c.color : '#78716c';
             const cashback = t.type === 'expense' ? D.cashbacks.find(claim => claim.expenseId === t.id) : null;
-            return `<div class="tx"><span class="dot" style="background:var(--sq);color:var(--tx)">${ic(tr?'arrow-left-right':c?c.icon:'tag')}</span><div class="gr"><b>${esc(t.title)}</b><br><small>${tr?esc(A(t.acc)?.name)+' → '+esc(A(t.to)?.name):esc(c?c.name:'Uncategorized')+' · '+esc(A(t.acc)?.name)} · ${fd(t.date)}${t.time?' '+t.time:''}</small></div><b style="color:${col}">${t.type==='expense'?'−':t.type==='income'?'+':''}${peso(t.amount)}</b>${act?`${t.type==='expense'?`<button class="ib" onclick="${cashback?'go(\'cash\')':`cashbackForm('${t.id}')`}" aria-label="${cashback?'Manage cashback':'Track cashback'}" title="${cashback?'Manage cashback':'Track cashback'}">${ic('coins')}</button>`:''}<button class="ib" onclick="editTx('${t.id}')" aria-label="Edit">${ic('pencil')}</button><button class="ib" onclick="delTx('${t.id}')" aria-label="Delete">${ic('trash-2')}</button>`:''}</div>`
+            return `<div class="tx${recentLink?' recent-link':''}"${recentLink?` role="link" tabindex="0" aria-label="Open ${esc(t.title)} in Transactions" onclick="openRecentTransaction('${t.id}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openRecentTransaction('${t.id}')}"`:''}><span class="dot" style="background:var(--sq);color:var(--tx)">${ic(tr?'arrow-left-right':c?c.icon:'tag')}</span><div class="gr"><b>${esc(t.title)}</b><br><small>${tr?esc(A(t.acc)?.name)+' → '+esc(A(t.to)?.name):esc(c?c.name:'Uncategorized')+' · '+esc(A(t.acc)?.name)} · ${fd(t.date)}${t.time?' '+t.time:''}</small></div><b style="color:${col}">${t.type==='expense'?'−':t.type==='income'?'+':''}${peso(t.amount)}</b>${act?`${t.type==='expense'?`<button class="ib" onclick="${cashback?'go(\'cash\')':`cashbackForm('${t.id}')`}" aria-label="${cashback?'Manage cashback':'Track cashback'}" title="${cashback?'Manage cashback':'Track cashback'}">${ic('coins')}</button>`:''}<button class="ib" onclick="editTx('${t.id}')" aria-label="Edit">${ic('pencil')}</button><button class="ib" onclick="delTx('${t.id}')" aria-label="Delete">${ic('trash-2')}</button>`:''}</div>`
         }
 
         function bars(S, L, C) {
@@ -1452,13 +1481,14 @@
 <div class="row" style="margin-top:10px">${U.f==='custom'?`<input type="date" value="${U.cf||''}" style="width:auto" onchange="U.cf=this.value;render()"><input type="date" value="${U.ct||''}" style="width:auto" onchange="U.ct=this.value;render()">`:''}</div>${alerts()}
 <div class="hero"><small>Total Balance</small><div class="hb">${peso(tot,1)}</div><div class="two"><div><small>Income</small><div class="hn" style="color:var(--in)">${peso(inc)}</div></div><div><small>Expenses</small><div class="hn" style="color:var(--ex)">${peso(exp)}</div></div></div><small>Available ${peso(av)} · Net ${peso(inc-exp)}${cr<0?' · Card owed '+peso(-cr):''}</small></div><div class="hero hs" onclick="go('acc')"><div class="row sp"><small>Savings</small><span class="dot" style="background:#0ea5e922;color:#0ea5e9">${ic('piggy-bank')}</span></div><div class="hb" style="margin-bottom:4px">${peso(sv,1)}</div><small>${(n=>n?n+' savings account'+(n>1?'s':'')+' · not included in Total Balance':'Add an account with type “Savings” to track it here')(D.acc.filter(isSav).length)}</small></div><div class="row mo" style="margin-top:12px"><button class="chip" onclick="go('bud')">Budgets</button><button class="chip" onclick="go('goal')">Savings goals</button><button class="chip" onclick="go('cat')">Categories</button></div>
 <div class="row end" style="margin-top:18px"><button class="b2" onclick="quickAdd('expense')">${ic('plus')} Expense</button><button class="b2" onclick="quickAdd('income')">${ic('plus')} Income</button><button class="b2" onclick="quickAdd('transfer')">${ic('arrow-left-right')} Transfer</button></div>
-<h3 class="sec">My Accounts</h3><div class="ag">${D.acc.map(x=>`<div class="ac" onclick="go('acc')"><div class="row" style="flex-wrap:nowrap;gap:8px"><span style="display:inline-flex">${ic(x.icon||'wallet')}</span><b>${esc(x.name)}</b></div><div class="av" style="color:${bal(x)<0?'var(--ex)':'inherit'}">${peso(bal(x))}</div></div>`).join('')}</div><div class="row sp" style="margin-top:22px"><h3 class="sec" style="margin:0">Recent Transactions</h3><button class="chip" onclick="go('tx')">View all</button></div><div style="margin-top:6px">${D.tx.length?sorted().slice(0,6).map(t=>row(t)).join(''):'<div class="empty">No transactions yet.</div>'}</div><div class="g g2"><div class="card"><h3>Income vs. expenses</h3>${bars([ks.map(k=>sum(D.tx.filter(t=>ym(t.date)===k),'income')),ks.map(k=>sum(D.tx.filter(t=>ym(t.date)===k),'expense'))],L,['#16a34a','#ea580c'])}</div>
+<h3 class="sec">My Accounts</h3><div class="ag">${D.acc.map(x=>`<div class="ac" onclick="go('acc')"><div class="row" style="flex-wrap:nowrap;gap:8px"><span style="display:inline-flex">${ic(x.icon||'wallet')}</span><b>${esc(x.name)}</b></div><div class="av" style="color:${bal(x)<0?'var(--ex)':'inherit'}">${peso(bal(x))}</div></div>`).join('')}</div><div class="row sp" style="margin-top:22px"><h3 class="sec" style="margin:0">Recent Transactions</h3><button class="chip" onclick="go('tx')">View all</button></div><div style="margin-top:6px">${D.tx.length?sorted().slice(0,6).map(t=>row(t,false,true)).join(''):'<div class="empty">No transactions yet.</div>'}</div><div class="g g2"><div class="card"><h3>Income vs. expenses</h3>${bars([ks.map(k=>sum(D.tx.filter(t=>ym(t.date)===k),'income')),ks.map(k=>sum(D.tx.filter(t=>ym(t.date)===k),'expense'))],L,['#16a34a','#ea580c'])}</div>
 <div class="card"><h3>Expenses by category</h3>${catBars(T)}</div>
 
 </div>`
         };
 
         function txList() {
+
             const q = U.q.toLowerCase(),
                 L = sorted().filter(t => (!q || t.title.toLowerCase().includes(q)) && (!U.c || t.cat === U.c) && (!U
                         .a || t.acc === U.a || t.to === U.a) && (!U.ty || t.type === U.ty) && (!U.tf || t.date >= U
@@ -1587,7 +1617,7 @@
         }
         V.bud = () => {
             const L = bstat();
-            return `<div class="row sp"><div><h2>Budgets</h2><small>${MO[new Date().getMonth()]} ${new Date().getFullYear()}</small></div><button class="b1" onclick="budForm()">${ic('plus')} Set budget</button></div>${alerts()}<div class="g g2">${L.length?L.map(x=>{const c=C(x.id)||{name:'?',color:'#999'},col=x.p>=100?'var(--ex)':x.p>=75?'#eab308':'var(--in)';return` <
+            return `<div class="row sp"><div><h2>Budgets</h2><small>${MO[new Date().getMonth()]} ${new Date().getFullYear()}</small></div><button class="b1" onclick="budForm()">${ic('plus')} Set budget</button></div>${alerts()}<div class="g g2">${L.length?L.map(x=>{const c=C(x.id)||{name:'?',color:'#999'},col=x.p>=100?'var(--ex)':'#eab308';return` <
                 div class = "card" > < div class = "row" > < span style = "color:${c.color};display:inline-flex" >
                 $ {
                     ic(c.icon || 'tag')
@@ -1831,6 +1861,7 @@
                     '<rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/>'
                     ),
                 tx: ico('<path d="M7 20V4M7 4 3.5 7.5M7 4l3.5 3.5M17 4v16M17 20l-3.5-3.5M17 20l3.5-3.5"/>'),
+                cash: ico('<circle cx="9" cy="9" r="6"/><circle cx="16" cy="16" r="5"/>'),
                 rec: ico('<path d="M20 7v5h-5M4 17v-5h5"/><path d="M5.5 9a7 7 0 0 1 11.8-2L20 12M4 12l2.7 5a7 7 0 0 0 11.8-2"/>'),
                 acc: ico('<rect x="3" y="6" width="18" height="14" rx="4"/><path d="M3 11h18M16.5 15.5h1"/>'),
                 rep: ico('<circle cx="12" cy="12" r="9"/><path d="M12 3v9h9"/>'),
@@ -1863,6 +1894,7 @@
             $('#nv').innerHTML = NAV.map(n =>
                 `<button class="${U.v===n[0]?'on':''}${n[3]?'':' dm'}" aria-label="${n[1]}" onclick="go('${n[0]}')">${NI[n[0]]||''}<span>${n[1]}</span></button>`
                 ).join('');
+            $('#m').dataset.view = U.v;
             $('#m').innerHTML = V[U.v]();
             lu()
         }
@@ -2002,7 +2034,72 @@
         if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) navigator.serviceWorker.register(
             'sw.js').catch(() => {})
     </script>
-    <script src="enhancements.js"></script>
+    <script src="enhancements.js?v=20261117-dashboard-title-dialog-2"></script>
+    <script>
+        (() => {
+            const titles = {
+                tx: 'Transactions',
+                cash: 'Cashback',
+                rec: 'Recurring transactions',
+                acc: 'Accounts',
+                bud: 'Budgets',
+                goal: 'Savings goals',
+                rep: 'Reports',
+                cat: 'Categories',
+                set: 'Settings'
+            };
+            const main = document.querySelector('#m');
+            const readDashboardTitle = () => {
+                try { return localStorage.getItem('pocket.dashboardTitle') || 'My Finance'; }
+                catch { return 'My Finance'; }
+            };
+            const syncTitle = () => {
+                const title = titles[U.v];
+                const heading = main.querySelector('h2');
+                const dashboardTitle = U.v === 'dash' ? readDashboardTitle() : '';
+                const desiredTitle = title || dashboardTitle;
+                if (desiredTitle && heading && heading.textContent.trim() !== desiredTitle) heading.textContent = desiredTitle;
+            };
+            const openTitleDialog = () => {
+                if (document.querySelector('.pocket-title-overlay')) return;
+                const overlay = document.createElement('div');
+                overlay.style.cssText = 'position:fixed;inset:0;z-index:60;display:grid;place-items:center;padding:16px;background:#0007';
+                overlay.innerHTML = '<section role="dialog" aria-modal="true" aria-labelledby="dashboard-title-heading" style="width:min(100%,400px);padding:20px;border:1px solid var(--bd);border-radius:16px;background:var(--cd);color:var(--tx);box-shadow:0 12px 36px #0005"><h3 id="dashboard-title-heading" style="margin:0 0 8px">Customize dashboard title</h3><p style="margin:0 0 12px;color:var(--mu);font-size:13px">Choose a title for the Dashboard tab (up to 32 characters).</p><input type="text" maxlength="32" aria-label="Dashboard title" style="width:100%;padding:10px 12px;border:1px solid var(--bd);border-radius:10px;background:var(--bg);color:var(--tx);font:inherit"><p class="title-error" aria-live="polite" style="min-height:18px;margin:6px 0;color:var(--ex);font-size:12px"></p><div style="display:flex;justify-content:flex-end;gap:8px"><button type="button" class="b2 title-cancel">Cancel</button><button type="button" class="b1 title-save">Save title</button></div></section>';
+                document.body.append(overlay);
+                const input = overlay.querySelector('input');
+                const close = () => overlay.remove();
+                const saveTitle = () => {
+                    const value = input.value.trim().slice(0, 32) || 'My Finance';
+                    try { localStorage.setItem('pocket.dashboardTitle', value); }
+                    catch { overlay.querySelector('.title-error').textContent = 'Could not save the title in this browser.'; return; }
+                    close();
+                    go('dash');
+                    requestAnimationFrame(syncTitle);
+                };
+                input.value = readDashboardTitle();
+                overlay.querySelector('.title-cancel').addEventListener('click', close);
+                overlay.querySelector('.title-save').addEventListener('click', saveTitle);
+                overlay.addEventListener('click', event => { if (event.target === overlay) close(); });
+                overlay.addEventListener('keydown', event => {
+                    if (event.key === 'Escape') close();
+                    if (event.key === 'Enter') { event.preventDefault(); saveTitle(); }
+                });
+                input.focus();
+                input.select();
+            };
+            main.addEventListener('click', event => {
+                const button = event.target.closest('.pocket-title-setting');
+                if (!button) return;
+                event.preventDefault();
+                event.stopPropagation();
+                event.stopImmediatePropagation();
+                openTitleDialog();
+            }, true);
+            new MutationObserver(() => requestAnimationFrame(syncTitle))
+                .observe(main, { childList: true, subtree: true });
+            syncTitle();
+        })();
+    </script>
 </body>
 
 </html>
