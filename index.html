@@ -892,6 +892,7 @@
                 'bar-chart-3': '<path d="M5 20V10M12 20V4M19 20v-7"/>',
                 save: '<path d="M5 3h11l3 3v15H5V3z"/><path d="M8 3v5h7V3M8 21v-7h8v7"/>',
                 upload: '<path d="M12 16V4M7 9l5-5 5 5M4 20h16"/>',
+                download: '<path d="M12 4v12M7 11l5 5 5-5M4 20h16"/>',
                 sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2.5V5M12 19v2.5M2.5 12H5M19 12h2.5M5.3 5.3l1.8 1.8M16.9 16.9l1.8 1.8M5.3 18.7l1.8-1.8M16.9 7.1l1.8-1.8"/>',
                 moon: '<path d="M20 14.5A8.5 8.5 0 0 1 9.5 4 8.5 8.5 0 1 0 20 14.5z"/>',
                 'alert-triangle': '<path d="M12 4 21.5 20h-19L12 4zM12 10v4.5M12 17.5v.1"/>'
@@ -1643,6 +1644,19 @@
             }).join('\n')
         }
 
+        function exportAllData() {
+            dl(`pocket-backup-${today()}.json`, JSON.stringify(D, null, 2), 'application/json');
+            info('Your full Pocket backup has been downloaded as a JSON file.')
+        }
+
+        function clearTransactionHistory() {
+            if (!D.tx.length) return info('There are no transactions to clear.');
+            ask('Clear all transaction history? Current account balances will be preserved as new opening balances. Recurring schedules will remain active.', () => {
+                D.acc.forEach(account => { account.initial = bal(account) });
+                D.tx = []
+            }, 'Clear history')
+        }
+
         function showText(title, txt, restore) {
             ov(`<h3>${title}</h3><small>${restore?'Paste a backup below, then restore.':'Select all and copy this text.'}</small>${restore?'<input type="file" accept=".json,application/json" onchange="rf(this)" style="margin-top:8px">':''}<textarea id="ta" rows="10" style="margin-top:8px"${restore?'':' readonly'}>${esc(txt)}</textarea><p class="er" id="er"></p><div class="row end"><button class="b2" onclick="cl()">Close</button>${restore?'':`<button class="b2" onclick="dl('${title==='Backup'?'pocket-backup-'+today()+'.json':'pocket-'+today()+'.csv'}',$('#ta').value,'${title==='Backup'?'application/json':'text/csv'}')">Download</button>`}<button class="b1" onclick="${restore?'doRestore()':'cp()'}">${restore?'Restore':'Copy'}</button></div>`)
         }
@@ -1691,8 +1705,8 @@
         V.set = () =>
             `<h2>Settings</h2><div class="g g2"><div class="card"><h3>Preferences</h3><div class="row sp"><span>Currency</span><b>Philippine Peso (₱)</b></div><div class="row sp" style="margin-top:8px"><span>Date format</span><b>DD/MM/YYYY</b></div><div class="row sp" style="margin-top:8px"><span>Theme</span><button class="b2" onclick="D.theme=D.theme==='dark'?'light':'dark';save();render()">${ic(D.theme==='dark'?'sun':'moon')} ${D.theme==='dark'?'Light':'Dark'} mode</button></div></div>
 <div class="card"><h3>Manage</h3><div class="row"><button class="b2" onclick="go('acc')">${ic('wallet')} Accounts</button><button class="b2" onclick="go('cat')">${ic('tag')} Categories</button><button class="b2" onclick="go('bud')">${ic('gauge')} Budgets</button><button class="b2" onclick="go('goal')">${ic('target')} Savings goals</button><button class="b2" onclick="go('rec')">${ic('repeat')} Recurring transactions</button></div></div>
-<div class="card"><h3>Export</h3><div class="row"><button class="b2" onclick="showText('Transactions (CSV)',csv())">${ic('file-text')} Transactions CSV</button><button class="b2" onclick="showText('Monthly report (CSV)',repCsv())">${ic('bar-chart-3')} Report CSV</button></div></div>
-<div class="card"><h3>Backup &amp; restore</h3><div class="row"><button class="b2" onclick="showText('Backup',JSON.stringify(D))">${ic('save')} Back up</button><button class="b2" onclick="showText('Restore backup','',1)">${ic('upload')} Restore</button><button class="b2" onclick="ask('Reset all amounts to ₱0? This clears every transaction, sets all account balances to ₱0 and empties savings goals.',()=>zero(D),'Reset')">${ic('rotate-ccw')} Reset all amounts</button><button class="b2" onclick="ask('Load the sample data? Your changes will be lost.',()=>{D=seed();D.v2=D.v3=1},'Load')">${ic('rotate-ccw')} Load sample data</button></div><small>Data is saved in this browser.</small></div></div>`;
+<div class="card"><h3>Export</h3><div class="row"><button class="b2" onclick="showText('Transactions (CSV)',csv())">${ic('file-text')} Transactions CSV</button><button class="b2" onclick="showText('Monthly report (CSV)',repCsv())">${ic('bar-chart-3')} Report CSV</button><button class="b2" onclick="exportAllData()">${ic('download')} Export all data (JSON)</button></div></div>
+<div class="card"><h3>Data controls &amp; backups</h3><div class="row"><button class="b2" onclick="showText('Backup',JSON.stringify(D))">${ic('save')} View / copy backup</button><button class="b2" onclick="showText('Restore backup','',1)">${ic('upload')} Restore backup</button><button class="b2" style="color:var(--ex)" onclick="clearTransactionHistory()">${ic('trash-2')} Clear transaction history</button><button class="b2" onclick="ask('Reset all amounts to ₱0? This clears every transaction, sets all account balances to ₱0 and empties savings goals.',()=>zero(D),'Reset')">${ic('rotate-ccw')} Reset all amounts</button><button class="b2" onclick="ask('Load the sample data? Your changes will be lost.',()=>{D=seed();D.v2=D.v3=1},'Load')">${ic('rotate-ccw')} Load sample data</button></div><small>Data is saved in this browser. Backups are files you download and store yourself; Pocket does not upload them to the cloud.</small></div></div>`;
         const ico = p =>
             `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`,
             NI = {
