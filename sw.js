@@ -1,9 +1,9 @@
-const CACHE = 'pera-v20';
+const CACHE = 'pera-v13';
 const FILES = [
   './',
   'index.html',
   'manifest.webmanifest',
-  'enhancements.js?v=20261117-dashboard-title-dialog-2',
+  'enhancements.js',
   'apple-touch-icon.png',
   'icon-192.png',
   'icon-512.png',
@@ -17,7 +17,7 @@ self.addEventListener('install', event => {
 
     // Repair quick-add SVGs when an older enhancement script has icon names
     // without matching path definitions (otherwise the icon squares render empty).
-    const scriptRequest = new Request(new URL('enhancements.js?v=20261117-dashboard-title-dialog-2', self.registration.scope));
+    const scriptRequest = new Request(new URL('enhancements.js', self.registration.scope));
     const scriptResponse = await cache.match(scriptRequest);
     if (scriptResponse) {
       const source = await scriptResponse.text();
