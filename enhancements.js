@@ -13,45 +13,30 @@
     arrow: '<path d="M4 8h16l-3.5-3.5M20 16H4l3.5 3.5"/>'
   };
   const icon = name => `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths[name] || ''}</svg>`;
-  const storedTitle = () => {
-    try { return localStorage.getItem(TITLE_KEY) || 'My Finance'; }
-    catch { return 'My Finance'; }
-  };
-  const isHidden = () => {
-    try { return localStorage.getItem(PRIVACY_KEY) === '1'; }
-    catch { return false; }
-  };
+  const storedTitle = () => { try { return localStorage.getItem(TITLE_KEY) || 'My Finance'; } catch { return 'My Finance'; } };
+  const isHidden = () => { try { return localStorage.getItem(PRIVACY_KEY) === '1'; } catch { return false; } };
 
   const installStyles = () => {
-    if (document.querySelector('#pocket-enhancements-style-v7')) return;
+    if (document.querySelector('#pocket-enhancements-style-v8')) return;
     const style = document.createElement('style');
-    style.id = 'pocket-enhancements-style-v7';
+    style.id = 'pocket-enhancements-style-v8';
     style.textContent = `
-      .pocket-carousel{overflow:hidden;margin-top:16px;touch-action:pan-y;user-select:none;-webkit-user-select:none}
+      .pocket-carousel{overflow:hidden;width:100%;margin-top:16px;touch-action:pan-y;user-select:none;-webkit-user-select:none}
       .pocket-carousel-track{display:flex;width:100%;transition:transform .42s cubic-bezier(.22,.8,.25,1);will-change:transform}
       .pocket-carousel-track>.hero{position:relative;flex:0 0 100%;width:100%;min-width:100%;margin:0;padding-right:66px}
       .pocket-carousel-track.is-dragging{transition:none!important;cursor:grabbing}
       .pocket-carousel-controls{display:none!important}
       .pocket-privacy-button{position:absolute;right:14px;top:14px;width:40px;height:40px;display:grid;place-items:center;border:1px solid var(--bd);border-radius:11px;background:var(--cd);color:var(--mu);cursor:pointer;z-index:2;transition:transform .18s ease,background-color .18s ease,color .18s ease}
       .pocket-privacy-button svg{display:block;transition:transform .2s ease}
-      .pocket-privacy-button:hover{transform:translateY(-2px)}
       .pocket-privacy-button:active{transform:scale(.9)}
       .pocket-fab-menu{position:fixed;right:20px;bottom:calc(82px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:8px;z-index:30;pointer-events:auto}
-      .pocket-fab-menu button{border:0;border-radius:12px;padding:10px 14px;min-width:156px;min-height:48px;background:var(--cd);color:var(--tx);box-shadow:0 8px 22px #0004;display:flex;align-items:center;justify-content:flex-start;gap:10px;font-weight:700;cursor:pointer;transform-origin:bottom right;animation:pocket-pop-in .22s cubic-bezier(.2,.8,.2,1) both;transition:transform .14s ease,background-color .14s ease,box-shadow .14s ease}
-      .pocket-fab-menu button:nth-child(2){animation-delay:.035s}
-      .pocket-fab-menu button:nth-child(3){animation-delay:.07s}
-      .pocket-fab-menu button:hover{transform:translateX(-3px);box-shadow:0 10px 26px #0005}
+      .pocket-fab-menu button{border:0;border-radius:12px;padding:10px 14px;min-width:156px;min-height:48px;background:var(--cd);color:var(--tx);box-shadow:0 8px 22px #0004;display:flex;align-items:center;justify-content:flex-start;gap:10px;font-weight:700;cursor:pointer;transform-origin:bottom right;animation:pocket-pop-in .22s cubic-bezier(.2,.8,.2,1) both;transition:transform .14s ease,box-shadow .14s ease}
+      .pocket-fab-menu button:nth-child(2){animation-delay:.035s}.pocket-fab-menu button:nth-child(3){animation-delay:.07s}
       .pocket-fab-menu button:active{transform:scale(.96)}
       .pocket-fab-menu button .mini{display:grid;place-items:center;width:26px;height:26px;border-radius:8px;background:var(--sq)}
-      .pocket-fab-menu button[data-kind="expense"] .mini{color:var(--ex)}
-      .pocket-fab-menu button[data-kind="income"] .mini{color:var(--in)}
-      .pocket-fab-menu button[data-kind="transfer"] .mini{color:var(--tr)}
-      .pocket-hidden{display:none!important}
-      .fab{z-index:22;transition:opacity .2s ease,transform .2s cubic-bezier(.2,.8,.2,1)}
-      .fab:active{transform:scale(.92)}
-      .fab.pocket-fab-open{opacity:0;transform:scale(.65) rotate(45deg);pointer-events:none}
-      .b1,.b2,.chip,.ib{transition:transform .14s ease,filter .14s ease,background-color .14s ease}
-      .b1:active,.b2:active,.chip:active,.ib:active{transform:scale(.96)}
+      .pocket-fab-menu button[data-kind="expense"] .mini{color:var(--ex)}.pocket-fab-menu button[data-kind="income"] .mini{color:var(--in)}.pocket-fab-menu button[data-kind="transfer"] .mini{color:var(--tr)}
+      .pocket-hidden{display:none!important}.fab{z-index:22;transition:opacity .2s ease,transform .2s cubic-bezier(.2,.8,.2,1)}.fab:active{transform:scale(.92)}.fab.pocket-fab-open{opacity:0;transform:scale(.65) rotate(45deg);pointer-events:none}
+      .b1,.b2,.chip,.ib{transition:transform .14s ease,filter .14s ease,background-color .14s ease}.b1:active,.b2:active,.chip:active,.ib:active{transform:scale(.96)}
       #m.pocket-private .hb,#m.pocket-private .hn,#m.pocket-private .av,#m.pocket-private .tx>b{filter:blur(8px);user-select:none}
       @keyframes pocket-pop-in{from{opacity:0;transform:translateY(12px) scale(.94)}to{opacity:1;transform:translateY(0) scale(1)}}
       @media(max-width:760px){.pocket-fab-menu{right:16px;bottom:calc(94px + env(safe-area-inset-bottom,0px))}}
@@ -64,22 +49,18 @@
   const setTitle = () => {
     const heading = dashboardTitle();
     if (!heading || heading.textContent.trim() === 'Settings') return;
-    const title = storedTitle();
-    if (heading.textContent !== title) heading.textContent = title;
+    if (heading.textContent !== storedTitle()) heading.textContent = storedTitle();
   };
   const addTitleSetting = () => {
     const heading = [...main.querySelectorAll('h2')].find(item => item.textContent.trim() === 'Settings');
     if (!heading || main.querySelector('.pocket-title-setting')) return;
     const button = document.createElement('button');
-    button.type = 'button';
-    button.className = 'b2 pocket-title-setting';
-    button.style.marginTop = '12px';
+    button.type = 'button'; button.className = 'b2 pocket-title-setting'; button.style.marginTop = '12px';
     button.innerHTML = `${icon('edit')} Customize dashboard title`;
     button.addEventListener('click', () => {
       const answer = window.prompt('Choose a dashboard title (up to 32 characters):', storedTitle());
       if (answer === null) return;
       try { localStorage.setItem(TITLE_KEY, answer.trim().slice(0, 32) || 'My Finance'); } catch {}
-      setTitle();
     });
     heading.after(button);
   };
@@ -96,8 +77,7 @@
   };
   const makePrivacyButton = () => {
     const button = document.createElement('button');
-    button.type = 'button';
-    button.className = 'pocket-privacy-button';
+    button.type = 'button'; button.className = 'pocket-privacy-button';
     button.addEventListener('click', event => {
       event.stopPropagation();
       try { localStorage.setItem(PRIVACY_KEY, isHidden() ? '0' : '1'); } catch {}
@@ -111,80 +91,81 @@
   const showSlide = next => {
     slide = Math.max(0, Math.min(1, next));
     const track = main.querySelector('.pocket-carousel-track');
-    if (track) {
-      track.classList.remove('is-dragging');
-      track.style.transform = `translateX(-${slide * 100}%)`;
-    }
+    if (!track) return;
+    track.classList.remove('is-dragging');
+    track.style.transform = `translateX(-${slide * 100}%)`;
   };
   const addCarousel = () => {
+    // Find cards whether they are still direct children or were moved into a previous carousel.
     let carousel = main.querySelector(':scope > .pocket-carousel');
+    let balance = main.querySelector(':scope > .hero:not(.hs)') || main.querySelector('.pocket-carousel-track > .hero:not(.hs)');
+    let savings = main.querySelector(':scope > .hero.hs') || main.querySelector('.pocket-carousel-track > .hero.hs');
+    if (!balance || !savings) return;
     if (!carousel) {
-      const balance = main.querySelector(':scope > .hero:not(.hs)');
-      const savings = main.querySelector(':scope > .hero.hs');
-      if (!balance || !savings) return;
       carousel = document.createElement('section');
       carousel.className = 'pocket-carousel';
       carousel.setAttribute('aria-label', 'Balance and savings cards. Swipe left or right to switch cards.');
       const track = document.createElement('div');
       track.className = 'pocket-carousel-track';
-      track.append(balance, savings);
       carousel.append(track);
-      balance.before(carousel);
+      if (balance.parentElement === main) balance.before(carousel);
+    }
+    let track = carousel.querySelector('.pocket-carousel-track');
+    if (!track) {
+      track = document.createElement('div');
+      track.className = 'pocket-carousel-track';
+      carousel.append(track);
+    }
+    if (balance.parentElement !== track) track.append(balance);
+    if (savings.parentElement !== track) track.append(savings);
+    track.style.width = '100%';
 
+    if (!track.dataset.pocketSwipeReady) {
+      track.dataset.pocketSwipeReady = '1';
       track.addEventListener('touchstart', event => {
+        if (event.touches.length !== 1) return;
         dragStart = event.touches[0].clientX;
         track.classList.add('is-dragging');
       }, { passive: true });
       track.addEventListener('touchmove', event => {
-        if (dragStart === null) return;
+        if (dragStart === null || event.touches.length !== 1) return;
         const dx = event.touches[0].clientX - dragStart;
         const width = carousel.getBoundingClientRect().width || window.innerWidth;
-        const dragPercent = dx / width * 100;
-        const offset = Math.max(-100, Math.min(0, -slide * 100 + dragPercent));
+        const offset = Math.max(-100, Math.min(0, -slide * 100 + dx / width * 100));
         track.style.transform = `translateX(${offset}%)`;
       }, { passive: true });
       track.addEventListener('touchend', event => {
         if (dragStart === null) return;
         const dx = event.changedTouches[0].clientX - dragStart;
         dragStart = null;
-        if (Math.abs(dx) > 48) showSlide(slide + (dx < 0 ? 1 : -1));
-        else showSlide(slide);
+        showSlide(Math.abs(dx) > 48 ? slide + (dx < 0 ? 1 : -1) : slide);
       }, { passive: true });
-      track.addEventListener('touchcancel', () => {
-        dragStart = null;
-        showSlide(slide);
-      }, { passive: true });
+      track.addEventListener('touchcancel', () => { dragStart = null; showSlide(slide); }, { passive: true });
     }
-    const cards = main.querySelectorAll('.pocket-carousel-track > .hero');
-    cards.forEach(card => {
+    [balance, savings].forEach(card => {
       if (!card.querySelector('.pocket-privacy-button')) card.append(makePrivacyButton());
     });
     showSlide(slide);
   };
 
   const removeLegacyDashboardControls = () => {
-    main.querySelectorAll('.pocket-carousel-controls').forEach(element => element.remove());
-    main.querySelectorAll('.pocket-title-edit').forEach(element => element.remove());
+    main.querySelectorAll('.pocket-carousel-controls,.pocket-title-edit').forEach(element => element.remove());
     [...main.querySelectorAll('.row')].forEach(row => {
-      const buttons = [...row.querySelectorAll('button')];
-      const labels = buttons.map(button => button.textContent.trim().toLowerCase());
-      if (labels.some(label => label.includes('expense')) && labels.some(label => label.includes('income')) && labels.some(label => label.includes('transfer'))) row.remove();
+      const labels = [...row.querySelectorAll('button')].map(button => button.textContent.trim().toLowerCase());
+      if (labels.some(s => s.includes('expense')) && labels.some(s => s.includes('income')) && labels.some(s => s.includes('transfer'))) row.remove();
     });
   };
 
   const closeMenu = (menu, fab) => {
-    menu.classList.add('pocket-hidden');
-    menu.setAttribute('aria-hidden', 'true');
-    fab.setAttribute('aria-expanded', 'false');
-    fab.classList.remove('pocket-fab-open');
+    menu.classList.add('pocket-hidden'); menu.setAttribute('aria-hidden', 'true');
+    fab.setAttribute('aria-expanded', 'false'); fab.classList.remove('pocket-fab-open');
   };
   const wireQuickAdd = () => {
     const fab = document.querySelector('.fab');
     if (!fab || fab.dataset.pocketQuickMenuReady) return;
     fab.dataset.pocketQuickMenuReady = '1';
     const menu = document.createElement('div');
-    menu.className = 'pocket-fab-menu pocket-hidden';
-    menu.setAttribute('aria-hidden', 'true');
+    menu.className = 'pocket-fab-menu pocket-hidden'; menu.setAttribute('aria-hidden', 'true');
     menu.innerHTML = [
       { kind: 'expense', label: 'Expense', icon: 'bolt' },
       { kind: 'income', label: 'Income', icon: 'wallet' },
@@ -192,22 +173,16 @@
     ].map(item => `<button type="button" data-kind="${item.kind}"><span class="mini">${icon(item.icon)}</span><span>${item.label}</span></button>`).join('');
     document.body.append(menu);
     fab.onclick = event => {
-      event.preventDefault();
-      event.stopPropagation();
+      event.preventDefault(); event.stopPropagation();
       const opening = menu.classList.contains('pocket-hidden');
-      menu.classList.toggle('pocket-hidden', !opening);
-      menu.setAttribute('aria-hidden', String(!opening));
-      fab.setAttribute('aria-expanded', String(opening));
-      fab.classList.toggle('pocket-fab-open', opening);
+      menu.classList.toggle('pocket-hidden', !opening); menu.setAttribute('aria-hidden', String(!opening));
+      fab.setAttribute('aria-expanded', String(opening)); fab.classList.toggle('pocket-fab-open', opening);
     };
     menu.querySelectorAll('button').forEach(button => button.addEventListener('click', () => {
-      const kind = button.dataset.kind;
-      if (typeof window.quickAdd === 'function') window.quickAdd(kind);
+      if (typeof window.quickAdd === 'function') window.quickAdd(button.dataset.kind);
       closeMenu(menu, fab);
     }));
-    document.addEventListener('click', event => {
-      if (!menu.contains(event.target) && !fab.contains(event.target)) closeMenu(menu, fab);
-    });
+    document.addEventListener('click', event => { if (!menu.contains(event.target) && !fab.contains(event.target)) closeMenu(menu, fab); });
     document.addEventListener('keydown', event => { if (event.key === 'Escape') closeMenu(menu, fab); });
   };
 
@@ -215,9 +190,10 @@
   const enhance = () => {
     queued = false;
     installStyles();
-    const settingsPage = [...main.querySelectorAll('h2')].some(item => item.textContent.trim() === 'Settings');
-    if (settingsPage) addTitleSetting();
-    else {
+    const dashboard = !!(main.querySelector(':scope > .hero:not(.hs)') || main.querySelector('.pocket-carousel-track > .hero:not(.hs)'));
+    const settings = [...main.querySelectorAll('h2')].some(item => item.textContent.trim() === 'Settings');
+    if (settings) addTitleSetting();
+    if (dashboard) {
       setTitle();
       addCarousel();
       removeLegacyDashboardControls();
@@ -226,10 +202,7 @@
     updatePrivacy();
   };
   const observer = new MutationObserver(() => {
-    if (!queued) {
-      queued = true;
-      requestAnimationFrame(enhance);
-    }
+    if (!queued) { queued = true; requestAnimationFrame(enhance); }
   });
   observer.observe(main, { childList: true, subtree: true });
   enhance();
