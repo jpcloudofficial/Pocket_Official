@@ -27,67 +27,83 @@
     const style = document.createElement('style');
     style.id = 'pocket-enhancements-style';
     style.textContent = `
-      .pocket-title-edit{display:inline-flex;vertical-align:middle;margin-left:6px;padding:7px;border:0;border-radius:9px;background:var(--sq);color:var(--mu);cursor:pointer}
-      .pocket-title-edit svg,.pocket-privacy-button svg{display:block}
       .pocket-carousel{overflow:hidden;margin-top:16px;touch-action:pan-y}
       .pocket-carousel-track{display:flex;transition:transform .28s ease;will-change:transform}
-      .pocket-carousel-track>.hero{flex:0 0 100%;width:100%;min-width:100%;margin:0}
+      .pocket-carousel-track>.hero{flex:0 0 100%;width:100%;min-width:100%;margin:0;position:relative;padding-right:66px}
       .pocket-carousel-controls{display:flex;align-items:center;justify-content:center;gap:8px;margin:9px 0 0}
       .pocket-carousel-controls button{border:1px solid var(--bd);background:var(--cd);color:var(--mu);border-radius:99px;padding:5px 11px;font-size:12px;cursor:pointer}
       .pocket-carousel-controls button[aria-current="true"]{background:var(--tx);border-color:var(--tx);color:var(--bg)}
-      .pocket-privacy-button{width:38px;height:38px;display:inline-grid;place-items:center;border:1px solid var(--bd);border-radius:11px;background:var(--cd);color:var(--mu);cursor:pointer}
+      .pocket-privacy-button{position:absolute;right:14px;top:14px;width:38px;height:38px;display:inline-grid;place-items:center;border:1px solid var(--bd);border-radius:11px;background:var(--cd);color:var(--mu);cursor:pointer;z-index:1}
+      .pocket-privacy-button svg{display:block}
       #m.pocket-private .hb,#m.pocket-private .hn,#m.pocket-private .av,#m.pocket-private .tx> b{filter:blur(8px);user-select:none}
       @media(prefers-reduced-motion:reduce){.pocket-carousel-track{transition:none}}
     `;
     document.head.append(style);
   };
 
-  const personalizeHeading = () => {
-    const heading = main.querySelector('.row.sp h2');
-    if (!heading || heading.dataset.pocketTitleReady) return;
-    heading.dataset.pocketTitleReady = '1';
-    heading.textContent = storedTitle();
-    const edit = document.createElement('button');
-    edit.type = 'button';
-    edit.className = 'pocket-title-edit';
-    edit.setAttribute('aria-label', 'Customize dashboard title');
-    edit.title = 'Customize dashboard title';
-    edit.innerHTML = icon('edit');
-    edit.addEventListener('click', () => {
-      const answer = window.prompt('Choose a dashboard title (up to 32 characters):', storedTitle());
-      if (answer === null) return;
-      const title = answer.trim().slice(0, 32) || 'My Finance';
-      try { localStorage.setItem(TITLE_KEY, title); } catch {}
-      heading.textContent = title;
-      heading.append(edit);
-    });
-    heading.after(edit);
+  const titleHeading = () => main.querySelector('.row.sp h2');
+  const customizeTitle = () => {
+    const answer = window.prompt('Choose a dashboard title (up to 32 characters):', storedTitle());
+    if (answer === null) return;
+    const title = answer.trim().slice(0, 32) || 'My Finance';
+    try { localStorage.setItem(TITLE_KEY, title); } catch {}
+    const heading = titleHeading();
+    if (heading) heading.textContent = title;
   };
 
-  const addPrivacyButton = () => {
-    const header = main.querySelector('.row.sp');
-    if (!header || header.querySelector('.pocket-privacy-button')) return;
+  const personalizeHeading = () => {
+    const heading = titleHeading();
+    if (!heading) return;
+    heading.textContent = storedTitle();
+  };
+
+  const addSettingsTitleEditor = () => {
+    const settingsHeading = [...main.querySelectorAll('h2')].find(h => h.textContent.trim() === 'Settings');
+    if (!settingsHeading || settingsHeading.parentElement.querySelector('.pocket-title-setting')) return;
     const button = document.createElement('button');
     button.type = 'button';
-    button.className = 'pocket-privacy-button';
-    button.addEventListener('click', () => {
-      const next = !isHidden();
-      try { localStorage.setItem(PRIVACY_KEY, next ? '1' : '0'); } catch {}
-      updatePrivacy();
-    });
-    header.append(button);
+    button.className = 'b2 pocket-title-setting';
+    button.style.marginTop = '12px';
+    button.innerHTML = `${icon('edit')} Customize dashboard title`;
+    button.addEventListener('click', customizeTitle);
+    settingsHeading.after(button);
   };
 
   const updatePrivacy = () => {
     const hidden = isHidden();
     main.classList.toggle('pocket-private', hidden);
-    const button = main.querySelector('.pocket-privacy-button');
-    if (button) {
+    main.querySelectorAll('.pocket-privacy-button').forEach(button => {
       button.innerHTML = icon(hidden ? 'off' : 'eye');
       button.setAttribute('aria-label', hidden ? 'Show amounts' : 'Hide amounts');
       button.title = hidden ? 'Show amounts' : 'Hide amounts';
       button.setAttribute('aria-pressed', String(hidden));
-    }
+    });
+  };
+
+  const createPrivacyButton = () => {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'pocket-privacy-button';
+    button.addEventListener('click', event => {
+      event.stopPropagation();
+      const next = !isHidden();
+      try { localStorage.setItem(PRIVACY_KEY, next ? '1' : '0'); } catch {}
+      updatePrivacy();
+    });
+    return button;
+  };
+
+  const placePrivacyButtons = () => {
+    const slides = main.querySelectorAll('.pocket-carousel-track > .hero');
+    if (!slides.length) return;
+    slides.forEach(slide => {
+      let button = slide.querySelector('.pocket-privacy-button');
+      if (!button) {
+        button = createPrivacyButton();
+        slide.append(button);
+      }
+    });
+    updatePrivacy();
   };
 
   const addCarousel = () => {
@@ -133,6 +149,7 @@
         }
       }, true);
     }
+    placePrivacyButtons();
     showSlide(Number(carousel.dataset.slide || 0));
   };
 
@@ -155,9 +172,12 @@
   const enhance = () => {
     queued = false;
     installStyles();
-    personalizeHeading();
-    addPrivacyButton();
-    addCarousel();
+    if (main.querySelector('.row.sp h2')?.textContent.trim() === 'Settings') {
+      addSettingsTitleEditor();
+    } else {
+      personalizeHeading();
+      addCarousel();
+    }
     updatePrivacy();
   };
   const observer = new MutationObserver(() => {
