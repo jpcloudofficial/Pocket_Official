@@ -679,6 +679,7 @@
                 ['Bonus', 'gift', '#65a30d', 'Income'],
                 ['13th Month Pay', 'calendar', '#15803d', 'Income'],
                 ['Refund', 'rotate-ccw', '#0891b2', 'Income'],
+                ['Cashback', 'coins', '#0891b2', 'Income'],
                 ['Other Income', 'coins', '#4d7c0f', 'Income']
             ];
             const k = n => 'c_' + n.toLowerCase().replace(/[^a-z]/g, '');
@@ -796,13 +797,15 @@
                     date: ed,
                     acc: g[3]
                 })),
-                recurring: []
+                recurring: [],
+                cashbacks: []
             }
         }
         const zero = d => {
             d.acc.forEach(a => a.initial = 0);
             d.tx = [];
             d.recurring = [];
+            d.cashbacks = [];
             d.goals.forEach(g => g.current = 0);
             d.v3 = 1
         };
@@ -1043,7 +1046,17 @@
                             k: 'note',
                             l: 'Notes (optional)',
                             t: 'area'
-                        }
+                        }, ...(!t && v.type === 'expense' ? [{
+                            k: 'cashbackAmount',
+                            l: 'Expected cashback (optional)',
+                            t: 'number',
+                            pos: 1
+                        }, {
+                            k: 'cashbackAccount',
+                            l: 'Cashback deposit account',
+                            t: 'sel',
+                            o: ac
+                        }] : [])
                     ]
                 },
                 t || {
@@ -1055,6 +1068,13 @@
                     const amt = +v.amount,
                         tr = v.type === 'transfer',
                         title = v.title || 'Transfer';
+                    const linkedCashback = t && D.cashbacks.find(claim => claim.expenseId === t.id);
+                    const cashbackAmount = +v.cashbackAmount || 0;
+                    if (cashbackAmount > 0 && v.type !== 'expense') return 'Cashback can only be added to an expense.';
+                    if (cashbackAmount > amt) return 'Cashback can’t exceed the expense amount.';
+                    if (cashbackAmount > 0 && !A(v.cashbackAccount)) return 'Choose an account for the cashback deposit.';
+                    if (linkedCashback && (tr || v.type !== 'expense')) return 'Remove the linked cashback claim before changing this expense type.';
+                    if (linkedCashback && amt < linkedCashback.amount) return 'This expense amount is below its cashback claim. Update the claim first.';
                     if (tr) {
                         if (v.acc === v.to) return 'Choose two different accounts';
                         const a = A(v.acc),
@@ -1076,9 +1096,28 @@
                         to: tr ? v.to : null,
                         date: v.date,
                         time: v.time,
-                        note: v.note
+                        note: v.note,
+                        ...(t?.cashbackId ? { cashbackId: t.cashbackId } : {})
                     };
-                    t ? Object.assign(t, o) : D.tx.push(o)
+                    if (linkedCashback) {
+                        linkedCashback.expenseTitle = title;
+                        linkedCashback.expenseDate = v.date
+                    }
+                    t ? Object.assign(t, o) : D.tx.push(o);
+                    if (!t && v.type === 'expense' && cashbackAmount > 0) {
+                        D.cashbacks.push({
+                            id: uid(),
+                            expenseId: o.id,
+                            expenseTitle: title,
+                            expenseDate: v.date,
+                            amount: cashbackAmount,
+                            account: v.cashbackAccount,
+                            created: today(),
+                            status: 'pending',
+                            receivedDate: '',
+                            incomeId: ''
+                        })
+                    }
                 }, 'type')
         }
 
@@ -1090,6 +1129,71 @@
                 t.onchange && t.onchange();
             }
         }
+
+        function cashbackForm(expenseId) {
+            const expense = D.tx.find(item => item.id === expenseId && item.type === 'expense');
+            if (!expense) return info('The linked expense could not be found.');
+            if (D.cashbacks.some(claim => claim.expenseId === expenseId)) {
+                U.v = 'cash';
+                render();
+                return info('This expense already has a cashback claim. You can manage it on the Cashback page.');
+            }
+            const cashbackCategory = D.cats.find(category => category.g === 'Income' && category.name.toLowerCase() === 'cashback');
+            if (!cashbackCategory) return info('Cashback category is unavailable. Reload Pocket to update categories.');
+            openForm('Track cashback', () => [{
+                k: 'amount', l: 'Expected cashback (₱)', t: 'number', req: 1, pos: 1
+            }, {
+                k: 'account', l: 'Deposit account', t: 'sel', o: D.acc.map(account => [account.id, account.name])
+            }], { amount: '', account: expense.acc }, value => {
+                const amount = +value.amount;
+                if (amount > expense.amount) return 'Cashback can’t exceed the linked expense amount.';
+                D.cashbacks.push({
+                    id: uid(),
+                    expenseId,
+                    expenseTitle: expense.title,
+                    expenseDate: expense.date,
+                    amount,
+                    account: value.account,
+                    created: today(),
+                    status: 'pending',
+                    receivedDate: '',
+                    incomeId: ''
+                });
+            });
+        }
+
+        function markCashbackReceived(id) {
+            const claim = D.cashbacks.find(item => item.id === id);
+            if (!claim || claim.status === 'received') return;
+            const incomeCategory = D.cats.find(category => category.g === 'Income' && category.name.toLowerCase() === 'cashback');
+            if (!incomeCategory || !A(claim.account)) return info('The cashback category or deposit account is unavailable.');
+            const expense = D.tx.find(item => item.id === claim.expenseId);
+            const income = {
+                id: uid(),
+                type: 'income',
+                title: `Cashback — ${claim.expenseTitle || expense?.title || 'Expense'}`,
+                amount: claim.amount,
+                cat: incomeCategory.id,
+                acc: claim.account,
+                to: null,
+                date: today(),
+                time: '',
+                note: `Cashback received for ${claim.expenseDate || expense?.date || 'linked expense'}`,
+                cashbackId: claim.id
+            };
+            D.tx.push(income);
+            claim.status = 'received';
+            claim.receivedDate = today();
+            claim.incomeId = income.id;
+            save();
+            render();
+        }
+
+        const deleteCashback = id => ask('Delete this cashback claim? If received, its linked income transaction will also be deleted.', () => {
+            const claim = D.cashbacks.find(item => item.id === id);
+            if (claim?.incomeId) D.tx = D.tx.filter(item => item.id !== claim.incomeId);
+            D.cashbacks = D.cashbacks.filter(item => item.id !== id)
+        });
 
         const RECURRENCES = [
             ['daily', 'Every day'],
@@ -1236,8 +1340,10 @@
             D.recurring = D.recurring.filter(rule => rule.id !== id)
         });
         const editTx = id => txForm(id),
-            delTx = id => ask('Delete this transaction? Account balances will be recalculated.', () => {
-                D.tx = D.tx.filter(t => t.id !== id)
+            delTx = id => ask('Delete this transaction? Account balances will be recalculated. Deleting cashback income also removes its linked cashback claim.', () => {
+                const transaction = D.tx.find(t => t.id === id);
+                D.tx = D.tx.filter(t => t.id !== id);
+                if (transaction?.cashbackId) D.cashbacks = D.cashbacks.filter(claim => claim.id !== transaction.cashbackId)
             });
 
         function row(t, act) {
@@ -1245,7 +1351,8 @@
                 tr = t.type === 'transfer',
                 col = tr ? 'var(--tx)' : t.type === 'income' ? 'var(--in)' : 'var(--ex)',
                 cc = tr ? '#2563eb' : c ? c.color : '#78716c';
-            return `<div class="tx"><span class="dot" style="background:var(--sq);color:var(--tx)">${ic(tr?'arrow-left-right':c?c.icon:'tag')}</span><div class="gr"><b>${esc(t.title)}</b><br><small>${tr?esc(A(t.acc)?.name)+' → '+esc(A(t.to)?.name):esc(c?c.name:'Uncategorized')+' · '+esc(A(t.acc)?.name)} · ${fd(t.date)}${t.time?' '+t.time:''}</small></div><b style="color:${col}">${t.type==='expense'?'−':t.type==='income'?'+':''}${peso(t.amount)}</b>${act?`<button class="ib" onclick="editTx('${t.id}')" aria-label="Edit">${ic('pencil')}</button><button class="ib" onclick="delTx('${t.id}')" aria-label="Delete">${ic('trash-2')}</button>`:''}</div>`
+            const cashback = t.type === 'expense' ? D.cashbacks.find(claim => claim.expenseId === t.id) : null;
+            return `<div class="tx"><span class="dot" style="background:var(--sq);color:var(--tx)">${ic(tr?'arrow-left-right':c?c.icon:'tag')}</span><div class="gr"><b>${esc(t.title)}</b><br><small>${tr?esc(A(t.acc)?.name)+' → '+esc(A(t.to)?.name):esc(c?c.name:'Uncategorized')+' · '+esc(A(t.acc)?.name)} · ${fd(t.date)}${t.time?' '+t.time:''}</small></div><b style="color:${col}">${t.type==='expense'?'−':t.type==='income'?'+':''}${peso(t.amount)}</b>${act?`${t.type==='expense'?`<button class="ib" onclick="${cashback?'go(\'cash\')':`cashbackForm('${t.id}')`}" aria-label="${cashback?'Manage cashback':'Track cashback'}" title="${cashback?'Manage cashback':'Track cashback'}">${ic('coins')}</button>`:''}<button class="ib" onclick="editTx('${t.id}')" aria-label="Edit">${ic('pencil')}</button><button class="ib" onclick="delTx('${t.id}')" aria-label="Delete">${ic('trash-2')}</button>`:''}</div>`
         }
 
         function bars(S, L, C) {
@@ -1451,7 +1558,7 @@
                 })
             })
         }
-        const delAcc = id => D.tx.some(t => t.acc === id || t.to === id) ? info(
+        const delAcc = id => D.tx.some(t => t.acc === id || t.to === id) || D.cashbacks.some(claim => claim.account === id) ? info(
             'This account has transactions. Delete or move them first.') : ask('Delete this account?', () => {
             D.acc = D.acc.filter(a => a.id !== id)
         });
@@ -1564,6 +1671,15 @@
                 A(rule.acc) && !od(A(rule.acc)) && bal(A(rule.acc)) < rule.amount;
             return `<div class="row"><div class="gr"><h2>Recurring transactions</h2><small>Due items are added automatically when Pocket is open. If the app was closed, due dates are caught up the next time you open it.</small></div><button class="b1" onclick="recurringForm()">${ic('plus')} Add schedule</button></div><div class="g g2">${D.recurring.length ? D.recurring.map(rule => `<div class="card"><div class="row"><span class="dot" style="background:var(--sq);color:${rule.type==='income'?'var(--in)':rule.type==='expense'?'var(--ex)':'var(--tr)'}">${ic(rule.type==='transfer'?'arrow-left-right':rule.type==='income'?'wallet':'zap')}</span><div class="gr"><b>${esc(rule.title || 'Transfer')}</b><br><small>${frequencyName(rule.frequency)} · ${details(rule)}</small></div><button class="ib" onclick="recurringForm('${rule.id}')" aria-label="Edit schedule">${ic('pencil')}</button><button class="ib" onclick="deleteRecurring('${rule.id}')" aria-label="Delete schedule">${ic('trash-2')}</button></div><div class="row sp" style="margin-top:10px"><b style="color:${rule.type==='income'?'var(--in)':rule.type==='expense'?'var(--ex)':'var(--tr)'}">${rule.type==='expense'?'−':rule.type==='income'?'+':''}${peso(rule.amount)}</b><small>${rule.active ? waitingForFunds(rule) ? 'Waiting for sufficient funds' : `Next: ${fd(rule.next)}` : 'Paused'}</small></div><div class="row sp" style="margin-top:10px"><small>${rule.next < today() && !rule.active ? `Paused · next due ${fd(rule.next)}` : `Starts ${fd(rule.start)}`}</small><button class="chip" onclick="toggleRecurring('${rule.id}')">${rule.active?'Pause':'Resume'}</button></div></div>`).join('') : '<div class="empty card">No recurring schedules yet. Add one for a regular bill, subscription, salary, or transfer.</div>'}</div>`
         };
+        V.cash = () => {
+            const pending = D.cashbacks.filter(claim => claim.status === 'pending');
+            const received = D.cashbacks.filter(claim => claim.status === 'received');
+            const claimCard = claim => {
+                const expense = D.tx.find(item => item.id === claim.expenseId);
+                return `<div class="card"><div class="row"><span class="dot" style="background:#0891b222;color:#0891b2">${ic('coins')}</span><div class="gr"><b>${esc(claim.expenseTitle || expense?.title || 'Linked expense')}</b><br><small>Expense ${fd(claim.expenseDate || expense?.date || claim.created)} · Deposit to ${esc(A(claim.account)?.name || 'Unknown account')}</small></div><b style="color:var(--in)">${peso(claim.amount)}</b></div><div class="row sp" style="margin-top:10px"><small>${claim.status === 'received' ? `Received ${fd(claim.receivedDate)}` : `Expected · added ${fd(claim.created)}`}</small><div class="row">${claim.status === 'pending' ? `<button class="chip" onclick="markCashbackReceived('${claim.id}')">Mark received</button>` : ''}<button class="ib" onclick="deleteCashback('${claim.id}')" aria-label="Delete cashback claim">${ic('trash-2')}</button></div></div></div>`
+            };
+            return `<div class="row"><div class="gr"><h2>Cashback</h2><small>Track expected cashback from an expense. Mark it received to add it as income to the selected account.</small></div><b style="color:var(--in)">${peso(received.reduce((total, claim) => total + claim.amount, 0))} received</b></div><h3 class="sec">Pending (${pending.length})</h3><div class="g g2">${pending.length ? pending.map(claimCard).join('') : '<div class="empty card">No pending cashback. Open Transactions and tap the coin icon beside an expense to add one.</div>'}</div><h3 class="sec">Received (${received.length})</h3><div class="g g2">${received.length ? received.map(claimCard).join('') : '<div class="empty card">Cashback marked received will appear here as income.</div>'}</div>`
+        };
         V.rep = () => {
             const y = +U.ry,
                 yrs = [...new Set([new Date().getFullYear(), ...D.tx.map(t => +t.date.slice(0, 4))])].sort(),
@@ -1620,7 +1736,7 @@
                 })
             })
         }
-        const delCat = id => D.tx.some(t => t.cat === id) || D.budgets[id] ? info(
+        const delCat = id => D.tx.some(t => t.cat === id) || D.budgets[id] || (D.cashbacks.length && C(id)?.name.toLowerCase() === 'cashback') ? info(
             'This category is in use by transactions or a budget.') : ask('Delete this category?', () => {
             D.cats = D.cats.filter(c => c.id !== id)
         });
@@ -1651,9 +1767,10 @@
 
         function clearTransactionHistory() {
             if (!D.tx.length) return info('There are no transactions to clear.');
-            ask('Clear all transaction history? Current account balances will be preserved as new opening balances. Recurring schedules will remain active.', () => {
+            ask('Clear all transaction history and cashback claims? Current account balances will be preserved as new opening balances. Recurring schedules will remain active.', () => {
                 D.acc.forEach(account => { account.initial = bal(account) });
-                D.tx = []
+                D.tx = [];
+                D.cashbacks = []
             }, 'Clear history')
         }
 
@@ -1724,6 +1841,7 @@
         const NAV = [
             ['dash', 'Dashboard', 'layout-grid', 1],
             ['tx', 'Transactions', 'receipt', 1],
+            ['cash', 'Cashback', 'coins', 1],
             ['rec', 'Recurring', 'repeat', 1],
             ['acc', 'Accounts', 'wallet', 1],
             ['bud', 'Budgets', 'gauge'],
@@ -1793,7 +1911,8 @@
                     ...(okId(t.recurringId) && okD(t.recurringDate) ? {
                         recurringId: t.recurringId,
                         recurringDate: t.recurringDate
-                    } : {})
+                        } : {}),
+                        ...(okId(t.cashbackId) ? { cashbackId: t.cashbackId } : {})
                 })),
                 recurring: (Array.isArray(d.recurring) ? d.recurring : []).filter(rule =>
                     rule && okId(rule.id) && ['income', 'expense', 'transfer'].includes(rule.type) &&
@@ -1814,6 +1933,21 @@
                     time: /^\d\d:\d\d$/.test(rule.time) ? rule.time : '',
                     note: sx(rule.note, 500),
                     active: rule.active !== false
+                })),
+                cashbacks: (Array.isArray(d.cashbacks) ? d.cashbacks : []).filter(claim =>
+                    claim && okId(claim.id) && okId(claim.expenseId) && okD(claim.created) &&
+                    ['pending', 'received'].includes(claim.status) && nm(claim.amount) > 0 && okId(claim.account)
+                ).map(claim => ({
+                    id: claim.id,
+                    expenseId: claim.expenseId,
+                    expenseTitle: sx(claim.expenseTitle),
+                    expenseDate: okD(claim.expenseDate) ? claim.expenseDate : '',
+                    amount: nm(claim.amount),
+                    account: claim.account,
+                    created: claim.created,
+                    status: claim.status,
+                    receivedDate: okD(claim.receivedDate) ? claim.receivedDate : '',
+                    incomeId: okId(claim.incomeId) ? claim.incomeId : ''
                 })),
                 budgets: Object.fromEntries(Object.entries(d.budgets && typeof d.budgets === 'object' ? d.budgets : {})
                     .filter(([k, v]) => okId(k) && nm(v) > 0).map(([k, v]) => [k, nm(v)])),
@@ -1841,6 +1975,9 @@
             zero(D);
             D.theme = 'dark';
             D.v2 = 1
+        }
+        if (!D.cats.some(category => category.g === 'Income' && category.name.toLowerCase() === 'cashback')) {
+            D.cats.push({ id: 'c_cashback', name: 'Cashback', icon: 'coins', color: '#0891b2', g: 'Income' });
         }
         processRecurring();
         save();
