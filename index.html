@@ -250,6 +250,12 @@
             width: 100%
         }
 
+        textarea {
+            resize: vertical;
+            max-width: 100%;
+            min-width: 100%
+        }
+
         input[type=color] {
             padding: 2px;
             height: 38px
@@ -474,6 +480,21 @@
             overflow: auto
         }
 
+        #ov select {
+            appearance: none;
+            -webkit-appearance: none;
+            padding-right: 36px;
+            background-image: linear-gradient(45deg, transparent 50%, var(--mu) 50%), linear-gradient(135deg, var(--mu) 50%, transparent 50%);
+            background-position: calc(100% - 17px) 50%, calc(100% - 12px) 50%;
+            background-size: 5px 5px, 5px 5px;
+            background-repeat: no-repeat
+        }
+
+        body.pocket-modal-open .fab,
+        body.pocket-modal-open .pocket-fab-menu {
+            display: none !important
+        }
+
         label {
             display: block;
             font-weight: 600;
@@ -500,6 +521,10 @@
 
         label>.ip {
             margin-top: 8px
+        }
+
+        #f .pocket-category-hint:not([data-active="true"]) {
+            display: none !important
         }
 
         .er {
@@ -926,11 +951,13 @@
 
         function ov(h) {
             $('#ovc').innerHTML = h;
+            document.body.classList.add('pocket-modal-open');
             $('#ov').style.display = 'flex';
             lu()
         }
         const cl = () => {
-            $('#ov').style.display = 'none'
+            $('#ov').style.display = 'none';
+            document.body.classList.remove('pocket-modal-open')
         };
 
         function ask(msg, fn, ok = 'Delete') {
@@ -1057,10 +1084,6 @@
                             t: 'date',
                             req: 1
                         }, {
-                            k: 'time',
-                            l: 'Time (optional)',
-                            t: 'time'
-                        }, {
                             k: 'note',
                             l: 'Notes (optional)',
                             t: 'area'
@@ -1113,7 +1136,7 @@
                         acc: v.acc,
                         to: tr ? v.to : null,
                         date: v.date,
-                        time: v.time,
+                        time: t?.time || '',
                         note: v.note,
                         ...(t?.cashbackId ? { cashbackId: t.cashbackId } : {})
                     };
@@ -2026,7 +2049,7 @@
         if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) navigator.serviceWorker.register(
             'sw.js').catch(() => {})
     </script>
-    <script src="enhancements.js?v=20261117-page-titles-3"></script>
+    <script src="enhancements.js?v=20261117-form-spacing-2"></script>
     <script>
         (() => {
             const titles = {
