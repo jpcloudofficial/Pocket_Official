@@ -27,9 +27,9 @@
   };
 
   const installStyles = () => {
-    if (document.querySelector('#pocket-enhancements-style-v4')) return;
+    if (document.querySelector('#pocket-enhancements-style-v5')) return;
     const style = document.createElement('style');
-    style.id = 'pocket-enhancements-style-v4';
+    style.id = 'pocket-enhancements-style-v5';
     style.textContent = `
       .pocket-fab-menu {
         position: fixed;
@@ -68,7 +68,8 @@
       .pocket-fab-menu button[data-kind="income"] .mini { color: var(--in); }
       .pocket-fab-menu button[data-kind="transfer"] .mini { color: var(--tr); }
       .pocket-hidden { display: none !important; }
-      .fab { z-index: 22; }
+      .fab { z-index: 22;transition:opacity .16s ease,transform .16s ease; }
+      .fab.pocket-fab-open { opacity:0;transform:scale(.75);pointer-events:none; }
       @media (max-width: 760px) {
         .pocket-fab-menu { right: 16px; bottom: calc(94px + env(safe-area-inset-bottom, 0px)); }
       }
@@ -124,16 +125,24 @@
     `).join('');
     document.body.append(menu);
 
-    const toggle = () => {
-      const hidden = menu.classList.toggle('pocket-hidden');
-      menu.setAttribute('aria-hidden', String(hidden));
-      fab.setAttribute('aria-expanded', String(!hidden));
+    const closeMenu = () => {
+      menu.classList.add('pocket-hidden');
+      menu.setAttribute('aria-hidden', 'true');
+      fab.setAttribute('aria-expanded', 'false');
+      fab.classList.remove('pocket-fab-open');
+    };
+    const toggleMenu = () => {
+      const opening = menu.classList.contains('pocket-hidden');
+      menu.classList.toggle('pocket-hidden', !opening);
+      menu.setAttribute('aria-hidden', String(!opening));
+      fab.setAttribute('aria-expanded', String(opening));
+      fab.classList.toggle('pocket-fab-open', opening);
     };
 
     fab.onclick = event => {
       event.preventDefault();
       event.stopPropagation();
-      toggle();
+      toggleMenu();
     };
 
     menu.querySelectorAll('button').forEach(button => {
@@ -149,26 +158,15 @@
             if (typeof formType.onchange === 'function') formType.onchange();
           }
         }
-        menu.classList.add('pocket-hidden');
-        menu.setAttribute('aria-hidden', 'true');
-        fab.setAttribute('aria-expanded', 'false');
+        closeMenu();
       });
     });
 
     document.addEventListener('click', event => {
-      if (!menu.contains(event.target) && !fab.contains(event.target)) {
-        menu.classList.add('pocket-hidden');
-        menu.setAttribute('aria-hidden', 'true');
-        fab.setAttribute('aria-expanded', 'false');
-      }
+      if (!menu.contains(event.target) && !fab.contains(event.target)) closeMenu();
     });
-
     document.addEventListener('keydown', event => {
-      if (event.key === 'Escape') {
-        menu.classList.add('pocket-hidden');
-        menu.setAttribute('aria-hidden', 'true');
-        fab.setAttribute('aria-expanded', 'false');
-      }
+      if (event.key === 'Escape') closeMenu();
     });
   };
 
