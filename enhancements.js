@@ -23,28 +23,39 @@
   };
 
   const installStyles = () => {
-    if (document.querySelector('#pocket-enhancements-style-v6')) return;
+    if (document.querySelector('#pocket-enhancements-style-v7')) return;
     const style = document.createElement('style');
-    style.id = 'pocket-enhancements-style-v6';
+    style.id = 'pocket-enhancements-style-v7';
     style.textContent = `
-      .pocket-carousel{overflow:hidden;margin-top:16px;touch-action:pan-y}
-      .pocket-carousel-track{display:flex;width:100%;transition:transform .28s ease;will-change:transform}
+      .pocket-carousel{overflow:hidden;margin-top:16px;touch-action:pan-y;user-select:none;-webkit-user-select:none}
+      .pocket-carousel-track{display:flex;width:100%;transition:transform .42s cubic-bezier(.22,.8,.25,1);will-change:transform}
       .pocket-carousel-track>.hero{position:relative;flex:0 0 100%;width:100%;min-width:100%;margin:0;padding-right:66px}
+      .pocket-carousel-track.is-dragging{transition:none!important;cursor:grabbing}
       .pocket-carousel-controls{display:none!important}
-      .pocket-privacy-button{position:absolute;right:14px;top:14px;width:40px;height:40px;display:grid;place-items:center;border:1px solid var(--bd);border-radius:11px;background:var(--cd);color:var(--mu);cursor:pointer;z-index:2}
-      .pocket-privacy-button svg{display:block}
+      .pocket-privacy-button{position:absolute;right:14px;top:14px;width:40px;height:40px;display:grid;place-items:center;border:1px solid var(--bd);border-radius:11px;background:var(--cd);color:var(--mu);cursor:pointer;z-index:2;transition:transform .18s ease,background-color .18s ease,color .18s ease}
+      .pocket-privacy-button svg{display:block;transition:transform .2s ease}
+      .pocket-privacy-button:hover{transform:translateY(-2px)}
+      .pocket-privacy-button:active{transform:scale(.9)}
       .pocket-fab-menu{position:fixed;right:20px;bottom:calc(82px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:8px;z-index:30;pointer-events:auto}
-      .pocket-fab-menu button{border:0;border-radius:12px;padding:10px 14px;min-width:156px;min-height:48px;background:var(--cd);color:var(--tx);box-shadow:0 8px 22px #0004;display:flex;align-items:center;justify-content:flex-start;gap:10px;font-weight:700;cursor:pointer}
+      .pocket-fab-menu button{border:0;border-radius:12px;padding:10px 14px;min-width:156px;min-height:48px;background:var(--cd);color:var(--tx);box-shadow:0 8px 22px #0004;display:flex;align-items:center;justify-content:flex-start;gap:10px;font-weight:700;cursor:pointer;transform-origin:bottom right;animation:pocket-pop-in .22s cubic-bezier(.2,.8,.2,1) both;transition:transform .14s ease,background-color .14s ease,box-shadow .14s ease}
+      .pocket-fab-menu button:nth-child(2){animation-delay:.035s}
+      .pocket-fab-menu button:nth-child(3){animation-delay:.07s}
+      .pocket-fab-menu button:hover{transform:translateX(-3px);box-shadow:0 10px 26px #0005}
+      .pocket-fab-menu button:active{transform:scale(.96)}
       .pocket-fab-menu button .mini{display:grid;place-items:center;width:26px;height:26px;border-radius:8px;background:var(--sq)}
       .pocket-fab-menu button[data-kind="expense"] .mini{color:var(--ex)}
       .pocket-fab-menu button[data-kind="income"] .mini{color:var(--in)}
       .pocket-fab-menu button[data-kind="transfer"] .mini{color:var(--tr)}
       .pocket-hidden{display:none!important}
-      .fab{z-index:22;transition:opacity .16s ease,transform .16s ease}
-      .fab.pocket-fab-open{opacity:0;transform:scale(.75);pointer-events:none}
+      .fab{z-index:22;transition:opacity .2s ease,transform .2s cubic-bezier(.2,.8,.2,1)}
+      .fab:active{transform:scale(.92)}
+      .fab.pocket-fab-open{opacity:0;transform:scale(.65) rotate(45deg);pointer-events:none}
+      .b1,.b2,.chip,.ib{transition:transform .14s ease,filter .14s ease,background-color .14s ease}
+      .b1:active,.b2:active,.chip:active,.ib:active{transform:scale(.96)}
       #m.pocket-private .hb,#m.pocket-private .hn,#m.pocket-private .av,#m.pocket-private .tx>b{filter:blur(8px);user-select:none}
+      @keyframes pocket-pop-in{from{opacity:0;transform:translateY(12px) scale(.94)}to{opacity:1;transform:translateY(0) scale(1)}}
       @media(max-width:760px){.pocket-fab-menu{right:16px;bottom:calc(94px + env(safe-area-inset-bottom,0px))}}
-      @media(prefers-reduced-motion:reduce){.pocket-carousel-track{transition:none}}
+      @media(prefers-reduced-motion:reduce){.pocket-carousel-track,.pocket-fab-menu button,.fab,.pocket-privacy-button,.pocket-privacy-button svg,.b1,.b2,.chip,.ib{transition:none!important;animation:none!important}}
     `;
     document.head.append(style);
   };
@@ -96,10 +107,14 @@
   };
 
   let slide = 0;
+  let dragStart = null;
   const showSlide = next => {
     slide = Math.max(0, Math.min(1, next));
     const track = main.querySelector('.pocket-carousel-track');
-    if (track) track.style.transform = `translateX(-${slide * 100}%)`;
+    if (track) {
+      track.classList.remove('is-dragging');
+      track.style.transform = `translateX(-${slide * 100}%)`;
+    }
   };
   const addCarousel = () => {
     let carousel = main.querySelector(':scope > .pocket-carousel');
@@ -116,13 +131,28 @@
       carousel.append(track);
       balance.before(carousel);
 
-      let startX = null;
-      track.addEventListener('touchstart', event => { startX = event.touches[0].clientX; }, { passive: true });
+      track.addEventListener('touchstart', event => {
+        dragStart = event.touches[0].clientX;
+        track.classList.add('is-dragging');
+      }, { passive: true });
+      track.addEventListener('touchmove', event => {
+        if (dragStart === null) return;
+        const dx = event.touches[0].clientX - dragStart;
+        const width = carousel.getBoundingClientRect().width || window.innerWidth;
+        const dragPercent = dx / width * 100;
+        const offset = Math.max(-100, Math.min(0, -slide * 100 + dragPercent));
+        track.style.transform = `translateX(${offset}%)`;
+      }, { passive: true });
       track.addEventListener('touchend', event => {
-        if (startX === null) return;
-        const dx = event.changedTouches[0].clientX - startX;
-        startX = null;
-        if (Math.abs(dx) > 45) showSlide(slide + (dx < 0 ? 1 : -1));
+        if (dragStart === null) return;
+        const dx = event.changedTouches[0].clientX - dragStart;
+        dragStart = null;
+        if (Math.abs(dx) > 48) showSlide(slide + (dx < 0 ? 1 : -1));
+        else showSlide(slide);
+      }, { passive: true });
+      track.addEventListener('touchcancel', () => {
+        dragStart = null;
+        showSlide(slide);
       }, { passive: true });
     }
     const cards = main.querySelectorAll('.pocket-carousel-track > .hero');
