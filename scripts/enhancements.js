@@ -43,6 +43,15 @@
       .pocket-account-transfer{position:fixed;right:22px;bottom:82px;z-index:21;width:147px;height:52px;padding:0 16px;border:1px solid var(--bd);border-radius:28px;background:var(--cd);color:var(--tx);box-shadow:0 4px 14px #0004;display:flex;align-items:center;justify-content:flex-start;gap:8px;font:inherit;font-weight:700;cursor:pointer}
       .pocket-account-transfer svg{width:24px;height:24px;flex:none}
       body.pocket-modal-open .pocket-account-transfer{display:none!important}
+      .pocket-action-toggle{display:none}
+      .pocket-fab-menu,.pocket-account-transfer{transition:transform .24s ease,opacity .24s ease}
+      @media(max-width:760px){
+        .fab{right:52px}
+        .pocket-action-toggle{position:fixed;right:calc(4px + env(safe-area-inset-right,0px));bottom:calc(124px + env(safe-area-inset-bottom,0px));z-index:32;display:grid;place-items:center;width:44px;height:48px;padding:0;border:1px solid var(--bd);border-radius:14px;background:var(--cd);color:var(--mu);box-shadow:0 4px 14px #0004;cursor:pointer;touch-action:manipulation}
+        .pocket-action-toggle svg{width:20px;height:20px;pointer-events:none}
+        body.pocket-actions-tucked .fab,body.pocket-actions-tucked .pocket-account-transfer,body.pocket-actions-tucked .pocket-fab-menu{transform:translateX(calc(100% + 80px));opacity:0;pointer-events:none}
+      }
+      body.pocket-modal-open .pocket-action-toggle{display:none!important}
       .pocket-hidden{display:none!important}
       .fab{z-index:22;transition:opacity .2s ease,transform .2s ease}
       .fab.pocket-fab-open{opacity:0;transform:scale(.7);pointer-events:none}
@@ -50,8 +59,8 @@
       .pocket-category-hint[hidden]{display:none}
       .pocket-category-hint[data-active="true"]{color:var(--in)}
       #m.pocket-private .hb,#m.pocket-private .hn,#m.pocket-private .av,#m.pocket-private .tx-amount{user-select:none}
-      @media(max-width:760px){.pocket-fab-menu{right:16px;bottom:calc(94px + env(safe-area-inset-bottom,0px))}.pocket-account-transfer{right:22px;bottom:calc(152px + env(safe-area-inset-bottom,0px))}}
-      @media(prefers-reduced-motion:reduce){.pocket-carousel-track,.fab{transition:none!important}}
+      @media(max-width:760px){.pocket-fab-menu{right:52px;bottom:calc(94px + env(safe-area-inset-bottom,0px))}.pocket-account-transfer{right:52px;bottom:calc(152px + env(safe-area-inset-bottom,0px))}}
+      @media(prefers-reduced-motion:reduce){.pocket-carousel-track,.pocket-fab-menu,.pocket-account-transfer,.fab{transition:none!important}}
     `;
     document.head.append(style);
   };
@@ -349,6 +358,29 @@
       document.body.append(transferButton);
     }
     transferButton.classList.toggle('pocket-hidden', !accountPage);
+    let actionToggle = document.querySelector('.pocket-action-toggle');
+    if (!actionToggle) {
+      actionToggle = document.createElement('button');
+      actionToggle.type = 'button';
+      actionToggle.className = 'pocket-action-toggle';
+      actionToggle.addEventListener('click', () => {
+        const tucked = document.body.classList.toggle('pocket-actions-tucked');
+        if (tucked) closeMenu(menu, fab);
+        updateActionToggle(actionToggle);
+      });
+      document.body.append(actionToggle);
+    }
+    actionToggle.classList.toggle('pocket-hidden', hideFab);
+    updateActionToggle(actionToggle);
+  };
+
+  const updateActionToggle = button => {
+    const tucked = document.body.classList.contains('pocket-actions-tucked');
+    const chevron = tucked ? '<path d="m15 18-6-6 6-6"/>' : '<path d="m9 18 6-6-6-6"/>';
+    button.setAttribute('aria-expanded', String(!tucked));
+    button.setAttribute('aria-label', tucked ? 'Show floating actions' : 'Hide floating actions');
+    button.title = tucked ? 'Show floating actions' : 'Hide floating actions';
+    button.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${chevron}</svg>`;
   };
 
   let queued = false;

@@ -10,6 +10,7 @@
             --tr: #2563eb;
             --sq: #ece9e6;
             box-sizing: border-box;
+            overscroll-behavior-y: none;
             padding-top: env(safe-area-inset-top, 0px);
             padding-bottom: env(safe-area-inset-bottom, 0px)
         }
@@ -56,6 +57,7 @@
 
         body {
             margin: 0;
+            overscroll-behavior-y: none;
             background: var(--bg);
             color: var(--tx);
             font: 14px/1.45 'Plus Jakarta Sans', system-ui, sans-serif
@@ -759,6 +761,7 @@
 
         .account-stack {
             position: relative;
+            isolation: isolate;
             margin-top: 10px;
             outline: none;
             touch-action: pan-y;
