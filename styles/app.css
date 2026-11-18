@@ -736,6 +736,13 @@
             flex: none
         }
 
+        .settings-name-input {
+            flex: 1;
+            min-width: 0;
+            max-width: 220px;
+            text-align: right
+        }
+
         .settings-preference-dashboard {
             display: grid;
             gap: 8px;
@@ -814,6 +821,28 @@
 
         .cloud-sync-card input {
             width: 100%
+        }
+
+        .cloud-google-button {
+            width: 100%;
+            justify-content: center
+        }
+
+        .cloud-auth-divider {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--mu);
+            font-size: 12px;
+            margin: 12px 0
+        }
+
+        .cloud-auth-divider::before,
+        .cloud-auth-divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--bd)
         }
 
         .cloud-sync-error {

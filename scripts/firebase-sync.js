@@ -1,5 +1,3 @@
-import { firebaseConfig } from './firebase-config.js';
-
 const DATA_KEY = 'pera.v1';
 const SDK_BASE = 'https://www.gstatic.com/firebasejs/13.4.0';
 const MAX_DOCUMENT_BYTES = 900000;
@@ -57,6 +55,8 @@ function errorText(error) {
     'auth/invalid-email': 'Enter a valid email address.',
     'auth/weak-password': 'Choose a password with at least 6 characters.',
     'auth/too-many-requests': 'Too many attempts. Wait a while and try again.',
+    'auth/unauthorized-domain': 'This site is not authorized for Firebase sign-in. Add its domain in Firebase Authentication settings.',
+    'auth/account-exists-with-different-credential': 'This email uses another sign-in method. Sign in with that method instead.',
     'permission-denied': 'Firestore denied access. Check that the published rules allow this signed-in user.',
     'unavailable': 'Firestore is unavailable. Your changes remain saved on this device.'
   };
@@ -131,7 +131,7 @@ async function flushPending() {
     }
     updatePanel();
     return true;
-  } catch (error) {
+  } catch {
     if (generation !== authGeneration || stateRef !== writeRef) return false;
     if (!pendingJson) pendingJson = serialized;
     dirty = true;
@@ -308,6 +308,28 @@ async function submitCredentials(action) {
 }
 
 async function handleCloudAction(action) {
+  if (action === 'google-sign-in') {
+    await withBusy(async () => {
+      if (!authSdk || !auth) throw new Error('Firebase is still initializing. Try again shortly.');
+      statusMessage = 'Signing in with Google…';
+      updatePanel();
+      const provider = new authSdk.GoogleAuthProvider();
+      provider.setCustomParameters({ prompt: 'select_account' });
+      if (window.matchMedia('(pointer: coarse)').matches) {
+        await authSdk.signInWithRedirect(auth, provider);
+        return;
+      }
+      try {
+        await authSdk.signInWithPopup(auth, provider);
+      } catch (error) {
+        if (!['auth/popup-blocked', 'auth/operation-not-supported-in-this-environment'].includes(error.code)) {
+          throw error;
+        }
+        await authSdk.signInWithRedirect(auth, provider);
+      }
+    });
+    return;
+  }
   if (action === 'signup' || action === 'sign-in') {
     await submitCredentials(action === 'signup' ? 'signup' : 'signin');
     return;
@@ -368,6 +390,14 @@ window.addEventListener('online', () => {
 
 (async () => {
   try {
+    let configModule;
+    try {
+      configModule = await import('./firebase-config.js');
+    } catch (error) {
+      statusMessage = 'Firebase configuration is unavailable; local data is still usable.';
+      showError('For local sync, copy scripts/firebase-config.example.js to scripts/firebase-config.js and fill in your Firebase settings. GitHub Pages uses the FIREBASE_CONFIG_JSON Actions secret.');
+      return;
+    }
     const [appSdk, loadedAuthSdk, loadedFirestoreSdk] = await Promise.all([
       import(`${SDK_BASE}/firebase-app.js`),
       import(`${SDK_BASE}/firebase-auth.js`),
@@ -375,7 +405,7 @@ window.addEventListener('online', () => {
     ]);
     authSdk = loadedAuthSdk;
     firestoreSdk = loadedFirestoreSdk;
-    const app = appSdk.initializeApp(firebaseConfig);
+    const app = appSdk.initializeApp(configModule.firebaseConfig);
     auth = authSdk.getAuth(app);
     database = firestoreSdk.getFirestore(app);
     statusMessage = 'Checking your sign-in…';
@@ -384,6 +414,7 @@ window.addEventListener('online', () => {
       statusMessage = 'Could not check your sign-in.';
       showError(errorText(error));
     });
+    authSdk.getRedirectResult(auth).catch(error => showError(errorText(error)));
   } catch (error) {
     statusMessage = 'Firebase could not be initialized.';
     showError(errorText(error));
