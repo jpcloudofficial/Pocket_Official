@@ -36,6 +36,14 @@ const K = 'pera.v1',
             ['accountBalanceHistory', 'Account balance history report', false],
             ['monthlySavings', 'Monthly savings report', false]
         ];
+        const PROFILE_COLORS = [
+            ['Green', '#16a34a'],
+            ['Blue', '#2563eb'],
+            ['Purple', '#7c3aed'],
+            ['Pink', '#db2777'],
+            ['Orange', '#ea580c'],
+            ['Teal', '#0f766e']
+        ];
         const defaultDashboardWidgets = () => Object.fromEntries(DASHBOARD_WIDGETS.map(([id, , enabled]) => [id, enabled]));
         let D, U = {
             v: 'dash',
@@ -170,6 +178,7 @@ const K = 'pera.v1',
             const ed = iso(new Date(y, mo + 6, 1));
             return {
                 name: '',
+                profileAccent: PROFILE_COLORS[0][1],
                 theme: matchMedia('(prefers-color-scheme:dark)').matches ? 'dark' : 'light',
                 acc,
                 cats: cs.map(c => ({
@@ -1274,10 +1283,18 @@ ${summaryWidget}${shortcutsWidget}${actionsWidget}${accountsWidget}${transaction
                 processRecurring()
             }, 'Restore')
         }
+        function profileSettingsCard() {
+            const initial = D.name.trim().charAt(0).toUpperCase() || 'P';
+            const colors = PROFILE_COLORS.map(([name, color]) =>
+                `<button type="button" class="profile-color-swatch" style="--profile-swatch:${color}" aria-label="${name} profile color" aria-pressed="${D.profileAccent===color}" onclick="D.profileAccent='${color}';save();render()"></button>`
+            ).join('');
+            return `<div class="card profile-card" style="--profile-accent:${D.profileAccent}"><h3>Profile</h3><div class="profile-summary"><div class="profile-avatar" id="profile-avatar" aria-hidden="true"><span>${esc(initial)}</span></div><div class="profile-identity"><strong id="profile-name-preview">${esc(D.name||'Your profile')}</strong><small>Personalize your Pocket profile</small></div></div><label class="profile-name-field">Display name<input id="profile-name" type="text" maxlength="32" autocomplete="name" aria-label="Profile display name" placeholder="Your name" value="${esc(D.name)}" onchange="D.name=this.value.trim().slice(0,32);save();render()"></label><div class="profile-email-row"><span>Account email</span><strong id="profile-email">Sign in to see your account email.</strong></div><div class="profile-color-setting"><span>Profile color</span><div class="profile-color-options" role="group" aria-label="Profile color">${colors}</div></div><small class="settings-note">Your display name and profile color sync to your signed-in devices.</small></div>`;
+        }
         V.set = () =>
             `<h2>Settings</h2><div class="g g2">
 <div class="card cloud-sync-card" id="cloud-sync-card"><h3>Cloud sync</h3><p class="settings-note">Sign in to sync your Pocket data with Firebase Firestore. Your local copy remains available on this device.</p><p id="cloud-sync-status" role="status">Connecting to Firebase…</p><p class="cloud-sync-error" id="cloud-sync-error" role="alert" hidden></p><button class="b2 cloud-google-button" type="button" data-cloud-action="google-sign-in">Continue with Google</button><div class="cloud-auth-divider"><span>or use email</span></div><form id="cloud-auth-form"><label>Email<input id="cloud-email" type="email" autocomplete="email" required></label><label>Password<input id="cloud-password" type="password" autocomplete="current-password" minlength="6" required></label><div class="settings-actions"><button class="b1" type="submit" data-cloud-action="sign-in">Sign in</button><button class="b2" type="button" data-cloud-action="signup">Create account</button><button class="b2" type="button" data-cloud-action="password-reset">Forgot password?</button></div></form><div id="cloud-user-controls" hidden><div class="settings-actions"><button class="b2" type="button" data-cloud-action="sign-out">Sign out</button></div></div><div id="cloud-conflict" class="cloud-conflict" hidden><p>Cloud data changed while this device also has local changes. Choose which copy to keep.</p><div class="settings-actions"><button class="b1" type="button" data-cloud-action="use-cloud">Use cloud copy</button><button class="b2" type="button" data-cloud-action="keep-local">Keep this device</button></div></div></div>
-<div class="card settings-preferences"><h3>Preferences</h3><div class="settings-preference-list"><div class="settings-preference-row"><span>Name</span><input class="settings-name-input" type="text" maxlength="32" autocomplete="name" aria-label="Name for the dashboard greeting" placeholder="Your name" value="${esc(D.name)}" onchange="D.name=this.value.trim().slice(0,32);save();render()"></div><div class="settings-preference-row"><span>Currency</span><b>Philippine Peso (₱)</b></div><div class="settings-preference-row"><span>Date format</span><b>DD/MM/YYYY</b></div><div class="settings-preference-row"><span>Theme</span><button class="b2" onclick="D.theme=D.theme==='dark'?'light':'dark';save();render()">${ic(D.theme==='dark'?'sun':'moon')} ${D.theme==='dark'?'Light':'Dark'} mode</button></div></div><div class="settings-preference-dashboard"><small>Dashboard</small><button class="b2 dashboard-layout-setting" onclick="dashboardSettingsForm()">${ic('bar-chart-3')} Customize Dashboard</button></div></div>
+${profileSettingsCard()}
+<div class="card settings-preferences"><h3>Preferences</h3><div class="settings-preference-list"><div class="settings-preference-row"><span>Currency</span><b>Philippine Peso (₱)</b></div><div class="settings-preference-row"><span>Date format</span><b>DD/MM/YYYY</b></div><div class="settings-preference-row"><span>Theme</span><button class="b2" onclick="D.theme=D.theme==='dark'?'light':'dark';save();render()">${ic(D.theme==='dark'?'sun':'moon')} ${D.theme==='dark'?'Light':'Dark'} mode</button></div></div><div class="settings-preference-dashboard"><small>Dashboard</small><button class="b2 dashboard-layout-setting" onclick="dashboardSettingsForm()">${ic('bar-chart-3')} Customize Dashboard</button></div></div>
 <div class="card"><h3>Manage</h3><div class="settings-actions"><button class="b2" onclick="go('acc')">${ic('wallet')} Accounts</button><button class="b2" onclick="go('cat')">${ic('tag')} Categories</button><button class="b2" onclick="go('bud')">${ic('gauge')} Budgets</button><button class="b2" onclick="go('goal')">${ic('target')} Savings goals</button><button class="b2" onclick="go('rec')">${ic('repeat')} Recurring transactions</button><button class="b2" onclick="go('cash')">${ic('coins')} Cashback</button></div></div>
 <div class="card"><h3>Export</h3><div class="settings-actions"><button class="b2" onclick="showText('Transactions (CSV)',csv())">${ic('file-text')} Transactions CSV</button><button class="b2" onclick="showText('Monthly report (CSV)',repCsv())">${ic('bar-chart-3')} Report CSV</button><button class="b2" onclick="exportAllData()">${ic('download')} Export all data (JSON)</button></div></div>
 <div class="card"><h3>Back up &amp; restore</h3><div class="settings-actions"><button class="b2" onclick="showText('Backup',JSON.stringify(D))">${ic('save')} View / copy backup</button><button class="b2" onclick="showText('Restore backup','',1)">${ic('upload')} Restore backup</button></div><small class="settings-note">Data is saved in this browser. Backups are files you download and store yourself; Pocket does not upload them to the cloud.</small></div>
@@ -1466,6 +1483,7 @@ ${summaryWidget}${shortcutsWidget}${actionsWidget}${accountsWidget}${transaction
             const dashboardWidgets = d.dashboardWidgets && typeof d.dashboardWidgets === 'object' ? d.dashboardWidgets : {};
             return {
                 name: sx(d.name, 32).trim(),
+                profileAccent: PROFILE_COLORS.some(([, color]) => color === d.profileAccent) ? d.profileAccent : PROFILE_COLORS[0][1],
                 theme: d.theme === 'light' ? 'light' : 'dark',
                 dashboardWidgets: Object.fromEntries(DASHBOARD_WIDGETS.map(([id, , enabled]) => [
                     id,

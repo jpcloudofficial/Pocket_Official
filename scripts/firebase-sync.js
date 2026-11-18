@@ -7,6 +7,7 @@ let authSdk;
 let firestoreSdk;
 let auth;
 let database;
+let firebaseAuthDomain;
 let user;
 let stateRef;
 let unsubscribe;
@@ -30,7 +31,37 @@ const showError = message => {
   updatePanel();
 };
 
+function updateProfileCard() {
+  const avatar = document.querySelector('#profile-avatar');
+  const preview = document.querySelector('#profile-name-preview');
+  const email = document.querySelector('#profile-email');
+  if (!avatar && !preview && !email) return;
+
+  const profileName = window.pocketApp?.getData().name || user?.displayName || '';
+  if (preview) preview.textContent = profileName || 'Your profile';
+  if (email) email.textContent = user?.email || 'Sign in to see your account email.';
+  if (!avatar) return;
+
+  const photoUrl = user?.photoURL?.startsWith('https://') ? user.photoURL : '';
+  if (photoUrl && avatar.querySelector('img')?.src === photoUrl) return;
+
+  avatar.replaceChildren();
+  const initials = profileName.trim().split(/\s+/).slice(0, 2).map(part => part.charAt(0)).join('').toUpperCase() || 'P';
+  const fallback = document.createElement('span');
+  fallback.textContent = initials;
+  avatar.append(fallback);
+  if (!photoUrl) return;
+
+  const image = document.createElement('img');
+  image.alt = '';
+  image.referrerPolicy = 'no-referrer';
+  image.addEventListener('error', () => image.remove(), { once: true });
+  image.src = photoUrl;
+  avatar.append(image);
+}
+
 function updatePanel() {
+  updateProfileCard();
   const status = statusElement();
   if (!status) return;
   status.textContent = user ? `${statusMessage} · ${user.email}` : statusMessage;
@@ -318,6 +349,10 @@ async function handleCloudAction(action) {
       updatePanel();
       const provider = new authSdk.GoogleAuthProvider();
       provider.setCustomParameters({ prompt: 'select_account' });
+      if (window.matchMedia('(pointer: coarse)').matches && window.location.hostname === firebaseAuthDomain) {
+        await authSdk.signInWithRedirect(auth, provider);
+        return;
+      }
       await authSdk.signInWithPopup(auth, provider);
     });
     return;
@@ -387,9 +422,10 @@ window.addEventListener('online', () => {
       configModule = await import('./firebase-config.js');
     } catch (error) {
       statusMessage = 'Firebase configuration is unavailable; local data is still usable.';
-      showError('For local sync, copy scripts/firebase-config.example.js to scripts/firebase-config.js and fill in your Firebase settings. GitHub Pages uses the FIREBASE_CONFIG_JSON Actions secret.');
+      showError('For local sync, copy scripts/firebase-config.example.js to scripts/firebase-config.js and fill in your Firebase settings. GitHub Pages and Firebase Hosting use the FIREBASE_CONFIG_JSON Actions secret.');
       return;
     }
+    firebaseAuthDomain = configModule.firebaseConfig.authDomain;
     const [appSdk, loadedAuthSdk, loadedFirestoreSdk] = await Promise.all([
       import(`${SDK_BASE}/firebase-app.js`),
       import(`${SDK_BASE}/firebase-auth.js`),
