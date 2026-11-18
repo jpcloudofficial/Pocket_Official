@@ -68,6 +68,7 @@ function updatePanel() {
   const error = errorElement();
   error.textContent = errorMessage;
   error.hidden = !errorMessage;
+  document.querySelector('#cloud-login-options').hidden = Boolean(user);
   document.querySelector('#cloud-auth-form').hidden = Boolean(user);
   document.querySelector('#cloud-user-controls').hidden = !user;
   document.querySelector('#cloud-conflict').hidden = !remoteConflict;
@@ -421,8 +422,8 @@ window.addEventListener('online', () => {
     try {
       configModule = await import('./firebase-config.js');
     } catch (error) {
-      statusMessage = 'Firebase configuration is unavailable; local data is still usable.';
-      showError('For local sync, copy scripts/firebase-config.example.js to scripts/firebase-config.js and fill in your Firebase settings. GitHub Pages and Firebase Hosting use the FIREBASE_CONFIG_JSON Actions secret.');
+      statusMessage = 'Cloud sync is unavailable; local data is still saved.';
+      showError('To enable cloud sync, configure scripts/firebase-config.js locally or the FIREBASE_CONFIG_JSON deployment secret.');
       return;
     }
     firebaseAuthDomain = configModule.firebaseConfig.authDomain;
