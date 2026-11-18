@@ -30,6 +30,8 @@
       .pocket-carousel-controls{display:none!important}
       .pocket-privacy-button{position:absolute;right:14px;top:14px;width:40px;height:40px;padding:0;display:grid;place-items:center;border:1px solid var(--bd);border-radius:11px;background:var(--cd);color:var(--mu);cursor:pointer;z-index:2}
       .pocket-privacy-button svg{display:block}
+      .pocket-privacy-header{margin-bottom:10px}
+      .pocket-privacy-header>.pocket-privacy-button{position:static;flex:0 0 40px;margin-left:auto}
       .pocket-fab-menu{position:fixed;right:20px;bottom:calc(82px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:8px;z-index:30}
       .pocket-fab-menu button{border:0;border-radius:12px;padding:10px 14px;min-width:156px;min-height:48px;background:var(--cd);color:var(--tx);box-shadow:0 8px 22px #0004;display:flex;align-items:center;gap:10px;font-weight:700;cursor:pointer}
       .pocket-fab-menu button .mini{display:grid;place-items:center;width:26px;height:26px;border-radius:8px;background:var(--sq)}
@@ -45,17 +47,17 @@
       .pocket-category-hint{display:block;color:var(--mu);font-size:12px;margin:6px 2px 0;min-height:17px}
       .pocket-category-hint[hidden]{display:none}
       .pocket-category-hint[data-active="true"]{color:var(--in)}
-      #m.pocket-private .hb,#m.pocket-private .hn,#m.pocket-private .av,#m.pocket-private .tx>b{user-select:none}
+      #m.pocket-private .hb,#m.pocket-private .hn,#m.pocket-private .av,#m.pocket-private .tx-amount{user-select:none}
       @media(max-width:760px){.pocket-fab-menu{right:16px;bottom:calc(94px + env(safe-area-inset-bottom,0px))}.pocket-account-transfer{right:22px;bottom:calc(152px + env(safe-area-inset-bottom,0px))}}
       @media(prefers-reduced-motion:reduce){.pocket-carousel-track,.fab{transition:none!important}}
     `;
     document.head.append(style);
   };
 
-  const dashboardTitle = () => main.querySelector(':scope > .row.sp h2');
+  const pageTitle = () => main.querySelector(':scope > .row.sp h2');
   const setTitle = () => {
     if (main.dataset.view !== 'dash') return;
-    const heading = dashboardTitle();
+    const heading = pageTitle();
     if (!heading) return;
     if (heading.textContent !== storedTitle()) heading.textContent = storedTitle();
   };
@@ -141,7 +143,7 @@
   const updatePrivacy = () => {
     const hidden = isHidden();
     main.classList.toggle('pocket-private', hidden);
-    main.querySelectorAll('.hb, .hn, .av, .tx>b').forEach(amount => {
+    main.querySelectorAll('.hb, .hn, .av, .tx-amount, .pocket-summary-amounts').forEach(amount => {
       if (hidden) {
         if (!Object.prototype.hasOwnProperty.call(amount.dataset, 'pocketAmount')) {
           amount.dataset.pocketAmount = amount.textContent;
@@ -218,8 +220,16 @@
       }, { passive: true });
       track.addEventListener('touchcancel', () => { dragStart = null; showSlide(slide); }, { passive: true });
     }
-    [balance, savings].forEach(card => { if (!card.querySelector('.pocket-privacy-button')) card.append(makePrivacyButton()); });
     showSlide(slide);
+  };
+
+  const addPagePrivacyButton = () => {
+    if (main.dataset.view !== 'dash' && main.dataset.view !== 'tx') return;
+    const header = pageTitle()?.parentElement;
+    if (!header) return;
+    let button = main.querySelector('.pocket-privacy-button');
+    if (!button) button = makePrivacyButton();
+    if (button.parentElement !== header) header.append(button);
   };
 
   const removeLegacyDashboardControls = () => {
@@ -262,6 +272,16 @@
           if (typeof window.recurringForm === 'function') window.recurringForm();
           return;
         }
+        if (main.dataset.view === 'cat') {
+          closeMenu(menu, fab);
+          if (typeof window.catForm === 'function') window.catForm();
+          return;
+        }
+        if (main.dataset.view === 'goal') {
+          closeMenu(menu, fab);
+          if (typeof window.goalForm === 'function') window.goalForm();
+          return;
+        }
         const opening = menu.classList.contains('pocket-hidden');
         menu.classList.toggle('pocket-hidden', !opening); menu.setAttribute('aria-hidden', String(!opening));
         fab.setAttribute('aria-expanded', String(opening)); fab.classList.toggle('pocket-fab-open', opening);
@@ -275,15 +295,17 @@
     }
     const accountPage = main.dataset.view === 'acc';
     const recurringPage = main.dataset.view === 'rec';
+    const categoryPage = main.dataset.view === 'cat';
+    const goalPage = main.dataset.view === 'goal';
     const hideFab = main.dataset.view === 'set' || main.dataset.view === 'rep';
-    const fabLabel = accountPage ? 'Add account' : recurringPage ? 'Add schedule' : 'Add transaction';
-    fab.classList.toggle('pocket-fab-labeled', accountPage || recurringPage);
+    const fabLabel = accountPage ? 'Add account' : recurringPage ? 'Add schedule' : categoryPage ? 'New category' : goalPage ? 'New goal' : 'Add transaction';
+    fab.classList.toggle('pocket-fab-labeled', accountPage || recurringPage || categoryPage || goalPage);
     fab.classList.toggle('pocket-hidden', hideFab);
     fab.setAttribute('aria-label', fabLabel);
     fab.title = fabLabel;
     const label = fab.querySelector('.fab-label');
     if (label) label.textContent = fabLabel;
-    if (accountPage || recurringPage || hideFab) closeMenu(menu, fab);
+    if (accountPage || recurringPage || categoryPage || goalPage || hideFab) closeMenu(menu, fab);
     let transferButton = document.querySelector('.pocket-account-transfer');
     if (!transferButton) {
       transferButton = document.createElement('button');
@@ -308,6 +330,7 @@
     else {
       if (main.dataset.view === 'dash') setTitle();
       addCarousel();
+      addPagePrivacyButton();
       removeLegacyDashboardControls();
     }
     wireQuickAdd();
