@@ -15,7 +15,14 @@
     };
     return `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths[name] || ''}</svg>`;
   };
-  const storedTitle = () => { try { return localStorage.getItem(TITLE_KEY) || 'My Finance'; } catch { return 'My Finance'; } };
+  const savedTitle = () => { try { return localStorage.getItem(TITLE_KEY); } catch { return null; } };
+  const storedTitle = () => savedTitle() || 'My Finance';
+  const dashboardTitle = () => {
+    const customTitle = savedTitle();
+    if (customTitle && customTitle !== 'My Finance') return customTitle;
+    const name = window.pocketApp?.getData?.().name;
+    return typeof name === 'string' && name.trim() ? `Hi, ${name.trim()}` : 'My Finance';
+  };
   const isHidden = () => { try { return localStorage.getItem(PRIVACY_KEY) === '1'; } catch { return false; } };
 
   const installStyles = () => {
@@ -59,7 +66,8 @@
     if (main.dataset.view !== 'dash') return;
     const heading = pageTitle();
     if (!heading) return;
-    if (heading.textContent !== storedTitle()) heading.textContent = storedTitle();
+    const title = dashboardTitle();
+    if (heading.textContent !== title) heading.textContent = title;
   };
 
   const CATEGORY_RULES = [

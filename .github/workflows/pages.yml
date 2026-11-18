@@ -1,0 +1,64 @@
+name: Deploy Pocket to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build site and inject Firebase config
+        env:
+          FIREBASE_CONFIG_JSON: ${{ secrets.FIREBASE_CONFIG_JSON }}
+        run: |
+          test -n "$FIREBASE_CONFIG_JSON" || { echo "Set the FIREBASE_CONFIG_JSON repository secret." >&2; exit 1; }
+          mkdir -p _site
+          cp -R assets scripts styles index.html manifest.webmanifest sw.js _site/
+          rm -f _site/scripts/firebase-config.example.js
+          python3 - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          config = json.loads(os.environ["FIREBASE_CONFIG_JSON"])
+          required = ("apiKey", "authDomain", "projectId", "storageBucket", "messagingSenderId", "appId")
+          missing = [key for key in required if not isinstance(config.get(key), str) or not config[key]]
+          if missing:
+              raise SystemExit("FIREBASE_CONFIG_JSON is missing: " + ", ".join(missing))
+
+          target = Path("_site/scripts/firebase-config.js")
+          target.write_text(
+              "export const firebaseConfig = " + json.dumps(config, separators=(",", ":")) + ";\n",
+              encoding="utf-8",
+          )
+          PY
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    permissions:
+      pages: write
+      id-token: write
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

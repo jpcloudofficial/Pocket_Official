@@ -1,4 +1,4 @@
-const CACHE = 'pera-v36';
+const CACHE = 'pera-v42';
 const FILES = [
   './',
   'index.html',
@@ -8,7 +8,6 @@ const FILES = [
   'scripts/enhancements.js?v=20261118-page-swipe-1',
   'scripts/privacy-mask.js',
   'scripts/page-title-sync.js',
-  'scripts/firebase-config.js',
   'scripts/firebase-sync.js',
   'assets/icons/apple-touch-icon.png',
   'assets/icons/icon-192.png',
