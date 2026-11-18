@@ -1,13 +1,17 @@
-const CACHE = 'pera-v30';
+const CACHE = 'pera-v31';
 const FILES = [
   './',
   'index.html',
   'manifest.webmanifest',
-  'enhancements.js?v=20261118-page-swipe-1',
-  'apple-touch-icon.png',
-  'icon-192.png',
-  'icon-512.png',
-  'icon-maskable-512.png'
+  'styles/app.css',
+  'scripts/app.js',
+  'scripts/enhancements.js?v=20261118-page-swipe-1',
+  'scripts/privacy-mask.js',
+  'scripts/page-title-sync.js',
+  'assets/icons/apple-touch-icon.png',
+  'assets/icons/icon-192.png',
+  'assets/icons/icon-512.png',
+  'assets/icons/icon-maskable-512.png'
 ];
 
 self.addEventListener('install', event => {
@@ -17,7 +21,7 @@ self.addEventListener('install', event => {
 
     // Repair quick-add SVGs when an older enhancement script has icon names
     // without matching path definitions (otherwise the icon squares render empty).
-    const scriptRequest = new Request(new URL('enhancements.js?v=20261118-page-swipe-1', self.registration.scope));
+    const scriptRequest = new Request(new URL('scripts/enhancements.js?v=20261118-page-swipe-1', self.registration.scope));
     const scriptResponse = await cache.match(scriptRequest);
     if (scriptResponse) {
       const source = await scriptResponse.text();
