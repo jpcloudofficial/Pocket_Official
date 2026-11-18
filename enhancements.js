@@ -268,10 +268,12 @@
       document.addEventListener('keydown', event => { if (event.key === 'Escape') closeMenu(menu, fab); });
     }
     const accountPage = main.dataset.view === 'acc';
+    const hideFab = main.dataset.view === 'set' || main.dataset.view === 'rep';
     fab.classList.toggle('pocket-fab-account', accountPage);
+    fab.classList.toggle('pocket-hidden', hideFab);
     fab.setAttribute('aria-label', accountPage ? 'Add account' : 'Add transaction');
     fab.title = accountPage ? 'Add account' : 'Add transaction';
-    if (accountPage) closeMenu(menu, fab);
+    if (accountPage || hideFab) closeMenu(menu, fab);
     let transferButton = document.querySelector('.pocket-account-transfer');
     if (!transferButton) {
       transferButton = document.createElement('button');
