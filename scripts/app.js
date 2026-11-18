@@ -8,7 +8,7 @@ const K = 'pera.v1',
             fd = s => {
                 if (!s) return '';
                 const [year, month, day] = s.split('-');
-                return D?.dateFormat === 'MM/DD/YYYY' ? `${month}/${day}/${year}` : `${day}/${month}/${year}`;
+                return `${day}/${month}/${year}`;
             };
         const peso = (n, f) => (n < 0 ? '−' : '') + '₱' + Math.abs(n).toLocaleString('en-PH', {
             minimumFractionDigits: f ? 2 : Number.isInteger(Math.abs(n)) ? 0 : 2,
@@ -185,7 +185,6 @@ const K = 'pera.v1',
                 name: '',
                 profileAccent: PROFILE_COLORS[0][1],
                 theme: matchMedia('(prefers-color-scheme:dark)').matches ? 'dark' : 'light',
-                dateFormat: 'DD/MM/YYYY',
                 acc,
                 cats: cs.map(c => ({
                     id: k(c[0]),
@@ -1411,7 +1410,7 @@ ${summaryWidget}${shortcutsWidget}${actionsWidget}${accountsWidget}${transaction
   <div id="cloud-conflict" class="cloud-conflict" hidden><p>Cloud data changed while this device also has local changes. Choose which copy to keep.</p><div class="settings-actions"><button class="b1" type="button" data-cloud-action="use-cloud">Use cloud copy</button><button class="b2" type="button" data-cloud-action="keep-local">Keep this device</button></div></div>
 </div>
 ${profileSettingsCard()}
-<div class="card settings-preferences"><h3>Preferences</h3><div class="settings-preference-list"><div class="settings-preference-row"><span>Currency</span><b>Philippine Peso (₱)</b></div><div class="settings-preference-row"><span>Date format</span><select id="date-format" aria-label="Date format" onchange="D.dateFormat=this.value;save();render()"><option value="DD/MM/YYYY"${D.dateFormat==='DD/MM/YYYY'?' selected':''}>DD/MM/YYYY</option><option value="MM/DD/YYYY"${D.dateFormat==='MM/DD/YYYY'?' selected':''}>MM/DD/YYYY</option></select></div><div class="settings-preference-row"><span>Theme</span><button class="b2" onclick="D.theme=D.theme==='dark'?'light':'dark';save();render()">${ic(D.theme==='dark'?'sun':'moon')} ${D.theme==='dark'?'Light':'Dark'} mode</button></div></div><div class="settings-preference-dashboard"><small>Dashboard</small><button class="b2 dashboard-layout-setting" onclick="dashboardSettingsForm()">${ic('bar-chart-3')} Customize Dashboard</button></div></div>
+<div class="card settings-preferences"><h3>Preferences</h3><div class="settings-preference-list"><div class="settings-preference-row"><span>Currency</span><b>Philippine Peso (₱)</b></div><div class="settings-preference-row"><span>Date format</span><b>DD/MM/YYYY</b></div><div class="settings-preference-row"><span>Theme</span><button class="b2" onclick="D.theme=D.theme==='dark'?'light':'dark';save();render()">${ic(D.theme==='dark'?'sun':'moon')} ${D.theme==='dark'?'Light':'Dark'} mode</button></div></div><div class="settings-preference-dashboard"><small>Dashboard</small><button class="b2 dashboard-layout-setting" onclick="dashboardSettingsForm()">${ic('bar-chart-3')} Customize Dashboard</button></div></div>
 <div class="card"><h3>Manage</h3><div class="settings-actions"><button class="b2" onclick="go('acc')">${ic('wallet')} Accounts</button><button class="b2" onclick="go('cat')">${ic('tag')} Categories</button><button class="b2" onclick="go('bud')">${ic('gauge')} Budgets</button><button class="b2" onclick="go('goal')">${ic('target')} Savings goals</button><button class="b2" onclick="go('rec')">${ic('repeat')} Recurring transactions</button><button class="b2" onclick="go('cash')">${ic('coins')} Cashback</button></div></div>
 <div class="card"><h3>Export</h3><div class="settings-actions"><button class="b2" onclick="showText('Transactions (CSV)',csv())">${ic('file-text')} Transactions CSV</button><button class="b2" onclick="showText('Monthly report (CSV)',repCsv())">${ic('bar-chart-3')} Report CSV</button><button class="b2" onclick="exportAllData()">${ic('download')} Export all data (JSON)</button></div></div>
 <div class="card"><h3>Back up &amp; restore</h3><div class="settings-actions"><button class="b2" onclick="showText('Backup',JSON.stringify(D))">${ic('save')} View / copy backup</button><button class="b2" onclick="showText('Restore backup','',1)">${ic('upload')} Restore backup</button></div><small class="settings-note">Data is saved in this browser. Backups are files you download and store yourself; Pocket does not upload them to the cloud.</small></div>
@@ -1621,7 +1620,6 @@ ${profileSettingsCard()}
                 name: sx(d.name, 32).trim(),
                 profileAccent: PROFILE_COLORS.some(([, color]) => color === d.profileAccent) ? d.profileAccent : PROFILE_COLORS[0][1],
                 theme: d.theme === 'light' ? 'light' : 'dark',
-                dateFormat: d.dateFormat === 'MM/DD/YYYY' ? 'MM/DD/YYYY' : 'DD/MM/YYYY',
                 dashboardWidgets: Object.fromEntries(DASHBOARD_WIDGETS.map(([id, , enabled]) => [
                     id,
                     typeof dashboardWidgets[id] === 'boolean' ? dashboardWidgets[id] : enabled
