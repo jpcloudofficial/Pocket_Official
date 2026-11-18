@@ -789,6 +789,35 @@
             margin-top: 10px
         }
 
+        .cloud-sync-card {
+            grid-column: 1 / -1
+        }
+
+        .cloud-sync-card form:not([hidden]),
+        .cloud-sync-card #cloud-user-controls:not([hidden]) {
+            display: grid;
+            gap: 12px
+        }
+
+        .cloud-sync-card label {
+            display: grid;
+            gap: 6px;
+            color: var(--mu);
+            font-size: 13px
+        }
+
+        .cloud-sync-card input {
+            width: 100%
+        }
+
+        .cloud-sync-error {
+            color: var(--ex)
+        }
+
+        .cloud-conflict {
+            margin-top: 12px
+        }
+
         .mo {
             display: none
         }
