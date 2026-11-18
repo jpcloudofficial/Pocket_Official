@@ -229,7 +229,7 @@
         return;
       }
       const target = event.target;
-      if (target.closest('button,a,input,select,textarea,[role="button"],[role="link"],.account-carousel,.pocket-carousel')) {
+      if (target.closest('button,a,input,select,textarea,[role="button"],[role="link"],.account-carousel,.account-stack,.pocket-carousel')) {
         pageSwipeStart = null;
         return;
       }
