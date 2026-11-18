@@ -282,6 +282,11 @@
           if (typeof window.goalForm === 'function') window.goalForm();
           return;
         }
+        if (main.dataset.view === 'bud') {
+          closeMenu(menu, fab);
+          if (typeof window.budForm === 'function') window.budForm();
+          return;
+        }
         const opening = menu.classList.contains('pocket-hidden');
         menu.classList.toggle('pocket-hidden', !opening); menu.setAttribute('aria-hidden', String(!opening));
         fab.setAttribute('aria-expanded', String(opening)); fab.classList.toggle('pocket-fab-open', opening);
@@ -297,15 +302,16 @@
     const recurringPage = main.dataset.view === 'rec';
     const categoryPage = main.dataset.view === 'cat';
     const goalPage = main.dataset.view === 'goal';
+    const budgetPage = main.dataset.view === 'bud';
     const hideFab = main.dataset.view === 'set' || main.dataset.view === 'rep';
-    const fabLabel = accountPage ? 'Add account' : recurringPage ? 'Add schedule' : categoryPage ? 'New category' : goalPage ? 'New goal' : 'Add transaction';
-    fab.classList.toggle('pocket-fab-labeled', accountPage || recurringPage || categoryPage || goalPage);
+    const fabLabel = accountPage ? 'Add account' : recurringPage ? 'Add schedule' : categoryPage ? 'New category' : goalPage ? 'New goal' : budgetPage ? 'Add budget' : 'Add transaction';
+    fab.classList.toggle('pocket-fab-labeled', accountPage || recurringPage || categoryPage || goalPage || budgetPage);
     fab.classList.toggle('pocket-hidden', hideFab);
     fab.setAttribute('aria-label', fabLabel);
     fab.title = fabLabel;
     const label = fab.querySelector('.fab-label');
     if (label) label.textContent = fabLabel;
-    if (accountPage || recurringPage || categoryPage || goalPage || hideFab) closeMenu(menu, fab);
+    if (accountPage || recurringPage || categoryPage || goalPage || budgetPage || hideFab) closeMenu(menu, fab);
     let transferButton = document.querySelector('.pocket-account-transfer');
     if (!transferButton) {
       transferButton = document.createElement('button');
