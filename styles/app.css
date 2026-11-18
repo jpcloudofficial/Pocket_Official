@@ -591,8 +591,119 @@
         }
 
         .cashback-subtitle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
             font-size: 16px;
             margin: 18px 0 10px
+        }
+
+        .cashback-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px
+        }
+
+        .cashback-section-heading {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin: 18px 0 10px
+        }
+
+        .cashback-section-heading .cashback-subtitle {
+            margin: 0
+        }
+
+        .cashback-total {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex: none;
+            white-space: nowrap
+        }
+
+        .cashback-total b,
+        .cashback-amount {
+            color: var(--in)
+        }
+
+        .cashback-total b {
+            font-size: 17px
+        }
+
+        .cashback-count {
+            display: inline-grid;
+            min-width: 24px;
+            height: 24px;
+            place-items: center;
+            padding: 0 7px;
+            border-radius: 99px;
+            background: var(--sq);
+            color: var(--mu);
+            font-size: 12px
+        }
+
+        .cashback-list {
+            margin-top: 0
+        }
+
+        .cashback-card {
+            display: grid;
+            gap: 12px
+        }
+
+        .cashback-card-heading {
+            display: grid;
+            grid-template-columns: 44px minmax(0, 1fr) auto;
+            align-items: center;
+            gap: 10px
+        }
+
+        .cashback-card-title {
+            display: grid;
+            min-width: 0;
+            gap: 4px
+        }
+
+        .cashback-card-title b,
+        .cashback-card-meta b {
+            overflow-wrap: anywhere
+        }
+
+        .cashback-card-meta {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr)) auto;
+            align-items: center;
+            gap: 12px;
+            padding-top: 10px;
+            border-top: 1px solid var(--bd)
+        }
+
+        .cashback-card-meta span {
+            display: grid;
+            gap: 4px
+        }
+
+        .cashback-card-meta b {
+            font-size: 13px
+        }
+
+        .cashback-card-meta .ib {
+            padding: 6px
+        }
+
+        .cashback-card-actions {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px
+        }
+
+        .cashback-empty {
+            grid-column: 1 / -1
         }
 
         .dashboard-shortcuts {
@@ -634,6 +745,158 @@
             padding-right: 12px;
             scroll-snap-align: start;
             scroll-snap-stop: always
+        }
+
+        .account-stack-wrap {
+            width: min(100%, 520px);
+            margin: 16px auto 0
+        }
+
+        .account-stack-hint {
+            display: block;
+            text-align: center
+        }
+
+        .account-stack {
+            position: relative;
+            margin-top: 10px;
+            outline: none;
+            touch-action: pan-y;
+            user-select: none;
+            -webkit-user-select: none
+        }
+
+        .account-stack:focus-visible {
+            outline: 2px solid var(--in);
+            outline-offset: 4px;
+            border-radius: 20px
+        }
+
+        .account-stack-card {
+            position: absolute;
+            top: var(--stack-offset);
+            left: 0;
+            right: 0;
+            box-sizing: border-box;
+            height: 206px;
+            padding: 16px;
+            overflow: hidden;
+            border: 1px solid var(--bd);
+            border-top: 4px solid var(--account-accent);
+            border-radius: 20px;
+            background: var(--cd);
+            box-shadow: 0 10px 24px #0003
+        }
+
+        .account-stack-card::before {
+            content: '';
+            position: absolute;
+            inset: 0 0 auto;
+            height: 60px;
+            background: var(--account-accent);
+            opacity: .12;
+            pointer-events: none
+        }
+
+        .account-stack-card:not(.is-front) {
+            pointer-events: none
+        }
+
+        .account-stack-card:not(.is-front) > * {
+            visibility: hidden
+        }
+
+        .account-stack.is-expanded .account-stack-card:not(.is-front) > * {
+            visibility: visible
+        }
+
+        .account-stack-card-heading,
+        .account-stack-name {
+            display: flex;
+            align-items: center;
+            min-width: 0
+        }
+
+        .account-stack-card-heading {
+            position: relative;
+            justify-content: space-between;
+            gap: 12px
+        }
+
+        .account-stack-name {
+            gap: 10px
+        }
+
+        .account-stack-icon {
+            display: grid;
+            width: 36px;
+            height: 36px;
+            flex: none;
+            place-items: center;
+            border-radius: 12px;
+            background: var(--sq);
+            color: var(--account-accent)
+        }
+
+        .account-stack-name-copy {
+            display: grid;
+            min-width: 0;
+            gap: 4px
+        }
+
+        .account-stack-name-copy b {
+            overflow: hidden;
+            font-size: 16px;
+            text-overflow: ellipsis;
+            white-space: nowrap
+        }
+
+        .account-stack-name-copy small {
+            white-space: nowrap
+        }
+
+        .account-stack-balance {
+            flex: none;
+            font-size: 20px;
+            font-weight: 700;
+            white-space: nowrap
+        }
+
+        .account-stack-card-footer {
+            position: absolute;
+            right: 16px;
+            bottom: 14px;
+            left: 16px;
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 12px
+        }
+
+        .account-stack-card-footer > small {
+            max-width: 70%
+        }
+
+        .account-stack-actions,
+        .account-stack-footer {
+            display: flex;
+            align-items: center;
+            gap: 6px
+        }
+
+        .account-stack-footer {
+            justify-content: space-between;
+            flex-wrap: wrap;
+            margin-top: 8px
+        }
+
+        .account-stack-footer > small {
+            flex: 1 1 120px
+        }
+
+        .account-stack-footer .chip:disabled {
+            cursor: default;
+            opacity: .5
         }
 
         .ag {
@@ -734,6 +997,12 @@
 
         .settings-preference-row>.b2 {
             flex: none
+        }
+
+        .settings-preference-row>select {
+            flex: none;
+            width: auto;
+            min-width: 140px
         }
 
         .settings-name-input {

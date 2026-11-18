@@ -4,7 +4,11 @@ const K = 'pera.v1',
             pad = n => String(n).padStart(2, '0');
         const iso = d => d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()),
             today = () => iso(new Date()),
-            fd = s => s ? s.split('-').reverse().join('/') : '';
+            fd = s => {
+                if (!s) return '';
+                const [year, month, day] = s.split('-');
+                return D?.dateFormat === 'MM/DD/YYYY' ? `${month}/${day}/${year}` : `${day}/${month}/${year}`;
+            };
         const peso = (n, f) => (n < 0 ? '−' : '') + '₱' + Math.abs(n).toLocaleString('en-PH', {
             minimumFractionDigits: f ? 2 : Number.isInteger(Math.abs(n)) ? 0 : 2,
             maximumFractionDigits: 2
@@ -45,7 +49,7 @@ const K = 'pera.v1',
             ['Teal', '#0f766e']
         ];
         const defaultDashboardWidgets = () => Object.fromEntries(DASHBOARD_WIDGETS.map(([id, , enabled]) => [id, enabled]));
-        let D, U = {
+        let D, accountStackOrder = [], accountStackExpanded = false, U = {
             v: 'dash',
             ry: new Date().getFullYear(),
             ra: '',
@@ -180,6 +184,7 @@ const K = 'pera.v1',
                 name: '',
                 profileAccent: PROFILE_COLORS[0][1],
                 theme: matchMedia('(prefers-color-scheme:dark)').matches ? 'dark' : 'light',
+                dateFormat: 'DD/MM/YYYY',
                 acc,
                 cats: cs.map(c => ({
                     id: k(c[0]),
@@ -864,6 +869,104 @@ const K = 'pera.v1',
             const page = Math.min(count, Math.round(carousel.scrollLeft / Math.max(1, carousel.clientWidth)) + 1);
             indicator.textContent = `Swipe · ${page}/${count}`
         }
+        function accountStackAccounts() {
+            const byId = new Map(D.acc.map(account => [account.id, account]));
+            accountStackOrder = accountStackOrder.filter(id => byId.has(id));
+            D.acc.forEach(account => {
+                if (!accountStackOrder.includes(account.id)) accountStackOrder.push(account.id)
+            });
+            return accountStackOrder.map(id => byId.get(id));
+        }
+        function renderAccountStackLayout(restoreFocus) {
+            const stack = $('#m .account-stack');
+            const previousPositions = new Map(stack ? Array.from(stack.querySelectorAll('.account-stack-card'))
+                .map(card => [card.dataset.accountId, card.getBoundingClientRect()]) : []);
+            render();
+            const nextStack = $('#m .account-stack');
+            if (restoreFocus && nextStack) nextStack.focus();
+            if (!nextStack || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+            nextStack.querySelectorAll('.account-stack-card').forEach(card => {
+                const previous = previousPositions.get(card.dataset.accountId);
+                if (!previous) return;
+                const current = card.getBoundingClientRect(),
+                    x = previous.left - current.left,
+                    y = previous.top - current.top;
+                if ((!x && !y) || typeof card.animate !== 'function') return;
+                card.animate([
+                    { transform: `translate3d(${x}px,${y}px,0)` },
+                    { transform: 'translate3d(0,0,0)' }
+                ], { duration: 260, easing: 'cubic-bezier(.22,.61,.36,1)' })
+            })
+        }
+        function sendAccountCardToBack(restoreFocus) {
+            if (accountStackOrder.length < 2 || !$('#m .account-stack')) return;
+            accountStackOrder.unshift(accountStackOrder.pop());
+            renderAccountStackLayout(restoreFocus)
+        }
+        function setAccountStackExpanded(expanded, restoreFocus) {
+            if (accountStackExpanded === expanded) return;
+            accountStackExpanded = expanded;
+            renderAccountStackLayout(restoreFocus)
+        }
+        function toggleAccountStackExpanded() {
+            setAccountStackExpanded(!accountStackExpanded)
+        }
+        function wireAccountStack() {
+            const stack = $('#m .account-stack');
+            if (!stack || stack.dataset.swipeReady) return;
+            stack.dataset.swipeReady = '1';
+            let pointerStart = null, touchStart = null;
+            stack.addEventListener('pointerdown', event => {
+                if (event.button !== 0 || event.target.closest('button,a,input,select,textarea')) return;
+                pointerStart = { x: event.clientX, y: event.clientY };
+                stack.setPointerCapture(event.pointerId);
+            });
+            stack.addEventListener('pointerup', event => {
+                if (!pointerStart) return;
+                const dx = event.clientX - pointerStart.x,
+                    dy = event.clientY - pointerStart.y;
+                pointerStart = null;
+                if (Math.abs(dx) >= 48 && Math.abs(dx) >= Math.abs(dy) * 1.25) {
+                    sendAccountCardToBack();
+                    return
+                }
+                if (Math.abs(dy) >= 48 && Math.abs(dy) >= Math.abs(dx) * 1.25) {
+                    setAccountStackExpanded(dy > 0)
+                }
+            });
+            stack.addEventListener('pointercancel', () => { pointerStart = null });
+            stack.addEventListener('touchstart', event => {
+                if (event.touches.length !== 1) {
+                    touchStart = null;
+                    return
+                }
+                const touch = event.touches[0];
+                touchStart = { x: touch.clientX, y: touch.clientY }
+            }, { passive: true });
+            stack.addEventListener('touchend', event => {
+                if (!touchStart) return;
+                const touch = event.changedTouches[0],
+                    dx = touch.clientX - touchStart.x,
+                    dy = touch.clientY - touchStart.y;
+                touchStart = null;
+                if (Math.abs(dy) >= 48 && Math.abs(dy) >= Math.abs(dx) * 1.25) {
+                    setAccountStackExpanded(dy > 0)
+                }
+            }, { passive: true });
+            stack.addEventListener('touchcancel', () => { touchStart = null }, { passive: true });
+            stack.addEventListener('keydown', event => {
+                if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
+                    event.preventDefault();
+                    sendAccountCardToBack(true)
+                } else if (event.key === 'ArrowDown') {
+                    event.preventDefault();
+                    setAccountStackExpanded(true, true)
+                } else if (event.key === 'ArrowUp') {
+                    event.preventDefault();
+                    setAccountStackExpanded(false, true)
+                }
+            })
+        }
         V.dash = () => {
             const [a, b] = rng(), T = D.tx.filter(t => t.date >= a && t.date <= b), inc = sum(T, 'income'), exp =
                 sum(T, 'expense'), tot = D.acc.filter(x => !isSav(x)).reduce((s, x) => s + bal(x), 0), cr = D.acc.filter(x => x.type === 'Credit Card')
@@ -937,9 +1040,16 @@ ${summaryWidget}${shortcutsWidget}${actionsWidget}${accountsWidget}${transaction
             const received = D.cashbacks.filter(claim => claim.status === 'received');
             const claimCard = claim => {
                 const expense = D.tx.find(item => item.id === claim.expenseId);
-                return `<div class="card"><div class="row"><span class="dot" style="background:#0891b222;color:#0891b2">${ic('coins')}</span><div class="gr"><b>${esc(claim.expenseTitle || expense?.title || 'Linked expense')}</b><br><small>Expense ${fd(claim.expenseDate || expense?.date || claim.created)} · Deposit to ${esc(A(claim.account)?.name || 'Unknown account')}</small></div><b style="color:var(--in)">${peso(claim.amount)}</b></div><div class="row sp" style="margin-top:10px"><small>${claim.status === 'received' ? `Received ${fd(claim.receivedDate)}` : `Expected · added ${fd(claim.created)}`}</small><div class="row">${claim.status === 'pending' ? `<button class="chip" onclick="markCashbackReceived('${claim.id}')">Mark received</button>` : ''}<button class="ib" onclick="deleteCashback('${claim.id}')" aria-label="Delete cashback claim">${ic('trash-2')}</button></div></div></div>`
+                const timingLabel = claim.status === 'received' ? 'Received' : 'Added';
+                const timingDate = claim.status === 'received' ? claim.receivedDate : claim.created;
+                const deleteButton = `<button class="ib" onclick="deleteCashback('${claim.id}')" aria-label="Delete cashback claim">${ic('trash-2')}</button>`;
+                const actions = claim.status === 'pending'
+                    ? `<div class="cashback-card-actions"><button class="chip" onclick="markCashbackReceived('${claim.id}')">Mark received</button>${deleteButton}</div>`
+                    : '';
+                return `<article class="card cashback-card"><div class="cashback-card-heading"><span class="dot" style="background:#0891b222;color:#0891b2">${ic('coins')}</span><div class="cashback-card-title"><b>${esc(claim.expenseTitle || expense?.title || 'Linked expense')}</b><small>Expense · ${fd(claim.expenseDate || expense?.date || claim.created)}</small></div><b class="cashback-amount">${peso(claim.amount)}</b></div><div class="cashback-card-meta"><span><small>Deposit account</small><b>${esc(A(claim.account)?.name || 'Unknown account')}</b></span><span><small>${timingLabel}</small><b>${fd(timingDate)}</b></span>${claim.status === 'received' ? deleteButton : ''}</div>${actions}</article>`
             };
-            return `<div class="row sp"><div class="gr"><h2>Cashback</h2><small>Track claims and mark cashback received.</small></div><b style="color:var(--in)">${peso(received.reduce((total, claim) => total + claim.amount, 0))} received</b></div><h3 class="sec cashback-subtitle">Pending (${pending.length})</h3><div class="g g2">${pending.length ? pending.map(claimCard).join('') : '<div class="empty card">No pending cashback. Open Transactions and tap the coin icon beside an expense to add one.</div>'}</div><h3 class="sec cashback-subtitle">Received (${received.length})</h3><div class="g g2">${received.length ? received.map(claimCard).join('') : '<div class="empty card">Cashback marked received will appear here as income.</div>'}</div>`
+            const receivedTotal = received.reduce((total, claim) => total + claim.amount, 0);
+            return `<div class="cashback-header"><div><h2>Cashback</h2><small>Track pending and received cashback.</small></div></div><h3 class="sec cashback-subtitle"><span>Pending</span><span class="cashback-count">${pending.length}</span></h3><div class="g g2 cashback-list">${pending.length ? pending.map(claimCard).join('') : '<div class="empty card cashback-empty">No pending cashback. Add a claim from an expense in Transactions.</div>'}</div><div class="cashback-section-heading"><h3 class="sec cashback-subtitle"><span>Received</span><span class="cashback-count">${received.length}</span></h3><div class="cashback-total"><small>Total received</small><b>${peso(receivedTotal)}</b></div></div><div class="g g2 cashback-list">${received.length ? received.map(claimCard).join('') : '<div class="empty card cashback-empty">Cashback marked received will appear here as income.</div>'}</div>`
         };
         V.tx = () => {
             const o = (L, all) => `<option value="">${all}</option>` + L.map(x =>
@@ -998,14 +1108,6 @@ ${summaryWidget}${shortcutsWidget}${actionsWidget}${accountsWidget}${transaction
                 k: 'icon',
                 l: 'Icon',
                 t: 'icons'
-            }, {
-                k: 'od',
-                l: 'Allow overdraft?',
-                t: 'sel',
-                o: [
-                    ['no', 'No'],
-                    ['yes', 'Yes']
-                ]
             }], a ? {
                 ...a,
                 initial: bal(a)
@@ -1013,13 +1115,13 @@ ${summaryWidget}${shortcutsWidget}${actionsWidget}${accountsWidget}${transaction
                 color: '#2563eb',
                 icon: 'wallet',
                 type: 'Cash',
-                initial: '0',
-                od: 'no'
+                initial: '0'
             }, v => {
                 if (D.acc.some(x => x.id !== id && x.name.toLowerCase() === v.name.toLowerCase()))
                 return 'An account with this name already exists';
                 const o = {
                     ...v,
+                    od: a && a.od === 'yes' ? 'yes' : 'no',
                     initial: a ? Math.round((+a.initial + (+v.initial - bal(a))) * 100) / 100 : +v.initial
                 };
                 a ? Object.assign(a, o) : D.acc.push({
@@ -1033,8 +1135,25 @@ ${summaryWidget}${shortcutsWidget}${actionsWidget}${accountsWidget}${transaction
             'This account has transactions. Delete or move them first.') : ask('Delete this account?', () => {
             D.acc = D.acc.filter(a => a.id !== id)
         });
-        V.acc = () =>
-            `<div class="row sp"><div><h2>Accounts</h2><small>Total Balance ${peso(D.acc.filter(x=>!isSav(x)).reduce((s,x)=>s+bal(x),0))} · Savings ${peso(D.acc.filter(isSav).reduce((s,x)=>s+bal(x),0))}</small></div></div><div class="g g2">${D.acc.map(a=>{const b=bal(a);return`<div class="card"><div class="row"><span class="dot" style="background:${a.color}22;color:${a.color}">${ic(a.icon||'wallet')}</span><div class="gr"><b>${esc(a.name)}</b><br><small>${a.type} · since ${fd(a.created)}</small></div><button class="ib" onclick="accForm('${a.id}')" aria-label="Edit">${ic('pencil')}</button><button class="ib" onclick="delAcc('${a.id}')" aria-label="Delete">${ic('trash-2')}</button></div><div class="account-balance-row"><small>${a.type==='Credit Card'?'Liability — not counted as available cash':isSav(a)?'Savings — kept separate from Total Balance':'Initial '+peso(a.initial)}</small><div class="big" style="color:${b<0?'var(--ex)':'inherit'}">${peso(b)}</div></div></div>`}).join('')}</div>`;
+        V.acc = () => {
+            const accounts = accountStackAccounts();
+            const collapsedHeight = accounts.length ? Math.min(206 + (accounts.length - 1) * 28, 430) : 0,
+                stackGap = accounts.length > 1 ? accountStackExpanded ? 68 : (collapsedHeight - 206) / (accounts.length - 1) : 0,
+                stackHeight = accounts.length ? 206 + (accounts.length - 1) * stackGap : 0,
+                stackClass = accountStackExpanded ? 'account-stack is-expanded' : 'account-stack';
+            const visibleAccounts = accounts;
+            const cards = visibleAccounts.map((account, index) => {
+                const balance = bal(account);
+                const isFront = index === visibleAccounts.length - 1;
+                const balanceNote = account.type === 'Credit Card' ? 'Liability · not counted in available balance' :
+                    isSav(account) ? 'Savings · kept separate from total balance' : `Initial ${peso(account.initial)}`;
+                const actions = isFront ?
+                    `<div class="account-stack-actions"><button class="ib" onclick="accForm('${account.id}')" aria-label="Edit ${esc(account.name)}">${ic('pencil')}</button><button class="ib" onclick="delAcc('${account.id}')" aria-label="Delete ${esc(account.name)}">${ic('trash-2')}</button></div>` :
+                    '';
+                return `<article class="account-stack-card${isFront ? ' is-front' : ''}" data-account-id="${esc(account.id)}" aria-hidden="${!isFront && !accountStackExpanded}" style="--account-accent:${esc(account.color)};--stack-offset:${index * stackGap}px;z-index:${index}"><div class="account-stack-card-heading"><div class="account-stack-name"><span class="account-stack-icon">${ic(account.icon || 'wallet')}</span><span class="account-stack-name-copy"><b>${esc(account.name)}</b><small>${esc(account.type)} · since ${fd(account.created)}</small></span></div><b class="account-stack-balance" style="color:${balance < 0 ? 'var(--ex)' : 'var(--tx)'}">${peso(balance)}</b></div><div class="account-stack-card-footer"><small>${balanceNote}</small>${actions}</div></article>`
+            }).join('');
+            return `<div class="row sp account-stack-summary"><div><h2>Accounts</h2><small>Total Balance ${peso(D.acc.filter(account => !isSav(account)).reduce((total, account) => total + bal(account), 0))} · Savings ${peso(D.acc.filter(isSav).reduce((total, account) => total + bal(account), 0))}</small></div><small>${accounts.length} accounts</small></div>${accounts.length ? `<div class="account-stack-wrap"><small class="account-stack-hint">${accountStackExpanded ? 'Swipe up to return to the card stack.' : 'Swipe down to see each account name and balance.'}</small><div class="${stackClass}" role="region" aria-expanded="${accountStackExpanded}" aria-label="Account cards. Swipe down to show all account names and balances, or swipe up to collapse." tabindex="0" style="height:${stackHeight}px">${cards}</div><div class="account-stack-footer"><small>${accountStackExpanded ? 'Swipe up to collapse the cards.' : 'Swipe down for all balances or left and right to cycle cards.'}</small><button type="button" class="chip" aria-label="Show next account" ${accounts.length < 2 ? 'disabled' : ''} onclick="sendAccountCardToBack()">Next card</button><button type="button" class="chip" aria-label="${accountStackExpanded ? 'Collapse account cards' : 'Show all account balances'}" aria-expanded="${accountStackExpanded}" ${accounts.length < 2 ? 'disabled' : ''} onclick="toggleAccountStackExpanded()">${accountStackExpanded ? 'Collapse cards' : 'Show balances'}</button></div></div>` : '<div class="empty">No accounts yet.</div>'}`
+        };
 
         function budForm(id) {
             openForm(id ? 'Edit budget' : 'Set budget', () => [{
@@ -1284,7 +1403,7 @@ ${summaryWidget}${shortcutsWidget}${actionsWidget}${accountsWidget}${transaction
             `<h2>Settings</h2><div class="g g2">
 <div class="card cloud-sync-card" id="cloud-sync-card"><h3>Cloud sync</h3><p class="settings-note">Sync your data across devices.</p><p id="cloud-sync-status" role="status">Connecting to Firebase…</p><p class="cloud-sync-error" id="cloud-sync-error" role="alert" hidden></p><div id="cloud-login-options"><button class="b2 cloud-google-button" type="button" data-cloud-action="google-sign-in">Continue with Google</button><details class="cloud-email-options"><summary>Use email instead</summary><form id="cloud-auth-form"><label>Email<input id="cloud-email" type="email" autocomplete="email" required></label><label>Password<input id="cloud-password" type="password" autocomplete="current-password" minlength="6" required></label><div class="settings-actions"><button class="b1" type="submit" data-cloud-action="sign-in">Sign in</button><button class="b2" type="button" data-cloud-action="signup">Create account</button><button class="b2" type="button" data-cloud-action="password-reset">Forgot password?</button></div></form></details></div><div id="cloud-user-controls" hidden><div class="settings-actions"><button class="b2" type="button" data-cloud-action="sign-out">Sign out</button></div></div><div id="cloud-conflict" class="cloud-conflict" hidden><p>Cloud data changed while this device also has local changes. Choose which copy to keep.</p><div class="settings-actions"><button class="b1" type="button" data-cloud-action="use-cloud">Use cloud copy</button><button class="b2" type="button" data-cloud-action="keep-local">Keep this device</button></div></div></div>
 ${profileSettingsCard()}
-<div class="card settings-preferences"><h3>Preferences</h3><div class="settings-preference-list"><div class="settings-preference-row"><span>Currency</span><b>Philippine Peso (₱)</b></div><div class="settings-preference-row"><span>Date format</span><b>DD/MM/YYYY</b></div><div class="settings-preference-row"><span>Theme</span><button class="b2" onclick="D.theme=D.theme==='dark'?'light':'dark';save();render()">${ic(D.theme==='dark'?'sun':'moon')} ${D.theme==='dark'?'Light':'Dark'} mode</button></div></div><div class="settings-preference-dashboard"><small>Dashboard</small><button class="b2 dashboard-layout-setting" onclick="dashboardSettingsForm()">${ic('bar-chart-3')} Customize Dashboard</button></div></div>
+<div class="card settings-preferences"><h3>Preferences</h3><div class="settings-preference-list"><div class="settings-preference-row"><span>Currency</span><b>Philippine Peso (₱)</b></div><div class="settings-preference-row"><span>Date format</span><select id="date-format" aria-label="Date format" onchange="D.dateFormat=this.value;save();render()"><option value="DD/MM/YYYY"${D.dateFormat==='DD/MM/YYYY'?' selected':''}>DD/MM/YYYY</option><option value="MM/DD/YYYY"${D.dateFormat==='MM/DD/YYYY'?' selected':''}>MM/DD/YYYY</option></select></div><div class="settings-preference-row"><span>Theme</span><button class="b2" onclick="D.theme=D.theme==='dark'?'light':'dark';save();render()">${ic(D.theme==='dark'?'sun':'moon')} ${D.theme==='dark'?'Light':'Dark'} mode</button></div></div><div class="settings-preference-dashboard"><small>Dashboard</small><button class="b2 dashboard-layout-setting" onclick="dashboardSettingsForm()">${ic('bar-chart-3')} Customize Dashboard</button></div></div>
 <div class="card"><h3>Manage</h3><div class="settings-actions"><button class="b2" onclick="go('acc')">${ic('wallet')} Accounts</button><button class="b2" onclick="go('cat')">${ic('tag')} Categories</button><button class="b2" onclick="go('bud')">${ic('gauge')} Budgets</button><button class="b2" onclick="go('goal')">${ic('target')} Savings goals</button><button class="b2" onclick="go('rec')">${ic('repeat')} Recurring transactions</button><button class="b2" onclick="go('cash')">${ic('coins')} Cashback</button></div></div>
 <div class="card"><h3>Export</h3><div class="settings-actions"><button class="b2" onclick="showText('Transactions (CSV)',csv())">${ic('file-text')} Transactions CSV</button><button class="b2" onclick="showText('Monthly report (CSV)',repCsv())">${ic('bar-chart-3')} Report CSV</button><button class="b2" onclick="exportAllData()">${ic('download')} Export all data (JSON)</button></div></div>
 <div class="card"><h3>Back up &amp; restore</h3><div class="settings-actions"><button class="b2" onclick="showText('Backup',JSON.stringify(D))">${ic('save')} View / copy backup</button><button class="b2" onclick="showText('Restore backup','',1)">${ic('upload')} Restore backup</button></div><small class="settings-note">Data is saved in this browser. Backups are files you download and store yourself; Pocket does not upload them to the cloud.</small></div>
@@ -1458,6 +1577,7 @@ ${profileSettingsCard()}
             $('#m').dataset.view = U.v;
             $('#m').innerHTML = V[U.v]();
             setupTitleMenu();
+            if (U.v === 'acc') wireAccountStack();
             lu()
         }
         window.addEventListener('resize', updateNavigationIndicator);
@@ -1475,6 +1595,7 @@ ${profileSettingsCard()}
                 name: sx(d.name, 32).trim(),
                 profileAccent: PROFILE_COLORS.some(([, color]) => color === d.profileAccent) ? d.profileAccent : PROFILE_COLORS[0][1],
                 theme: d.theme === 'light' ? 'light' : 'dark',
+                dateFormat: d.dateFormat === 'MM/DD/YYYY' ? 'MM/DD/YYYY' : 'DD/MM/YYYY',
                 dashboardWidgets: Object.fromEntries(DASHBOARD_WIDGETS.map(([id, , enabled]) => [
                     id,
                     typeof dashboardWidgets[id] === 'boolean' ? dashboardWidgets[id] : enabled
