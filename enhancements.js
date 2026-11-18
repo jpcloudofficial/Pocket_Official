@@ -232,6 +232,44 @@
     if (button.parentElement !== header) header.append(button);
   };
 
+  const PAGE_TABS = ['dash', 'tx', 'acc', 'rep', 'set'];
+  let pageSwipeStart = null;
+  const wirePageSwipe = () => {
+    if (main.dataset.pocketPageSwipeReady) return;
+    main.dataset.pocketPageSwipeReady = '1';
+    main.addEventListener('touchstart', event => {
+      if (event.touches.length !== 1 || !PAGE_TABS.includes(main.dataset.view)) {
+        pageSwipeStart = null;
+        return;
+      }
+      const target = event.target;
+      if (target.closest('button,a,input,select,textarea,[role="button"],[role="link"],.account-carousel,.pocket-carousel')) {
+        pageSwipeStart = null;
+        return;
+      }
+      pageSwipeStart = { x: event.touches[0].clientX, y: event.touches[0].clientY };
+    }, { passive: true });
+    main.addEventListener('touchmove', event => {
+      if (event.touches.length !== 1) pageSwipeStart = null;
+    }, { passive: true });
+    main.addEventListener('touchend', event => {
+      if (!pageSwipeStart || event.changedTouches.length !== 1) {
+        pageSwipeStart = null;
+        return;
+      }
+      const dx = event.changedTouches[0].clientX - pageSwipeStart.x;
+      const dy = event.changedTouches[0].clientY - pageSwipeStart.y;
+      pageSwipeStart = null;
+      if (Math.abs(dx) < 64 || Math.abs(dx) < Math.abs(dy) * 1.25) return;
+      const current = PAGE_TABS.indexOf(main.dataset.view);
+      const next = current + (dx < 0 ? 1 : -1);
+      if (next < 0 || next >= PAGE_TABS.length) return;
+      event.preventDefault();
+      if (typeof window.go === 'function') window.go(PAGE_TABS[next]);
+    }, { passive: false });
+    main.addEventListener('touchcancel', () => { pageSwipeStart = null; }, { passive: true });
+  };
+
   const removeLegacyDashboardControls = () => {
     main.querySelectorAll('.pocket-carousel-controls,.pocket-title-edit').forEach(element => element.remove());
     [...main.querySelectorAll('.row')].forEach(row => {
@@ -340,6 +378,7 @@
       removeLegacyDashboardControls();
     }
     wireQuickAdd();
+    wirePageSwipe();
     updatePrivacy();
     watchTransactionForm();
   };
