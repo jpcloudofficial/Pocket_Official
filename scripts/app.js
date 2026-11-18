@@ -1,4 +1,5 @@
 const K = 'pera.v1',
+            VIEW_KEY = 'pera.view.v1',
             $ = s => document.querySelector(s),
             uid = () => Math.random().toString(36).slice(2, 9),
             pad = n => String(n).padStart(2, '0');
@@ -1551,7 +1552,25 @@ ${profileSettingsCard()}
             indicator.style.transform = `translate(${activeButton.offsetLeft}px, ${activeButton.offsetTop}px)`;
         }
 
+        function restoreCurrentView() {
+            try {
+                const view = localStorage.getItem(VIEW_KEY);
+                if (view && Object.prototype.hasOwnProperty.call(V, view)) U.v = view
+            } catch (error) {
+                console.warn('Unable to restore the previous page', error)
+            }
+        }
+
+        function persistCurrentView() {
+            try {
+                localStorage.setItem(VIEW_KEY, U.v)
+            } catch (error) {
+                console.warn('Unable to save the current page', error)
+            }
+        }
+
         function render() {
+            persistCurrentView();
             closeTitleMenu();
             document.documentElement.dataset.theme = D.theme;
             document.querySelector('meta[name=theme-color]').content = D.theme === 'dark' ? '#000000' : '#f5f5f4';
@@ -1719,6 +1738,7 @@ ${profileSettingsCard()}
         $('#ov').onclick = e => {
             if (e.target.id === 'ov') cl()
         };
+        restoreCurrentView();
         render();
         const runDueRecurring = () => {
             if (processRecurring()) {
