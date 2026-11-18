@@ -57,6 +57,9 @@ function errorText(error) {
     'auth/too-many-requests': 'Too many attempts. Wait a while and try again.',
     'auth/unauthorized-domain': 'This site is not authorized for Firebase sign-in. Add its domain in Firebase Authentication settings.',
     'auth/account-exists-with-different-credential': 'This email uses another sign-in method. Sign in with that method instead.',
+    'auth/popup-blocked': 'Your browser blocked the Google sign-in popup. Allow popups for this site and try again.',
+    'auth/popup-closed-by-user': 'Google sign-in was closed before it finished.',
+    'auth/operation-not-supported-in-this-environment': 'Google popup sign-in is not supported in this browser. Try a regular, non-incognito browser tab.',
     'permission-denied': 'Firestore denied access. Check that the published rules allow this signed-in user.',
     'unavailable': 'Firestore is unavailable. Your changes remain saved on this device.'
   };
@@ -315,18 +318,7 @@ async function handleCloudAction(action) {
       updatePanel();
       const provider = new authSdk.GoogleAuthProvider();
       provider.setCustomParameters({ prompt: 'select_account' });
-      if (window.matchMedia('(pointer: coarse)').matches) {
-        await authSdk.signInWithRedirect(auth, provider);
-        return;
-      }
-      try {
-        await authSdk.signInWithPopup(auth, provider);
-      } catch (error) {
-        if (!['auth/popup-blocked', 'auth/operation-not-supported-in-this-environment'].includes(error.code)) {
-          throw error;
-        }
-        await authSdk.signInWithRedirect(auth, provider);
-      }
+      await authSdk.signInWithPopup(auth, provider);
     });
     return;
   }
