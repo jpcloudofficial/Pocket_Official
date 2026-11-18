@@ -435,6 +435,48 @@
             border-radius: 9px
         }
 
+        .goal-card {
+            display: flex;
+            flex-direction: column
+        }
+
+        .goal-heading {
+            flex-wrap: nowrap
+        }
+
+        .goal-amount {
+            white-space: nowrap
+        }
+
+        .goal-amount small {
+            font-size: 12px;
+            font-weight: 400
+        }
+
+        .goal-details-row {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            align-items: center;
+            gap: 8px;
+            margin-top: 8px
+        }
+
+        .goal-details-row small {
+            min-width: 0;
+            line-height: 1.4
+        }
+
+        .goal-details-row .chip {
+            white-space: nowrap
+        }
+
+        .goal-estimate {
+            display: block;
+            margin-top: auto;
+            padding-top: 8px;
+            min-height: 16px
+        }
+
         .ip {
             display: flex;
             flex-wrap: wrap;
@@ -787,7 +829,7 @@
         #m.pocket-private .hb,
         #m.pocket-private .hn,
         #m.pocket-private .av,
-        #m.pocket-private .tx>b {
+        #m.pocket-private .tx-amount {
             filter: none !important
         }
 
@@ -1095,7 +1137,6 @@
         const defaultDashboardWidgets = () => Object.fromEntries(DASHBOARD_WIDGETS.map(([id, , enabled]) => [id, enabled]));
         let D, U = {
             v: 'dash',
-            f: 'month',
             ry: new Date().getFullYear(),
             ra: '',
             rc: '',
@@ -1299,21 +1340,9 @@
         const sorted = () => [...D.tx].sort((a, b) => (b.date + (b.time || '')).localeCompare(a.date + (a.time || '')));
         const sum = (L, ty) => L.filter(t => t.type === ty).reduce((s, t) => s + t.amount, 0);
 
-        function rng(f) {
-            const n = new Date(),
-                y = n.getFullYear(),
-                m = n.getMonth();
-            if (f === 'today') return [today(), today()];
-            if (f === 'week') {
-                const d = new Date(n);
-                d.setDate(n.getDate() - (n.getDay() + 6) % 7);
-                const e = new Date(d);
-                e.setDate(d.getDate() + 6);
-                return [iso(d), iso(e)]
-            }
-            if (f === 'month') return [iso(new Date(y, m, 1)), iso(new Date(y, m + 1, 0))];
-            if (f === 'last') return [iso(new Date(y, m - 1, 1)), iso(new Date(y, m, 0))];
-            return [U.cf || '0000', U.ct || '9999']
+        function rng() {
+            const n = new Date();
+            return [iso(new Date(n.getFullYear(), n.getMonth(), 1)), iso(new Date(n.getFullYear(), n.getMonth() + 1, 0))]
         }
         const IP = {
                 wallet: '<rect x="3" y="6" width="18" height="14" rx="4"/><path d="M3 11h18M16.5 15.5h1"/>',
@@ -1933,7 +1962,7 @@
             indicator.textContent = `Swipe · ${page}/${count}`
         }
         V.dash = () => {
-            const [a, b] = rng(U.f), T = D.tx.filter(t => t.date >= a && t.date <= b), inc = sum(T, 'income'), exp =
+            const [a, b] = rng(), T = D.tx.filter(t => t.date >= a && t.date <= b), inc = sum(T, 'income'), exp =
                 sum(T, 'expense'), tot = D.acc.filter(x => !isSav(x)).reduce((s, x) => s + bal(x), 0), cr = D.acc.filter(x => x.type === 'Credit Card')
                 .reduce((s, x) => s + bal(x), 0), av = tot - cr, n = new Date(), ks = [], L = [];
             for (let i = 5; i >= 0; i--) {
@@ -1941,13 +1970,6 @@
                 ks.push(ym(iso(d)));
                 L.push(MO[d.getMonth()])
             }
-            const fl = [
-                ['today', 'Today'],
-                ['week', 'This week'],
-                ['month', 'This month'],
-                ['last', 'Last month'],
-                ['custom', 'Custom']
-            ];
             const reportYear = new Date().getFullYear(),
                 reportTransactions = D.tx.filter(t => +t.date.slice(0, 4) === reportYear),
                 reportMonthly = i => reportTransactions.filter(t => +t.date.slice(5, 7) === i + 1),
@@ -1988,8 +2010,7 @@
             const reportsWidget = reportCards.length ? `<div class="g g2">${reportCards.join('')}</div>` : '';
             const emptyDashboard = DASHBOARD_WIDGETS.some(([id]) => widgets[id]) ? '' :
                 '<div class="empty card">No dashboard sections are visible. Go to Settings and select Customize Dashboard to add sections.</div>';
-            return `<div class="row sp"><h2 style="font-size:26px">My Finance</h2><select class="pill" aria-label="Period" onchange="U.f=this.value;render()">${fl.map(f=>`<option value="${f[0]}"${U.f===f[0]?' selected':''}>${f[1]}</option>`).join('')}</select></div>
-<div class="row" style="margin-top:10px">${U.f==='custom'?`<input type="date" value="${U.cf||''}" style="width:auto" onchange="U.cf=this.value;render()"><input type="date" value="${U.ct||''}" style="width:auto" onchange="U.ct=this.value;render()">`:''}</div>${widgets.alerts?alerts():''}
+            return `<div class="row sp pocket-privacy-header"><h2 style="font-size:26px">My Finance</h2></div>${widgets.alerts?alerts():''}
 ${summaryWidget}${shortcutsWidget}${actionsWidget}${accountsWidget}${transactionsWidget}${reportsWidget}${emptyDashboard}`
         };
 
@@ -2019,7 +2040,7 @@ ${summaryWidget}${shortcutsWidget}${actionsWidget}${accountsWidget}${transaction
         V.tx = () => {
             const o = (L, all) => `<option value="">${all}</option>` + L.map(x =>
                 `<option value="${x.id}">${esc(x.name)}</option>`).join('');
-            return `<div class="row sp"><h2>Transactions</h2></div>
+            return `<div class="row sp pocket-privacy-header"><h2>Transactions</h2></div>
 <div class="f"><input placeholder="Search by name" value="${esc(U.q)}" oninput="U.q=this.value;fl()"><select onchange="U.c=this.value;fl()">${o(D.cats,'All categories').replace(`value="${U.c}"`,`value="${U.c}" selected`)}</select><select onchange="U.a=this.value;fl()">${o(D.acc,'All accounts').replace(`value="${U.a}"`,`value="${U.a}" selected`)}</select>
 <select onchange="U.ty=this.value;fl()">${[['','All types'],['income','Income'],['expense','Expense'],['transfer','Transfer']].map(x=>`<option value="${x[0]}"${U.ty===x[0]?' selected':''}>${x[1]}</option>`).join('')}</select><input type="date" value="${U.tf}" onchange="U.tf=this.value;fl()"><input type="date" value="${U.tt}" onchange="U.tt=this.value;fl()"></div><div class="card" id="tl">${txList()}</div>`
         };
@@ -2199,7 +2220,7 @@ ${summaryWidget}${shortcutsWidget}${actionsWidget}${accountsWidget}${transaction
             D.goals.find(x => x.id === id).current += +v.amt
         });
         V.goal = () =>
-            `<div class="row sp"><div><h2>Savings goals</h2><small>Adding money here is an internal allocation: it doesn’t change your account balances or count as an expense.</small></div><button class="b1" onclick="goalForm()">${ic('plus')} New goal</button></div><div class="g g2">${D.goals.length?D.goals.map(g=>{const p=Math.min(100,g.current/g.target*100),mo=Math.max(1,Math.ceil((new Date(g.date)-new Date())/2629e6));return`<div class="card"><div class="row"><span style="color:var(--in);display:inline-flex">${ic('target')}</span><b class="gr">${esc(g.name)}</b><button class="ib" onclick="goalForm('${g.id}')">${ic('pencil')}</button><button class="ib" onclick="ask('Delete this goal?',()=>D.goals=D.goals.filter(x=>x.id!=='${g.id}'))">${ic('trash-2')}</button></div><div class="big">${peso(g.current)} <small>of ${peso(g.target)}</small></div><div class="bar"><i style="width:${p}%;background:var(--in)"></i></div><div class="row sp"><small>${Math.round(p)}% · by ${fd(g.date)}${A(g.acc)?' · '+esc(A(g.acc).name):''}</small><button class="chip" onclick="fund('${g.id}')">+ Add money</button></div>${p<100?`<small>≈ ${peso((g.target-g.current)/mo)} per month to stay on track</small>`:'<small style="color:var(--in)">Goal reached 🎉</small>'}</div>`}).join(''):'<div class="empty card">No goals yet. Create one to start saving toward it.</div>'}</div>`;
+            `<div class="row sp"><div><h2>Savings goals</h2><small>Track progress separately from your account balances.</small></div></div><div class="g g2">${D.goals.length?D.goals.map(g=>{const p=Math.min(100,g.current/g.target*100),mo=Math.max(1,Math.ceil((new Date(g.date)-new Date())/2629e6));return`<div class="card goal-card"><div class="row goal-heading"><span style="color:var(--in);display:inline-flex">${ic('target')}</span><b class="gr">${esc(g.name)}</b><button class="ib" onclick="goalForm('${g.id}')">${ic('pencil')}</button><button class="ib" onclick="ask('Delete this goal?',()=>D.goals=D.goals.filter(x=>x.id!=='${g.id}'))">${ic('trash-2')}</button></div><div class="big goal-amount">${peso(g.current)} <small>of ${peso(g.target)}</small></div><div class="bar"><i style="width:${p}%;background:var(--in)"></i></div><div class="goal-details-row"><small>${Math.round(p)}% · by ${fd(g.date)}${A(g.acc)?' · '+esc(A(g.acc).name):''}</small><button class="chip" onclick="fund('${g.id}')">+ Add money</button></div><small class="goal-estimate">${p<100?`≈ ${peso((g.target-g.current)/mo)} per month to stay on track`:'Goal reached 🎉'}</small></div>`}).join(''):'<div class="empty card">No goals yet. Create one to start saving toward it.</div>'}</div>`;
         V.rec = () => {
             const frequencyName = frequency => RECURRENCES.find(item => item[0] === frequency)?.[1] || 'Recurring';
             const details = rule => rule.type === 'transfer'
@@ -2270,7 +2291,7 @@ ${summaryWidget}${shortcutsWidget}${actionsWidget}${accountsWidget}${transaction
             D.cats = D.cats.filter(c => c.id !== id)
         });
         V.cat = () =>
-            `<div class="row sp"><h2>Categories</h2><button class="b1" onclick="catForm()">${ic('plus')} New category</button></div>${[['Daily','Daily expenses'],['Financial','Financial transactions'],['Income','Income']].map(([g,l])=>`<div class="card" style="margin-top:14px"><h3>${l}</h3>${D.cats.filter(c=>c.g===g).map(c=>`<div class="tx"><span class="dot" style="background:${c.color}22;color:${c.color}">${ic(c.icon)}</span><b class="gr">${esc(c.name)}</b><button class="ib" onclick="catForm('${c.id}')">${ic('pencil')}</button><button class="ib" onclick="delCat('${c.id}')">${ic('trash-2')}</button></div>`).join('')}</div>`).join('')}`;
+            `<div class="row sp"><h2>Categories</h2></div>${[['Daily','Daily expenses'],['Financial','Financial transactions'],['Income','Income']].map(([g,l])=>`<div class="card" style="margin-top:14px"><h3>${l}</h3>${D.cats.filter(c=>c.g===g).map(c=>`<div class="tx"><span class="dot" style="background:${c.color}22;color:${c.color}">${ic(c.icon)}</span><b class="gr">${esc(c.name)}</b><button class="ib" onclick="catForm('${c.id}')">${ic('pencil')}</button><button class="ib" onclick="delCat('${c.id}')">${ic('trash-2')}</button></div>`).join('')}</div>`).join('')}`;
 
         function csv() {
             const q = s => '"' + String(s ?? '').replace(/"/g, '""') + '"';
@@ -2627,13 +2648,13 @@ ${summaryWidget}${shortcutsWidget}${actionsWidget}${accountsWidget}${transaction
         if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) navigator.serviceWorker.register(
             'sw.js').catch(() => {})
     </script>
-    <script src="enhancements.js?v=20261117-privacy-stars-2"></script>
+    <script src="enhancements.js?v=20261118-savings-goal-action-1"></script>
     <script>
         (() => {
             const main = document.querySelector('#m');
             const maskAmounts = () => {
                 const hidden = main.classList.contains('pocket-private');
-                main.querySelectorAll('.hb, .hn, .av, .tx>b').forEach(amount => {
+                main.querySelectorAll('.hb, .hn, .av, .tx-amount').forEach(amount => {
                     if (hidden) {
                         if (!Object.prototype.hasOwnProperty.call(amount.dataset, 'pocketAmount')) {
                             amount.dataset.pocketAmount = amount.textContent;
