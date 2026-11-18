@@ -2429,7 +2429,7 @@ ${summaryWidget}${shortcutsWidget}${actionsWidget}${accountsWidget}${transaction
                 ['set', 'Settings']
             ]]
         ];
-        let titleMenu, titleMenuTrigger;
+        let titleMenu, titleMenuTrigger, pageTransition;
 
         function closeTitleMenu() {
             if (!titleMenu) return;
@@ -2502,9 +2502,23 @@ ${summaryWidget}${shortcutsWidget}${actionsWidget}${accountsWidget}${transaction
         }
 
         function go(v) {
+            const previousView = U.v;
             closeTitleMenu();
             U.v = v;
             render();
+            const from = NAV.findIndex(([id]) => id === previousView),
+                to = NAV.findIndex(([id]) => id === v);
+            if (from >= 0 && to >= 0 && from !== to &&
+                !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                const main = $('#m');
+                if (typeof main.animate === 'function') {
+                    pageTransition?.cancel();
+                    pageTransition = main.animate([
+                        { opacity: .7, transform: `translateX(${to > from ? 14 : -14}px)` },
+                        { opacity: 1, transform: 'translateX(0)' }
+                    ], { duration: 220, easing: 'ease-out' });
+                }
+            }
             scrollTo(0, 0)
         }
 
@@ -2661,7 +2675,7 @@ ${summaryWidget}${shortcutsWidget}${actionsWidget}${accountsWidget}${transaction
         if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) navigator.serviceWorker.register(
             'sw.js').catch(() => {})
     </script>
-    <script src="enhancements.js?v=20261118-budget-action-1"></script>
+    <script src="enhancements.js?v=20261118-page-swipe-1"></script>
     <script>
         (() => {
             const main = document.querySelector('#m');
