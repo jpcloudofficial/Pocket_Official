@@ -1185,7 +1185,75 @@
         }
 
         .cloud-sync-card {
-            grid-column: 1 / -1
+            grid-column: 1 / -1;
+            display: grid;
+            gap: 12px
+        }
+
+        .cloud-sync-intro {
+            display: grid;
+            gap: 4px
+        }
+
+        .cloud-sync-intro h3,
+        .cloud-sync-intro .settings-note,
+        .cloud-sync-status,
+        .cloud-sync-error {
+            margin: 0
+        }
+
+        .cloud-sync-intro .settings-note {
+            color: var(--mu)
+        }
+
+        .cloud-sync-status {
+            padding: 10px 12px;
+            border: 1px solid var(--bd);
+            border-radius: 12px;
+            color: var(--mu);
+            font-size: 13px
+        }
+
+        .cloud-account-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 12px;
+            border: 1px solid var(--bd);
+            border-radius: 12px;
+            background: var(--sq)
+        }
+
+        .cloud-account-copy {
+            display: grid;
+            min-width: 0;
+            gap: 4px
+        }
+
+        .cloud-account-copy small {
+            color: var(--mu)
+        }
+
+        .cloud-account-copy strong {
+            overflow-wrap: anywhere
+        }
+
+        .cloud-account-row .b2 {
+            flex: none;
+            min-height: 44px;
+            margin: 0
+        }
+
+        @media(max-width:480px) {
+            .cloud-account-row {
+                align-items: flex-start;
+                flex-direction: column
+            }
+
+            .cloud-account-row .b2 {
+                align-self: flex-end
+            }
         }
 
         .cloud-login-options {

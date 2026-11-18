@@ -64,7 +64,9 @@ function updatePanel() {
   updateProfileCard();
   const status = statusElement();
   if (!status) return;
-  status.textContent = user ? `${statusMessage} · ${user.email}` : statusMessage;
+  status.textContent = statusMessage;
+  const accountEmail = document.querySelector('#cloud-sync-email');
+  if (accountEmail) accountEmail.textContent = user?.email || '';
   const error = errorElement();
   error.textContent = errorMessage;
   error.hidden = !errorMessage;
