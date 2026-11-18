@@ -40,7 +40,18 @@
         }
 
         * {
-            box-sizing: border-box
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none
+        }
+
+        input,
+        textarea,
+        [contenteditable="true"] {
+            -webkit-user-select: text;
+            user-select: text
         }
 
         body {
@@ -76,11 +87,6 @@
 
         #nv {
             position: relative
-        }
-
-        #nv button,
-        .fab {
-            -webkit-tap-highlight-color: transparent
         }
 
         #nv .nav-indicator {
