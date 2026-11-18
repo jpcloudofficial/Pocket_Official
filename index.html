@@ -119,6 +119,80 @@
             min-width: 0
         }
 
+        #m > .row:first-child,
+        #m > h2:first-child {
+            position: sticky;
+            top: env(safe-area-inset-top, 0px);
+            z-index: 4;
+            background: var(--bg);
+            padding-block: 8px
+        }
+
+        h2.page-menu-title {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            width: fit-content;
+            cursor: pointer
+        }
+
+        h2.page-menu-title::after {
+            content: '\25BE';
+            color: var(--mu);
+            font-size: .65em
+        }
+
+        #m > h2.page-menu-title:first-child {
+            width: 100%
+        }
+
+        .page-title-menu {
+            position: fixed;
+            z-index: 40;
+            width: min(240px, calc(100vw - 16px));
+            max-height: 70vh;
+            overflow-y: auto;
+            padding: 6px;
+            border: 1px solid var(--bd);
+            border-radius: 12px;
+            background: var(--cd);
+            box-shadow: 0 12px 30px #0004
+        }
+
+        .page-title-menu[hidden] {
+            display: none
+        }
+
+        .page-title-menu-group {
+            padding: 4px 0
+        }
+
+        .page-title-menu-label {
+            padding: 6px 12px 4px;
+            color: var(--mu);
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: .04em;
+            text-transform: uppercase
+        }
+
+        .page-title-menu button {
+            display: block;
+            width: 100%;
+            padding: 10px 12px;
+            border: 0;
+            border-radius: 8px;
+            background: transparent;
+            color: var(--tx);
+            text-align: left;
+            cursor: pointer
+        }
+
+        .page-title-menu button:hover,
+        .page-title-menu button[aria-current="page"] {
+            background: var(--sq)
+        }
+
         h2 {
             margin: 0;
             font-size: 22px
@@ -276,6 +350,27 @@
             border-top: 1px solid var(--bd)
         }
 
+        .tx-copy {
+            display: grid;
+            gap: 3px
+        }
+
+        .tx-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2px 6px
+        }
+
+        .tx-end,
+        .tx-actions {
+            display: flex;
+            align-items: center
+        }
+
+        .tx-end {
+            gap: 6px
+        }
+
         .tx:first-child {
             border-top: 0
         }
@@ -387,11 +482,6 @@
             margin-top: 16px
         }
 
-        .hs {
-            margin-top: 12px;
-            cursor: pointer
-        }
-
         .hb {
             font-size: 38px;
             font-weight: 700;
@@ -416,9 +506,55 @@
             margin: 26px 0 12px
         }
 
+        .cashback-subtitle {
+            font-size: 16px;
+            margin: 18px 0 10px
+        }
+
+        .dashboard-shortcuts {
+            flex-wrap: nowrap;
+            gap: 4px;
+            overflow-x: auto;
+            scrollbar-width: none
+        }
+
+        .dashboard-shortcuts::-webkit-scrollbar {
+            display: none
+        }
+
+        .dashboard-shortcuts .chip {
+            flex: none;
+            padding: 6px 8px;
+            font-size: 12px
+        }
+
+        .account-carousel {
+            margin-top: 12px;
+            overflow-x: auto;
+            overscroll-behavior-x: contain;
+            scroll-snap-type: x mandatory;
+            scrollbar-width: none
+        }
+
+        .account-carousel::-webkit-scrollbar {
+            display: none
+        }
+
+        .account-carousel-track {
+            display: flex
+        }
+
+        .account-page {
+            flex: 0 0 100%;
+            min-width: 100%;
+            scroll-snap-align: start;
+            scroll-snap-stop: always
+        }
+
         .ag {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            grid-auto-rows: minmax(94px, auto);
             gap: 12px
         }
 
@@ -600,6 +736,36 @@
 
             .ib {
                 padding: 11px
+            }
+
+            .tx-list-row {
+                display: grid;
+                grid-template-columns: 44px minmax(0, 1fr);
+                column-gap: 10px;
+                row-gap: 3px
+            }
+
+            .tx-list-row>.dot {
+                grid-column: 1;
+                grid-row: 1 / 3;
+                align-self: center
+            }
+
+            .tx-list-row>.tx-copy {
+                grid-column: 2;
+                grid-row: 1
+            }
+
+            .tx-list-row .tx-meta {
+                flex-direction: column;
+                align-items: flex-start
+            }
+
+            .tx-list-row>.tx-end {
+                grid-column: 2;
+                grid-row: 2;
+                justify-content: space-between;
+                gap: 8px
             }
 
             aside {
@@ -1217,8 +1383,7 @@
             const expense = D.tx.find(item => item.id === expenseId && item.type === 'expense');
             if (!expense) return info('The linked expense could not be found.');
             if (D.cashbacks.some(claim => claim.expenseId === expenseId)) {
-                U.v = 'cash';
-                render();
+                go('cash');
                 return info('This expense already has a cashback claim. You can manage it on the Cashback page.');
             }
             const cashbackCategory = D.cats.find(category => category.g === 'Income' && category.name.toLowerCase() === 'cashback');
@@ -1443,9 +1608,12 @@
             const c = C(t.cat),
                 tr = t.type === 'transfer',
                 col = tr ? 'var(--tx)' : t.type === 'income' ? 'var(--in)' : 'var(--ex)',
-                cc = tr ? '#2563eb' : c ? c.color : '#78716c';
+                details = tr ? `${esc(A(t.acc)?.name)} → ${esc(A(t.to)?.name)}` : `${esc(c ? c.name : 'Uncategorized')} · ${esc(A(t.acc)?.name)}`,
+                date = `${fd(t.date)}${t.time ? ' ' + t.time : ''}`,
+                amount = `${t.type === 'expense' ? '−' : t.type === 'income' ? '+' : ''}${peso(t.amount)}`;
             const cashback = t.type === 'expense' ? D.cashbacks.find(claim => claim.expenseId === t.id) : null;
-            return `<div class="tx${recentLink?' recent-link':''}"${recentLink?` role="link" tabindex="0" aria-label="Open ${esc(t.title)} in Transactions" onclick="openRecentTransaction('${t.id}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openRecentTransaction('${t.id}')}"`:''}><span class="dot" style="background:var(--sq);color:var(--tx)">${ic(tr?'arrow-left-right':c?c.icon:'tag')}</span><div class="gr"><b>${esc(t.title)}</b><br><small>${tr?esc(A(t.acc)?.name)+' → '+esc(A(t.to)?.name):esc(c?c.name:'Uncategorized')+' · '+esc(A(t.acc)?.name)} · ${fd(t.date)}${t.time?' '+t.time:''}</small></div><b style="color:${col}">${t.type==='expense'?'−':t.type==='income'?'+':''}${peso(t.amount)}</b>${act?`${t.type==='expense'?`<button class="ib" onclick="${cashback?'go(\'cash\')':`cashbackForm('${t.id}')`}" aria-label="${cashback?'Manage cashback':'Track cashback'}" title="${cashback?'Manage cashback':'Track cashback'}">${ic('coins')}</button>`:''}<button class="ib" onclick="editTx('${t.id}')" aria-label="Edit">${ic('pencil')}</button><button class="ib" onclick="delTx('${t.id}')" aria-label="Delete">${ic('trash-2')}</button>`:''}</div>`
+            const actions = act ? `<div class="tx-actions">${t.type === 'expense' ? `<button class="ib" onclick="${cashback ? "go('cash')" : `cashbackForm('${t.id}')`}" aria-label="${cashback ? 'Manage cashback' : 'Track cashback'}" title="${cashback ? 'Manage cashback' : 'Track cashback'}">${ic('coins')}</button>` : ''}<button class="ib" onclick="editTx('${t.id}')" aria-label="Edit">${ic('pencil')}</button><button class="ib" onclick="delTx('${t.id}')" aria-label="Delete">${ic('trash-2')}</button></div>` : '';
+            return `<div class="tx tx-list-row${recentLink ? ' recent-link' : ''}"${recentLink ? ` role="link" tabindex="0" aria-label="Open ${esc(t.title)} in Transactions" onclick="openRecentTransaction('${t.id}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openRecentTransaction('${t.id}')}"` : ''}><span class="dot" style="background:var(--sq);color:var(--tx)">${ic(tr ? 'arrow-left-right' : c ? c.icon : 'tag')}</span><div class="gr tx-copy"><b>${esc(t.title)}</b><small class="tx-meta"><span>${details}</span><span>${date}</span></small></div><div class="tx-end"><b class="tx-amount" style="color:${col}">${amount}</b>${actions}</div></div>`
         }
 
         function bars(S, L, C) {
@@ -1522,10 +1690,16 @@
             `<div class="warn">${ic('alert-triangle')} ${esc(C(x.id)?.name)} ${x.msg} (${Math.round(x.p)}% of ${peso(x.b)})</div>`
             ).join('');
         const V = {};
+        function accountPageChanged(carousel) {
+            const indicator = $('#account-page-indicator'),
+                count = carousel.querySelectorAll('.account-page').length;
+            if (!indicator || !count) return;
+            const page = Math.min(count, Math.round(carousel.scrollLeft / Math.max(1, carousel.clientWidth)) + 1);
+            indicator.textContent = `Swipe · ${page}/${count}`
+        }
         V.dash = () => {
             const [a, b] = rng(U.f), T = D.tx.filter(t => t.date >= a && t.date <= b), inc = sum(T, 'income'), exp =
-                sum(T, 'expense'), sv = D.acc.filter(isSav).reduce((s, x) => s + bal(x), 0), tot = D.acc.filter(x =>
-                    !isSav(x)).reduce((s, x) => s + bal(x), 0), cr = D.acc.filter(x => x.type === 'Credit Card')
+                sum(T, 'expense'), tot = D.acc.filter(x => !isSav(x)).reduce((s, x) => s + bal(x), 0), cr = D.acc.filter(x => x.type === 'Credit Card')
                 .reduce((s, x) => s + bal(x), 0), av = tot - cr, n = new Date(), ks = [], L = [];
             for (let i = 5; i >= 0; i--) {
                 const d = new Date(n.getFullYear(), n.getMonth() - i, 1);
@@ -1541,11 +1715,15 @@
             ];
             const card = (l, v, c, s = '') =>
                 `<div class="card"><small>${l}</small><div class="big" style="color:${c||'inherit'}">${peso(v)}</div><small>${s}</small></div>`;
+            const accountPages = [];
+            for (let i = 0; i < D.acc.length; i += 4) accountPages.push(D.acc.slice(i, i + 4));
+            const accountCard = x =>
+                `<div class="ac" onclick="go('acc')"><div class="row" style="flex-wrap:nowrap;gap:8px"><span style="display:inline-flex">${ic(x.icon||'wallet')}</span><b>${esc(x.name)}</b></div><div class="av" style="color:${bal(x)<0?'var(--ex)':'inherit'}">${peso(bal(x))}</div></div>`;
             return `<div class="row sp"><h2 style="font-size:26px">My Finance</h2><select class="pill" aria-label="Period" onchange="U.f=this.value;render()">${fl.map(f=>`<option value="${f[0]}"${U.f===f[0]?' selected':''}>${f[1]}</option>`).join('')}</select></div>
 <div class="row" style="margin-top:10px">${U.f==='custom'?`<input type="date" value="${U.cf||''}" style="width:auto" onchange="U.cf=this.value;render()"><input type="date" value="${U.ct||''}" style="width:auto" onchange="U.ct=this.value;render()">`:''}</div>${alerts()}
-<div class="hero"><small>Total Balance</small><div class="hb">${peso(tot,1)}</div><div class="two"><div><small>Income</small><div class="hn" style="color:var(--in)">${peso(inc)}</div></div><div><small>Expenses</small><div class="hn" style="color:var(--ex)">${peso(exp)}</div></div></div><small class="pocket-summary-amounts">Available ${peso(av)} · Net ${peso(inc-exp)}${cr<0?' · Card owed '+peso(-cr):''}</small></div><div class="hero hs" onclick="go('acc')"><div class="row sp"><small>Savings</small><span class="dot" style="background:#0ea5e922;color:#0ea5e9">${ic('piggy-bank')}</span></div><div class="hb" style="margin-bottom:4px">${peso(sv,1)}</div><small>${(n=>n?n+' savings account'+(n>1?'s':'')+' · not included in Total Balance':'Add an account with type “Savings” to track it here')(D.acc.filter(isSav).length)}</small></div><div class="row mo" style="margin-top:12px"><button class="chip" onclick="go('bud')">Budgets</button><button class="chip" onclick="go('goal')">Savings goals</button><button class="chip" onclick="go('cat')">Categories</button></div>
+<div class="hero"><small>Total Balance</small><div class="hb">${peso(tot,1)}</div><div class="two"><div><small>Income</small><div class="hn" style="color:var(--in)">${peso(inc)}</div></div><div><small>Expenses</small><div class="hn" style="color:var(--ex)">${peso(exp)}</div></div></div><small class="pocket-summary-amounts">Available ${peso(av)}${cr<0?' · Card owed '+peso(-cr):''}</small></div><div class="row mo dashboard-shortcuts" style="margin-top:12px"><button class="chip" onclick="go('bud')">Budgets</button><button class="chip" onclick="go('goal')">Savings goals</button><button class="chip" onclick="go('rec')">Recurring</button><button class="chip" onclick="go('cash')">Cashback</button></div>
 <div class="row end" style="margin-top:18px"><button class="b2" onclick="quickAdd('expense')">${ic('plus')} Expense</button><button class="b2" onclick="quickAdd('income')">${ic('plus')} Income</button><button class="b2" onclick="quickAdd('transfer')">${ic('arrow-left-right')} Transfer</button></div>
-<h3 class="sec">My Accounts</h3><div class="ag">${D.acc.map(x=>`<div class="ac" onclick="go('acc')"><div class="row" style="flex-wrap:nowrap;gap:8px"><span style="display:inline-flex">${ic(x.icon||'wallet')}</span><b>${esc(x.name)}</b></div><div class="av" style="color:${bal(x)<0?'var(--ex)':'inherit'}">${peso(bal(x))}</div></div>`).join('')}</div><div class="row sp" style="margin-top:22px"><h3 class="sec" style="margin:0">Recent Transactions</h3><button class="chip" onclick="go('tx')">View all</button></div><div style="margin-top:6px">${D.tx.length?sorted().slice(0,6).map(t=>row(t,false,true)).join(''):'<div class="empty">No transactions yet.</div>'}</div><div class="g g2"><div class="card"><h3>Income vs. expenses</h3>${bars([ks.map(k=>sum(D.tx.filter(t=>ym(t.date)===k),'income')),ks.map(k=>sum(D.tx.filter(t=>ym(t.date)===k),'expense'))],L,['#16a34a','#ea580c'])}</div>
+<div class="row sp" style="margin-top:22px"><h3 class="sec" style="margin:0">My Accounts</h3>${accountPages.length>1?`<small id="account-page-indicator" class="mu" aria-live="polite">Swipe · 1/${accountPages.length}</small>`:''}</div>${accountPages.length?`<div class="account-carousel" role="region" aria-label="My Accounts; swipe horizontally for more" onscroll="accountPageChanged(this)"><div class="account-carousel-track">${accountPages.map(page=>`<div class="ag account-page">${page.map(accountCard).join('')}</div>`).join('')}</div></div>`:'<div class="empty">No accounts yet.</div>'}<div class="row sp" style="margin-top:22px"><h3 class="sec" style="margin:0">Recent Transactions</h3><button class="chip" onclick="go('tx')">View all</button></div><div style="margin-top:6px">${D.tx.length?sorted().slice(0,6).map(t=>row(t,false,true)).join(''):'<div class="empty">No transactions yet.</div>'}</div><div class="g g2"><div class="card"><h3>Income vs. expenses</h3>${bars([ks.map(k=>sum(D.tx.filter(t=>ym(t.date)===k),'income')),ks.map(k=>sum(D.tx.filter(t=>ym(t.date)===k),'expense'))],L,['#16a34a','#ea580c'])}</div>
 <div class="card"><h3>Expenses by category</h3>${catBars(T)}</div>
 
 </div>`
@@ -1565,13 +1743,23 @@
             $('#tl').innerHTML = txList();
             lu()
         }
+        const cashbackSection = () => {
+            const pending = D.cashbacks.filter(claim => claim.status === 'pending');
+            const received = D.cashbacks.filter(claim => claim.status === 'received');
+            const claimCard = claim => {
+                const expense = D.tx.find(item => item.id === claim.expenseId);
+                return `<div class="card"><div class="row"><span class="dot" style="background:#0891b222;color:#0891b2">${ic('coins')}</span><div class="gr"><b>${esc(claim.expenseTitle || expense?.title || 'Linked expense')}</b><br><small>Expense ${fd(claim.expenseDate || expense?.date || claim.created)} · Deposit to ${esc(A(claim.account)?.name || 'Unknown account')}</small></div><b style="color:var(--in)">${peso(claim.amount)}</b></div><div class="row sp" style="margin-top:10px"><small>${claim.status === 'received' ? `Received ${fd(claim.receivedDate)}` : `Expected · added ${fd(claim.created)}`}</small><div class="row">${claim.status === 'pending' ? `<button class="chip" onclick="markCashbackReceived('${claim.id}')">Mark received</button>` : ''}<button class="ib" onclick="deleteCashback('${claim.id}')" aria-label="Delete cashback claim">${ic('trash-2')}</button></div></div></div>`
+            };
+            return `<div class="row sp"><div class="gr"><h2>Cashback</h2><small>Track expected cashback from an expense. Mark it received to add it as income to the selected account.</small></div><b style="color:var(--in)">${peso(received.reduce((total, claim) => total + claim.amount, 0))} received</b></div><h3 class="sec cashback-subtitle">Pending (${pending.length})</h3><div class="g g2">${pending.length ? pending.map(claimCard).join('') : '<div class="empty card">No pending cashback. Open Transactions and tap the coin icon beside an expense to add one.</div>'}</div><h3 class="sec cashback-subtitle">Received (${received.length})</h3><div class="g g2">${received.length ? received.map(claimCard).join('') : '<div class="empty card">Cashback marked received will appear here as income.</div>'}</div>`
+        };
         V.tx = () => {
             const o = (L, all) => `<option value="">${all}</option>` + L.map(x =>
                 `<option value="${x.id}">${esc(x.name)}</option>`).join('');
-            return `<div class="row sp"><h2>Transactions</h2><div class="row"><button class="b2" onclick="trForm()">${ic('arrow-left-right')} Transfer</button><button class="b1" onclick="txForm()">${ic('plus')} Add</button></div></div>
+            return `<div class="row sp"><h2>Transactions</h2></div>
 <div class="f"><input placeholder="Search by name" value="${esc(U.q)}" oninput="U.q=this.value;fl()"><select onchange="U.c=this.value;fl()">${o(D.cats,'All categories').replace(`value="${U.c}"`,`value="${U.c}" selected`)}</select><select onchange="U.a=this.value;fl()">${o(D.acc,'All accounts').replace(`value="${U.a}"`,`value="${U.a}" selected`)}</select>
 <select onchange="U.ty=this.value;fl()">${[['','All types'],['income','Income'],['expense','Expense'],['transfer','Transfer']].map(x=>`<option value="${x[0]}"${U.ty===x[0]?' selected':''}>${x[1]}</option>`).join('')}</select><input type="date" value="${U.tf}" onchange="U.tf=this.value;fl()"><input type="date" value="${U.tt}" onchange="U.tt=this.value;fl()"></div><div class="card" id="tl">${txList()}</div>`
         };
+        V.cash = () => cashbackSection();
         const trForm = () => txFormT();
 
         function txFormT() {
@@ -1757,15 +1945,6 @@
                 A(rule.acc) && !od(A(rule.acc)) && bal(A(rule.acc)) < rule.amount;
             return `<div class="row"><div class="gr"><h2>Recurring transactions</h2><small>Due items are added automatically when Pocket is open. If the app was closed, due dates are caught up the next time you open it.</small></div><button class="b1" onclick="recurringForm()">${ic('plus')} Add schedule</button></div><div class="g g2">${D.recurring.length ? D.recurring.map(rule => `<div class="card"><div class="row"><span class="dot" style="background:var(--sq);color:${rule.type==='income'?'var(--in)':rule.type==='expense'?'var(--ex)':'var(--tr)'}">${ic(rule.type==='transfer'?'arrow-left-right':rule.type==='income'?'wallet':'zap')}</span><div class="gr"><b>${esc(rule.title || 'Transfer')}</b><br><small>${frequencyName(rule.frequency)} · ${details(rule)}</small></div><button class="ib" onclick="recurringForm('${rule.id}')" aria-label="Edit schedule">${ic('pencil')}</button><button class="ib" onclick="deleteRecurring('${rule.id}')" aria-label="Delete schedule">${ic('trash-2')}</button></div><div class="row sp" style="margin-top:10px"><b style="color:${rule.type==='income'?'var(--in)':rule.type==='expense'?'var(--ex)':'var(--tr)'}">${rule.type==='expense'?'−':rule.type==='income'?'+':''}${peso(rule.amount)}</b><small>${rule.active ? waitingForFunds(rule) ? 'Waiting for sufficient funds' : `Next: ${fd(rule.next)}` : 'Paused'}</small></div><div class="row sp" style="margin-top:10px"><small>${rule.next < today() && !rule.active ? `Paused · next due ${fd(rule.next)}` : `Starts ${fd(rule.start)}`}</small><button class="chip" onclick="toggleRecurring('${rule.id}')">${rule.active?'Pause':'Resume'}</button></div></div>`).join('') : '<div class="empty card">No recurring schedules yet. Add one for a regular bill, subscription, salary, or transfer.</div>'}</div>`
         };
-        V.cash = () => {
-            const pending = D.cashbacks.filter(claim => claim.status === 'pending');
-            const received = D.cashbacks.filter(claim => claim.status === 'received');
-            const claimCard = claim => {
-                const expense = D.tx.find(item => item.id === claim.expenseId);
-                return `<div class="card"><div class="row"><span class="dot" style="background:#0891b222;color:#0891b2">${ic('coins')}</span><div class="gr"><b>${esc(claim.expenseTitle || expense?.title || 'Linked expense')}</b><br><small>Expense ${fd(claim.expenseDate || expense?.date || claim.created)} · Deposit to ${esc(A(claim.account)?.name || 'Unknown account')}</small></div><b style="color:var(--in)">${peso(claim.amount)}</b></div><div class="row sp" style="margin-top:10px"><small>${claim.status === 'received' ? `Received ${fd(claim.receivedDate)}` : `Expected · added ${fd(claim.created)}`}</small><div class="row">${claim.status === 'pending' ? `<button class="chip" onclick="markCashbackReceived('${claim.id}')">Mark received</button>` : ''}<button class="ib" onclick="deleteCashback('${claim.id}')" aria-label="Delete cashback claim">${ic('trash-2')}</button></div></div></div>`
-            };
-            return `<div class="row"><div class="gr"><h2>Cashback</h2><small>Track expected cashback from an expense. Mark it received to add it as income to the selected account.</small></div><b style="color:var(--in)">${peso(received.reduce((total, claim) => total + claim.amount, 0))} received</b></div><h3 class="sec">Pending (${pending.length})</h3><div class="g g2">${pending.length ? pending.map(claimCard).join('') : '<div class="empty card">No pending cashback. Open Transactions and tap the coin icon beside an expense to add one.</div>'}</div><h3 class="sec">Received (${received.length})</h3><div class="g g2">${received.length ? received.map(claimCard).join('') : '<div class="empty card">Cashback marked received will appear here as income.</div>'}</div>`
-        };
         V.rep = () => {
             const y = +U.ry,
                 yrs = [...new Set([new Date().getFullYear(), ...D.tx.map(t => +t.date.slice(0, 4))])].sort(),
@@ -1928,23 +2107,109 @@
         const NAV = [
             ['dash', 'Dashboard', 'layout-grid', 1],
             ['tx', 'Transactions', 'receipt', 1],
-            ['cash', 'Cashback', 'coins', 1],
-            ['rec', 'Recurring', 'repeat', 1],
             ['acc', 'Accounts', 'wallet', 1],
-            ['bud', 'Budgets', 'gauge'],
-            ['goal', 'Savings Goals', 'target'],
             ['rep', 'Reports', 'pie-chart', 1],
-            ['cat', 'Categories', 'tag'],
             ['set', 'Settings', 'settings', 1]
         ];
+        const TITLE_MENU_GROUPS = [
+            ['Pages', [
+                ['dash', 'Dashboard'],
+                ['tx', 'Transactions'],
+                ['acc', 'Accounts'],
+                ['rep', 'Reports']
+            ]],
+            ['Manage', [
+                ['bud', 'Budgets'],
+                ['goal', 'Savings goals'],
+                ['rec', 'Recurring transactions'],
+                ['cat', 'Categories'],
+                ['cash', 'Cashback']
+            ]],
+            ['Preferences', [
+                ['set', 'Settings']
+            ]]
+        ];
+        let titleMenu, titleMenuTrigger;
+
+        function closeTitleMenu() {
+            if (!titleMenu) return;
+            titleMenu.hidden = true;
+            titleMenuTrigger?.setAttribute('aria-expanded', 'false');
+            titleMenuTrigger = null
+        }
+
+        function openTitleMenu(trigger) {
+            closeTitleMenu();
+            titleMenu.hidden = false;
+            titleMenuTrigger = trigger;
+            trigger.setAttribute('aria-expanded', 'true');
+            const rect = trigger.getBoundingClientRect(),
+                menu = titleMenu.getBoundingClientRect(),
+                left = Math.max(8, Math.min(rect.left, innerWidth - menu.width - 8)),
+                below = rect.bottom + 6,
+                top = below + menu.height <= innerHeight - 8 ? below : Math.max(8, rect.top - menu.height - 6);
+            titleMenu.style.left = `${left}px`;
+            titleMenu.style.top = `${top}px`
+        }
+
+        function setupTitleMenu() {
+            if (!titleMenu) {
+                titleMenu = document.createElement('div');
+                titleMenu.className = 'page-title-menu';
+                titleMenu.setAttribute('role', 'menu');
+                titleMenu.hidden = true;
+                document.body.append(titleMenu);
+                titleMenu.addEventListener('click', event => {
+                    const item = event.target.closest('button[data-page]');
+                    if (item) go(item.dataset.page)
+                });
+                document.addEventListener('click', event => {
+                    if (!titleMenu.hidden && !titleMenu.contains(event.target) &&
+                        !event.target.closest('.page-menu-title')) closeTitleMenu()
+                });
+                document.addEventListener('keydown', event => {
+                    if (event.key === 'Escape' && !titleMenu.hidden) {
+                        const trigger = titleMenuTrigger;
+                        closeTitleMenu();
+                        trigger?.focus()
+                    }
+                });
+                window.addEventListener('resize', closeTitleMenu);
+                window.addEventListener('scroll', closeTitleMenu, true)
+            }
+            titleMenu.innerHTML = TITLE_MENU_GROUPS.map(([group, items]) =>
+                `<div class="page-title-menu-group"><div class="page-title-menu-label">${group}</div>${items.map(([id, label]) =>
+                    `<button type="button" role="menuitem" data-page="${id}"${U.v===id?' aria-current="page"':''}>${label}</button>`
+                ).join('')}</div>`
+            ).join('');
+            const heading = $('#m').querySelector('h2');
+            if (!heading) return;
+            heading.classList.add('page-menu-title');
+            heading.tabIndex = 0;
+            heading.setAttribute('aria-haspopup', 'menu');
+            heading.setAttribute('aria-expanded', 'false');
+            heading.onclick = () => {
+                if (!titleMenu.hidden && titleMenuTrigger === heading) closeTitleMenu();
+                else openTitleMenu(heading)
+            };
+            heading.onkeydown = event => {
+                if (['Enter', ' ', 'ArrowDown'].includes(event.key)) {
+                    event.preventDefault();
+                    openTitleMenu(heading);
+                    titleMenu.querySelector('button')?.focus()
+                }
+            }
+        }
 
         function go(v) {
+            closeTitleMenu();
             U.v = v;
             render();
             scrollTo(0, 0)
         }
 
         function render() {
+            closeTitleMenu();
             document.documentElement.dataset.theme = D.theme;
             document.querySelector('meta[name=theme-color]').content = D.theme === 'dark' ? '#000000' : '#f5f5f4';
             $('#nv').innerHTML = NAV.map(n =>
@@ -1952,6 +2217,7 @@
                 ).join('');
             $('#m').dataset.view = U.v;
             $('#m').innerHTML = V[U.v]();
+            setupTitleMenu();
             lu()
         }
         const okId = s => typeof s === 'string' && /^[\w-]{1,40}$/.test(s),
