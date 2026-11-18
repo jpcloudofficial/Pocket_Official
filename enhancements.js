@@ -40,8 +40,9 @@
       .fab{z-index:22;transition:opacity .2s ease,transform .2s ease}
       .fab.pocket-fab-open{opacity:0;transform:scale(.7);pointer-events:none}
       .pocket-category-hint{display:block;color:var(--mu);font-size:12px;margin:6px 2px 0;min-height:17px}
+      .pocket-category-hint[hidden]{display:none}
       .pocket-category-hint[data-active="true"]{color:var(--in)}
-      #m.pocket-private .hb,#m.pocket-private .hn,#m.pocket-private .av,#m.pocket-private .tx>b{filter:blur(8px);user-select:none}
+      #m.pocket-private .hb,#m.pocket-private .hn,#m.pocket-private .av,#m.pocket-private .tx>b{user-select:none}
       @media(max-width:760px){.pocket-fab-menu{right:16px;bottom:calc(94px + env(safe-area-inset-bottom,0px))}}
       @media(prefers-reduced-motion:reduce){.pocket-carousel-track,.fab{transition:none!important}}
     `;
@@ -50,8 +51,9 @@
 
   const dashboardTitle = () => main.querySelector(':scope > .row.sp h2');
   const setTitle = () => {
+    if (main.dataset.view !== 'dash') return;
     const heading = dashboardTitle();
-    if (!heading || heading.textContent.trim() === 'Settings') return;
+    if (!heading) return;
     if (heading.textContent !== storedTitle()) heading.textContent = storedTitle();
   };
 
@@ -71,7 +73,8 @@
     { category: 'Allowance', words: ['allowance','pocket money'] },
     { category: 'Freelance / Side Hustle', words: ['freelance','client payment','side hustle','gig','commission'] },
     { category: 'Bonus', words: ['bonus','incentive'] },
-    { category: 'Refund', words: ['refund','reimbursement','cashback'] }
+    { category: 'Cashback', words: ['cashback','cash back','cash-back','cash reward'] },
+    { category: 'Refund', words: ['refund','reimbursement'] }
   ];
   const normalize = value => String(value || '').toLocaleLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
   const keywordMatch = (title, word) => ` ${normalize(title)} `.includes(` ${normalize(word)} `);
@@ -85,22 +88,26 @@
     form.dataset.pocketAutoCategoryReady = '1';
     const hint = document.createElement('small');
     hint.className = 'pocket-category-hint';
+    hint.hidden = true;
+    hint.style.display = 'none';
     hint.setAttribute('aria-live', 'polite');
     catEl.insertAdjacentElement('afterend', hint);
     let manuallyChanged = false;
     let applying = false;
     catEl.addEventListener('change', () => {
-      if (!applying) { manuallyChanged = true; hint.textContent = 'Category selected manually.'; hint.dataset.active = 'true'; }
+      if (!applying) { manuallyChanged = true; hint.textContent = 'Category selected manually.'; hint.dataset.active = 'true'; hint.hidden = false; hint.style.display = 'block'; }
     });
     const infer = () => {
-      if (typeEl.value === 'transfer' || !titleEl.value.trim()) { hint.textContent = ''; delete hint.dataset.active; return; }
+      if (typeEl.value === 'transfer' || !titleEl.value.trim()) { hint.textContent = ''; delete hint.dataset.active; hint.hidden = true; hint.style.display = 'none'; return; }
       if (manuallyChanged) return;
       const rule = CATEGORY_RULES.find(item => item.words.some(word => keywordMatch(titleEl.value, word)));
       const option = rule && [...catEl.options].find(item => normalize(item.textContent) === normalize(rule.category));
-      if (!option) { hint.textContent = ''; delete hint.dataset.active; return; }
+      if (!option) { hint.textContent = ''; delete hint.dataset.active; hint.hidden = true; hint.style.display = 'none'; return; }
       applying = true; catEl.value = option.value; applying = false;
       hint.textContent = `Suggested: ${option.textContent} · change if needed`;
       hint.dataset.active = 'true';
+      hint.hidden = false;
+      hint.style.display = 'block';
     };
     titleEl.addEventListener('input', infer);
     titleEl.addEventListener('change', infer);
@@ -129,6 +136,17 @@
   const updatePrivacy = () => {
     const hidden = isHidden();
     main.classList.toggle('pocket-private', hidden);
+    main.querySelectorAll('.hb, .hn, .av, .tx>b').forEach(amount => {
+      if (hidden) {
+        if (!Object.prototype.hasOwnProperty.call(amount.dataset, 'pocketAmount')) {
+          amount.dataset.pocketAmount = amount.textContent;
+        }
+        amount.textContent = '****';
+      } else if (Object.prototype.hasOwnProperty.call(amount.dataset, 'pocketAmount')) {
+        amount.textContent = amount.dataset.pocketAmount;
+        delete amount.dataset.pocketAmount;
+      }
+    });
     main.querySelectorAll('.pocket-privacy-button').forEach(button => {
       button.innerHTML = icon(hidden ? 'off' : 'eye');
       button.setAttribute('aria-label', hidden ? 'Show amounts' : 'Hide amounts');
@@ -244,7 +262,7 @@
     const settingsPage = [...main.querySelectorAll('h2')].some(item => item.textContent.trim() === 'Settings');
     if (settingsPage) addTitleSetting();
     else {
-      setTitle();
+      if (main.dataset.view === 'dash') setTitle();
       addCarousel();
       removeLegacyDashboardControls();
     }
