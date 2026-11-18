@@ -1037,16 +1037,19 @@
         const TYPES = ['Cash', 'E-Wallet', 'Digital Bank', 'Traditional Bank', 'Savings', 'Credit Card', 'Other'].map(
             x => [x, x]);
         const DASHBOARD_WIDGETS = [
-            ['summary', 'Balance summary'],
-            ['alerts', 'Budget alerts'],
-            ['shortcuts', 'Dashboard shortcuts (mobile)'],
-            ['actions', 'Quick actions'],
-            ['accounts', 'Accounts'],
-            ['transactions', 'Recent transactions'],
-            ['incomeExpenses', 'Income vs. expenses report'],
-            ['expensesByCategory', 'Expenses by category report']
+            ['summary', 'Balance summary', true],
+            ['alerts', 'Budget alerts', true],
+            ['shortcuts', 'Dashboard shortcuts (mobile)', true],
+            ['actions', 'Quick actions', true],
+            ['accounts', 'Accounts', true],
+            ['transactions', 'Recent transactions', true],
+            ['incomeExpenses', 'Income vs. expenses report', true],
+            ['expensesByCategory', 'Expenses by category report', true],
+            ['spendingTrend', 'Spending trend report', false],
+            ['accountBalanceHistory', 'Account balance history report', false],
+            ['monthlySavings', 'Monthly savings report', false]
         ];
-        const defaultDashboardWidgets = () => Object.fromEntries(DASHBOARD_WIDGETS.map(([id]) => [id, true]));
+        const defaultDashboardWidgets = () => Object.fromEntries(DASHBOARD_WIDGETS.map(([id, , enabled]) => [id, enabled]));
         let D, U = {
             v: 'dash',
             f: 'month',
@@ -1904,6 +1907,13 @@
                 ['last', 'Last month'],
                 ['custom', 'Custom']
             ];
+            const reportYear = new Date().getFullYear(),
+                reportTransactions = D.tx.filter(t => +t.date.slice(0, 4) === reportYear),
+                reportMonthly = i => reportTransactions.filter(t => +t.date.slice(5, 7) === i + 1),
+                reportIncome = MO.map((_, i) => sum(reportMonthly(i), 'income')),
+                reportExpenses = MO.map((_, i) => sum(reportMonthly(i), 'expense')),
+                reportBalanceHistory = MO.map((_, i) => D.acc.reduce((total, account) =>
+                    total + bal(account, iso(new Date(reportYear, i + 1, 0))), 0));
             const card = (l, v, c, s = '') =>
                 `<div class="card"><small>${l}</small><div class="big" style="color:${c||'inherit'}">${peso(v)}</div><small>${s}</small></div>`;
             const accountPages = [];
@@ -1931,6 +1941,9 @@
                 reportCards.push(`<div class="card"><h3>Income vs. expenses</h3>${bars([ks.map(k=>sum(D.tx.filter(t=>ym(t.date)===k),'income')),ks.map(k=>sum(D.tx.filter(t=>ym(t.date)===k),'expense'))],L,['#16a34a','#ea580c'])}</div>`);
             }
             if (widgets.expensesByCategory) reportCards.push(`<div class="card"><h3>Expenses by category</h3>${catBars(T)}</div>`);
+            if (widgets.spendingTrend) reportCards.push(`<div class="card"><h3>Spending trend (${reportYear})</h3>${line(reportExpenses,MO,'#ea580c')}</div>`);
+            if (widgets.accountBalanceHistory) reportCards.push(`<div class="card"><h3>Account balance history (${reportYear})</h3>${line(reportBalanceHistory,MO,'#2563eb')}</div>`);
+            if (widgets.monthlySavings) reportCards.push(`<div class="card"><h3>Monthly savings (${reportYear})</h3>${bars([reportIncome.map((income,i)=>income-reportExpenses[i])],MO,['#16a34a'])}</div>`);
             const reportsWidget = reportCards.length ? `<div class="g g2">${reportCards.join('')}</div>` : '';
             const emptyDashboard = DASHBOARD_WIDGETS.some(([id]) => widgets[id]) ? '' :
                 '<div class="empty card">No dashboard sections are visible. Go to Settings and select Customize Dashboard to add sections.</div>';
@@ -2441,11 +2454,12 @@ ${summaryWidget}${shortcutsWidget}${actionsWidget}${accountsWidget}${transaction
 
         function clean(d) {
             if (!d || !Array.isArray(d.acc) || !Array.isArray(d.tx) || !Array.isArray(d.cats)) return null;
+            const dashboardWidgets = d.dashboardWidgets && typeof d.dashboardWidgets === 'object' ? d.dashboardWidgets : {};
             return {
                 theme: d.theme === 'light' ? 'light' : 'dark',
-                dashboardWidgets: Object.fromEntries(DASHBOARD_WIDGETS.map(([id]) => [
+                dashboardWidgets: Object.fromEntries(DASHBOARD_WIDGETS.map(([id, , enabled]) => [
                     id,
-                    !d.dashboardWidgets || typeof d.dashboardWidgets !== 'object' || d.dashboardWidgets[id] !== false
+                    typeof dashboardWidgets[id] === 'boolean' ? dashboardWidgets[id] : enabled
                 ])),
                 v2: 1,
                 v3: 1,

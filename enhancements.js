@@ -36,8 +36,8 @@
       .pocket-fab-menu button[data-kind="expense"] .mini{color:var(--ex)}
       .pocket-fab-menu button[data-kind="income"] .mini{color:var(--in)}
       .pocket-fab-menu button[data-kind="transfer"] .mini{color:var(--tr)}
-      .pocket-account-transfer{position:fixed;right:22px;bottom:82px;z-index:21;width:147px;min-height:48px;padding:0 16px;border:1px solid var(--bd);border-radius:28px;background:var(--cd);color:var(--tx);box-shadow:0 4px 14px #0004;display:flex;align-items:center;justify-content:flex-start;gap:8px;font:inherit;font-weight:700;cursor:pointer}
-      .pocket-account-transfer svg{width:18px;height:18px;flex:none}
+      .pocket-account-transfer{position:fixed;right:22px;bottom:82px;z-index:21;width:147px;height:52px;padding:0 16px;border:1px solid var(--bd);border-radius:28px;background:var(--cd);color:var(--tx);box-shadow:0 4px 14px #0004;display:flex;align-items:center;justify-content:flex-start;gap:8px;font:inherit;font-weight:700;cursor:pointer}
+      .pocket-account-transfer svg{width:24px;height:24px;flex:none}
       body.pocket-modal-open .pocket-account-transfer{display:none!important}
       .pocket-hidden{display:none!important}
       .fab{z-index:22;transition:opacity .2s ease,transform .2s ease}
