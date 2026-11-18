@@ -626,6 +626,43 @@
             justify-content: flex-start
         }
 
+        .settings-preferences .dashboard-layout-setting {
+            width: 100%;
+            margin-top: 12px;
+            justify-content: flex-start
+        }
+
+        .dashboard-widget-list {
+            display: grid;
+            gap: 8px;
+            margin: 14px 0
+        }
+
+        .dashboard-widget-option {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 0;
+            padding: 10px 12px;
+            border: 1px solid var(--bd);
+            border-radius: 12px;
+            font-size: 14px;
+            cursor: pointer
+        }
+
+        .dashboard-widget-option input[type=checkbox] {
+            width: 18px;
+            height: 18px;
+            flex: none;
+            margin: 0;
+            padding: 0;
+            accent-color: var(--in)
+        }
+
+        .dashboard-widget-option > span {
+            margin-top: 0
+        }
+
         .settings-note {
             display: block;
             margin-top: 10px
@@ -999,6 +1036,17 @@
         ].map(x => [x, x]);
         const TYPES = ['Cash', 'E-Wallet', 'Digital Bank', 'Traditional Bank', 'Savings', 'Credit Card', 'Other'].map(
             x => [x, x]);
+        const DASHBOARD_WIDGETS = [
+            ['summary', 'Balance summary'],
+            ['alerts', 'Budget alerts'],
+            ['shortcuts', 'Dashboard shortcuts (mobile)'],
+            ['actions', 'Quick actions'],
+            ['accounts', 'Accounts'],
+            ['transactions', 'Recent transactions'],
+            ['incomeExpenses', 'Income vs. expenses report'],
+            ['expensesByCategory', 'Expenses by category report']
+        ];
+        const defaultDashboardWidgets = () => Object.fromEntries(DASHBOARD_WIDGETS.map(([id]) => [id, true]));
         let D, U = {
             v: 'dash',
             f: 'month',
@@ -1163,7 +1211,8 @@
                     acc: g[3]
                 })),
                 recurring: [],
-                cashbacks: []
+                cashbacks: [],
+                dashboardWidgets: defaultDashboardWidgets()
             }
         }
         const zero = d => {
@@ -1506,6 +1555,21 @@
             else txForm()
         }
 
+        function dashboardSettingsForm() {
+            const options = DASHBOARD_WIDGETS.map(([id, label]) =>
+                `<label class="dashboard-widget-option"><input type="checkbox" data-dashboard-widget="${id}"${D.dashboardWidgets[id]?' checked':''}><span>${label}</span></label>`
+            ).join('');
+            ov(`<h3>Customize Dashboard</h3><small>Choose which sections to show on your Dashboard.</small><div class="dashboard-widget-list">${options}</div><div class="row end"><button class="b2" onclick="cl()">Cancel</button><button class="b1" onclick="saveDashboardSettings()">Save</button></div>`);
+        }
+
+        function saveDashboardSettings() {
+            D.dashboardWidgets = Object.fromEntries([...document.querySelectorAll('[data-dashboard-widget]')]
+                .map(input => [input.dataset.dashboardWidget, input.checked]));
+            cl();
+            save();
+            render()
+        }
+
         function cashbackForm(expenseId) {
             const expense = D.tx.find(item => item.id === expenseId && item.type === 'expense');
             if (!expense) return info('The linked expense could not be found.');
@@ -1846,14 +1910,33 @@
             for (let i = 0; i < D.acc.length; i += 4) accountPages.push(D.acc.slice(i, i + 4));
             const accountCard = x =>
                 `<div class="ac" onclick="go('acc')"><div class="row" style="flex-wrap:nowrap;gap:8px"><span style="display:inline-flex">${ic(x.icon||'wallet')}</span><b>${esc(x.name)}</b></div><div class="av" style="color:${bal(x)<0?'var(--ex)':'inherit'}">${peso(bal(x))}</div></div>`;
+            const widgets = D.dashboardWidgets;
+            const summaryWidget = widgets.summary ?
+                `<div class="hero"><small>Total Balance</small><div class="hb">${peso(tot,1)}</div><div class="two"><div><small>Income</small><div class="hn" style="color:var(--in)">${peso(inc)}</div></div><div><small>Expenses</small><div class="hn" style="color:var(--ex)">${peso(exp)}</div></div></div><small class="pocket-summary-amounts">Available ${peso(av)}${cr<0?' · Card owed '+peso(-cr):''}</small></div>` :
+                '';
+            const shortcutsWidget = widgets.shortcuts ?
+                `<div class="row mo dashboard-shortcuts" style="margin-top:12px"><button class="chip" onclick="go('bud')">Budgets</button><button class="chip" onclick="go('goal')">Savings goals</button><button class="chip" onclick="go('rec')">Recurring</button><button class="chip" onclick="go('cash')">Cashback</button></div>` :
+                '';
+            const actionsWidget = widgets.actions ?
+                `<div class="row end" style="margin-top:18px"><button class="b2" onclick="quickAdd('expense')">${ic('plus')} Expense</button><button class="b2" onclick="quickAdd('income')">${ic('plus')} Income</button><button class="b2" onclick="quickAdd('transfer')">${ic('arrow-left-right')} Transfer</button></div>` :
+                '';
+            const accountsWidget = widgets.accounts ?
+                `<div class="row sp" style="margin-top:22px"><h3 class="sec" style="margin:0">My Accounts</h3>${accountPages.length>1?`<small id="account-page-indicator" class="mu" aria-live="polite">Swipe · 1/${accountPages.length}</small>`:''}</div>${accountPages.length?`<div class="account-carousel" role="region" aria-label="My Accounts; swipe horizontally for more" onscroll="accountPageChanged(this)"><div class="account-carousel-track">${accountPages.map(page=>`<div class="ag account-page">${page.map(accountCard).join('')}</div>`).join('')}</div></div>`:'<div class="empty">No accounts yet.</div>'}` :
+                '';
+            const transactionsWidget = widgets.transactions ?
+                `<div class="row sp" style="margin-top:22px"><h3 class="sec" style="margin:0">Recent Transactions</h3><button class="chip" onclick="go('tx')">View all</button></div><div style="margin-top:6px">${D.tx.length?sorted().slice(0,3).map(t=>row(t,false,true)).join(''):'<div class="empty">No transactions yet.</div>'}</div>` :
+                '';
+            const reportCards = [];
+            if (widgets.incomeExpenses) {
+                reportCards.push(`<div class="card"><h3>Income vs. expenses</h3>${bars([ks.map(k=>sum(D.tx.filter(t=>ym(t.date)===k),'income')),ks.map(k=>sum(D.tx.filter(t=>ym(t.date)===k),'expense'))],L,['#16a34a','#ea580c'])}</div>`);
+            }
+            if (widgets.expensesByCategory) reportCards.push(`<div class="card"><h3>Expenses by category</h3>${catBars(T)}</div>`);
+            const reportsWidget = reportCards.length ? `<div class="g g2">${reportCards.join('')}</div>` : '';
+            const emptyDashboard = DASHBOARD_WIDGETS.some(([id]) => widgets[id]) ? '' :
+                '<div class="empty card">No dashboard sections are visible. Go to Settings and select Customize Dashboard to add sections.</div>';
             return `<div class="row sp"><h2 style="font-size:26px">My Finance</h2><select class="pill" aria-label="Period" onchange="U.f=this.value;render()">${fl.map(f=>`<option value="${f[0]}"${U.f===f[0]?' selected':''}>${f[1]}</option>`).join('')}</select></div>
-<div class="row" style="margin-top:10px">${U.f==='custom'?`<input type="date" value="${U.cf||''}" style="width:auto" onchange="U.cf=this.value;render()"><input type="date" value="${U.ct||''}" style="width:auto" onchange="U.ct=this.value;render()">`:''}</div>${alerts()}
-<div class="hero"><small>Total Balance</small><div class="hb">${peso(tot,1)}</div><div class="two"><div><small>Income</small><div class="hn" style="color:var(--in)">${peso(inc)}</div></div><div><small>Expenses</small><div class="hn" style="color:var(--ex)">${peso(exp)}</div></div></div><small class="pocket-summary-amounts">Available ${peso(av)}${cr<0?' · Card owed '+peso(-cr):''}</small></div><div class="row mo dashboard-shortcuts" style="margin-top:12px"><button class="chip" onclick="go('bud')">Budgets</button><button class="chip" onclick="go('goal')">Savings goals</button><button class="chip" onclick="go('rec')">Recurring</button><button class="chip" onclick="go('cash')">Cashback</button></div>
-<div class="row end" style="margin-top:18px"><button class="b2" onclick="quickAdd('expense')">${ic('plus')} Expense</button><button class="b2" onclick="quickAdd('income')">${ic('plus')} Income</button><button class="b2" onclick="quickAdd('transfer')">${ic('arrow-left-right')} Transfer</button></div>
-<div class="row sp" style="margin-top:22px"><h3 class="sec" style="margin:0">My Accounts</h3>${accountPages.length>1?`<small id="account-page-indicator" class="mu" aria-live="polite">Swipe · 1/${accountPages.length}</small>`:''}</div>${accountPages.length?`<div class="account-carousel" role="region" aria-label="My Accounts; swipe horizontally for more" onscroll="accountPageChanged(this)"><div class="account-carousel-track">${accountPages.map(page=>`<div class="ag account-page">${page.map(accountCard).join('')}</div>`).join('')}</div></div>`:'<div class="empty">No accounts yet.</div>'}<div class="row sp" style="margin-top:22px"><h3 class="sec" style="margin:0">Recent Transactions</h3><button class="chip" onclick="go('tx')">View all</button></div><div style="margin-top:6px">${D.tx.length?sorted().slice(0,3).map(t=>row(t,false,true)).join(''):'<div class="empty">No transactions yet.</div>'}</div><div class="g g2"><div class="card"><h3>Income vs. expenses</h3>${bars([ks.map(k=>sum(D.tx.filter(t=>ym(t.date)===k),'income')),ks.map(k=>sum(D.tx.filter(t=>ym(t.date)===k),'expense'))],L,['#16a34a','#ea580c'])}</div>
-<div class="card"><h3>Expenses by category</h3>${catBars(T)}</div>
-
-</div>`
+<div class="row" style="margin-top:10px">${U.f==='custom'?`<input type="date" value="${U.cf||''}" style="width:auto" onchange="U.cf=this.value;render()"><input type="date" value="${U.ct||''}" style="width:auto" onchange="U.ct=this.value;render()">`:''}</div>${widgets.alerts?alerts():''}
+${summaryWidget}${shortcutsWidget}${actionsWidget}${accountsWidget}${transactionsWidget}${reportsWidget}${emptyDashboard}`
         };
 
         function txList() {
@@ -2213,7 +2296,7 @@
         }
         V.set = () =>
             `<h2>Settings</h2><div class="g g2">
-<div class="card settings-preferences"><h3>Preferences</h3><div class="row sp"><span>Currency</span><b>Philippine Peso (₱)</b></div><div class="row sp" style="margin-top:8px"><span>Date format</span><b>DD/MM/YYYY</b></div><div class="row sp" style="margin-top:8px"><span>Theme</span><button class="b2" onclick="D.theme=D.theme==='dark'?'light':'dark';save();render()">${ic(D.theme==='dark'?'sun':'moon')} ${D.theme==='dark'?'Light':'Dark'} mode</button></div></div>
+<div class="card settings-preferences"><h3>Preferences</h3><div class="row sp"><span>Currency</span><b>Philippine Peso (₱)</b></div><div class="row sp" style="margin-top:8px"><span>Date format</span><b>DD/MM/YYYY</b></div><div class="row sp" style="margin-top:8px"><span>Theme</span><button class="b2" onclick="D.theme=D.theme==='dark'?'light':'dark';save();render()">${ic(D.theme==='dark'?'sun':'moon')} ${D.theme==='dark'?'Light':'Dark'} mode</button></div><button class="b2 dashboard-layout-setting" onclick="dashboardSettingsForm()">${ic('bar-chart-3')} Customize Dashboard</button></div>
 <div class="card"><h3>Manage</h3><div class="settings-actions"><button class="b2" onclick="go('acc')">${ic('wallet')} Accounts</button><button class="b2" onclick="go('cat')">${ic('tag')} Categories</button><button class="b2" onclick="go('bud')">${ic('gauge')} Budgets</button><button class="b2" onclick="go('goal')">${ic('target')} Savings goals</button><button class="b2" onclick="go('rec')">${ic('repeat')} Recurring transactions</button><button class="b2" onclick="go('cash')">${ic('coins')} Cashback</button></div></div>
 <div class="card"><h3>Export</h3><div class="settings-actions"><button class="b2" onclick="showText('Transactions (CSV)',csv())">${ic('file-text')} Transactions CSV</button><button class="b2" onclick="showText('Monthly report (CSV)',repCsv())">${ic('bar-chart-3')} Report CSV</button><button class="b2" onclick="exportAllData()">${ic('download')} Export all data (JSON)</button></div></div>
 <div class="card"><h3>Back up &amp; restore</h3><div class="settings-actions"><button class="b2" onclick="showText('Backup',JSON.stringify(D))">${ic('save')} View / copy backup</button><button class="b2" onclick="showText('Restore backup','',1)">${ic('upload')} Restore backup</button></div><small class="settings-note">Data is saved in this browser. Backups are files you download and store yourself; Pocket does not upload them to the cloud.</small></div>
@@ -2360,6 +2443,10 @@
             if (!d || !Array.isArray(d.acc) || !Array.isArray(d.tx) || !Array.isArray(d.cats)) return null;
             return {
                 theme: d.theme === 'light' ? 'light' : 'dark',
+                dashboardWidgets: Object.fromEntries(DASHBOARD_WIDGETS.map(([id]) => [
+                    id,
+                    !d.dashboardWidgets || typeof d.dashboardWidgets !== 'object' || d.dashboardWidgets[id] !== false
+                ])),
                 v2: 1,
                 v3: 1,
                 acc: d.acc.filter(a => a && okId(a.id)).map(a => ({
