@@ -743,6 +743,117 @@
             text-align: right
         }
 
+        .profile-card {
+            border-top: 3px solid var(--profile-accent)
+        }
+
+        .profile-summary {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 4px 0 16px
+        }
+
+        .profile-avatar {
+            position: relative;
+            display: grid;
+            place-items: center;
+            flex: none;
+            width: 60px;
+            height: 60px;
+            overflow: hidden;
+            border-radius: 50%;
+            background: var(--profile-accent);
+            color: #fff;
+            font-size: 21px;
+            font-weight: 700
+        }
+
+        .profile-avatar img {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover
+        }
+
+        .profile-identity {
+            display: grid;
+            gap: 3px;
+            min-width: 0
+        }
+
+        .profile-identity strong {
+            overflow-wrap: anywhere;
+            font-size: 16px
+        }
+
+        .profile-identity small,
+        .profile-email-row>span,
+        .profile-color-setting>span {
+            color: var(--mu)
+        }
+
+        .profile-name-field {
+            display: grid;
+            gap: 6px;
+            margin-bottom: 12px;
+            color: var(--mu);
+            font-size: 13px
+        }
+
+        .profile-email-row {
+            display: grid;
+            gap: 4px;
+            padding: 12px 0;
+            border-top: 1px solid var(--bd);
+            font-size: 13px
+        }
+
+        .profile-email-row strong {
+            overflow-wrap: anywhere;
+            font-weight: 500
+        }
+
+        .profile-color-setting {
+            display: grid;
+            gap: 8px;
+            padding-top: 12px;
+            border-top: 1px solid var(--bd);
+            font-size: 13px
+        }
+
+        .profile-color-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px
+        }
+
+        .profile-color-swatch {
+            display: grid;
+            place-items: center;
+            flex: none;
+            width: 40px;
+            height: 40px;
+            padding: 4px;
+            border: 2px solid transparent;
+            border-radius: 50%;
+            background: transparent;
+            cursor: pointer
+        }
+
+        .profile-color-swatch::before {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: var(--profile-swatch);
+            content: ''
+        }
+
+        .profile-color-swatch[aria-pressed=true] {
+            border-color: var(--tx)
+        }
+
         .settings-preference-dashboard {
             display: grid;
             gap: 8px;
