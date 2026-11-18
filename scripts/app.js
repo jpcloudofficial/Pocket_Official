@@ -224,6 +224,7 @@ const K = 'pera.v1',
                         ), 0)
                 }
             }
+            if (window.pocketCloud) window.pocketCloud.queueSave(D)
         };
         const A = id => D.acc.find(a => a.id === id),
             C = id => D.cats.find(c => c.id === id),
@@ -1273,6 +1274,7 @@ ${summaryWidget}${shortcutsWidget}${actionsWidget}${accountsWidget}${transaction
         }
         V.set = () =>
             `<h2>Settings</h2><div class="g g2">
+<div class="card cloud-sync-card" id="cloud-sync-card"><h3>Cloud sync</h3><p class="settings-note">Sign in to sync your Pocket data with Firebase Firestore. Your local copy remains available on this device.</p><p id="cloud-sync-status" role="status">Connecting to Firebase…</p><p class="cloud-sync-error" id="cloud-sync-error" role="alert" hidden></p><form id="cloud-auth-form"><label>Email<input id="cloud-email" type="email" autocomplete="email" required></label><label>Password<input id="cloud-password" type="password" autocomplete="current-password" minlength="6" required></label><div class="settings-actions"><button class="b1" type="submit" data-cloud-action="sign-in">Sign in</button><button class="b2" type="button" data-cloud-action="signup">Create account</button><button class="b2" type="button" data-cloud-action="password-reset">Forgot password?</button></div></form><div id="cloud-user-controls" hidden><div class="settings-actions"><button class="b2" type="button" data-cloud-action="sign-out">Sign out</button></div></div><div id="cloud-conflict" class="cloud-conflict" hidden><p>Cloud data changed while this device also has local changes. Choose which copy to keep.</p><div class="settings-actions"><button class="b1" type="button" data-cloud-action="use-cloud">Use cloud copy</button><button class="b2" type="button" data-cloud-action="keep-local">Keep this device</button></div></div></div>
 <div class="card settings-preferences"><h3>Preferences</h3><div class="settings-preference-list"><div class="settings-preference-row"><span>Currency</span><b>Philippine Peso (₱)</b></div><div class="settings-preference-row"><span>Date format</span><b>DD/MM/YYYY</b></div><div class="settings-preference-row"><span>Theme</span><button class="b2" onclick="D.theme=D.theme==='dark'?'light':'dark';save();render()">${ic(D.theme==='dark'?'sun':'moon')} ${D.theme==='dark'?'Light':'Dark'} mode</button></div></div><div class="settings-preference-dashboard"><small>Dashboard</small><button class="b2 dashboard-layout-setting" onclick="dashboardSettingsForm()">${ic('bar-chart-3')} Customize Dashboard</button></div></div>
 <div class="card"><h3>Manage</h3><div class="settings-actions"><button class="b2" onclick="go('acc')">${ic('wallet')} Accounts</button><button class="b2" onclick="go('cat')">${ic('tag')} Categories</button><button class="b2" onclick="go('bud')">${ic('gauge')} Budgets</button><button class="b2" onclick="go('goal')">${ic('target')} Savings goals</button><button class="b2" onclick="go('rec')">${ic('repeat')} Recurring transactions</button><button class="b2" onclick="go('cash')">${ic('coins')} Cashback</button></div></div>
 <div class="card"><h3>Export</h3><div class="settings-actions"><button class="b2" onclick="showText('Transactions (CSV)',csv())">${ic('file-text')} Transactions CSV</button><button class="b2" onclick="showText('Monthly report (CSV)',repCsv())">${ic('bar-chart-3')} Report CSV</button><button class="b2" onclick="exportAllData()">${ic('download')} Export all data (JSON)</button></div></div>
@@ -1550,6 +1552,15 @@ ${summaryWidget}${shortcutsWidget}${actionsWidget}${accountsWidget}${transaction
                 }))
             }
         }
+        window.pocketApp = {
+            getData: () => D,
+            normalizeData: clean,
+            replaceFromCloud: data => {
+                D = data;
+                save();
+                render()
+            }
+        };
         try {
             D = clean(JSON.parse(localStorage.getItem(K)))
         } catch (e) {
