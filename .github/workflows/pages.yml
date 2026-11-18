@@ -49,12 +49,6 @@ jobs:
         with:
           path: _site
 
-      - uses: actions/upload-artifact@v4
-        with:
-          name: firebase-hosting-site
-          path: _site
-          if-no-files-found: error
-
   deploy:
     environment:
       name: github-pages
@@ -68,26 +62,3 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
-
-  deploy-firebase-hosting:
-    runs-on: ubuntu-latest
-    needs: build
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/download-artifact@v4
-        with:
-          name: firebase-hosting-site
-          path: _site
-
-      - name: Check Firebase Hosting credentials
-        env:
-          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
-        run: |
-          test -n "$FIREBASE_SERVICE_ACCOUNT" || { echo "Set the FIREBASE_SERVICE_ACCOUNT repository secret." >&2; exit 1; }
-
-      - uses: FirebaseExtended/action-hosting-deploy@v0
-        with:
-          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
-          projectId: pocket-d4e0b
-          channelId: live
