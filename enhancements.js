@@ -36,6 +36,9 @@
       .pocket-fab-menu button[data-kind="expense"] .mini{color:var(--ex)}
       .pocket-fab-menu button[data-kind="income"] .mini{color:var(--in)}
       .pocket-fab-menu button[data-kind="transfer"] .mini{color:var(--tr)}
+      .pocket-account-transfer{position:fixed;right:22px;bottom:82px;z-index:21;width:147px;min-height:48px;padding:0 16px;border:1px solid var(--bd);border-radius:28px;background:var(--cd);color:var(--tx);box-shadow:0 4px 14px #0004;display:flex;align-items:center;justify-content:flex-start;gap:8px;font:inherit;font-weight:700;cursor:pointer}
+      .pocket-account-transfer svg{width:18px;height:18px;flex:none}
+      body.pocket-modal-open .pocket-account-transfer{display:none!important}
       .pocket-hidden{display:none!important}
       .fab{z-index:22;transition:opacity .2s ease,transform .2s ease}
       .fab.pocket-fab-open{opacity:0;transform:scale(.7);pointer-events:none}
@@ -43,7 +46,7 @@
       .pocket-category-hint[hidden]{display:none}
       .pocket-category-hint[data-active="true"]{color:var(--in)}
       #m.pocket-private .hb,#m.pocket-private .hn,#m.pocket-private .av,#m.pocket-private .tx>b{user-select:none}
-      @media(max-width:760px){.pocket-fab-menu{right:16px;bottom:calc(94px + env(safe-area-inset-bottom,0px))}}
+      @media(max-width:760px){.pocket-fab-menu{right:16px;bottom:calc(94px + env(safe-area-inset-bottom,0px))}.pocket-account-transfer{right:22px;bottom:calc(152px + env(safe-area-inset-bottom,0px))}}
       @media(prefers-reduced-motion:reduce){.pocket-carousel-track,.fab{transition:none!important}}
     `;
     document.head.append(style);
@@ -120,7 +123,8 @@
 
   const addTitleSetting = () => {
     const heading = [...main.querySelectorAll('h2')].find(item => item.textContent.trim() === 'Settings');
-    if (!heading || main.querySelector('.pocket-title-setting')) return;
+    const preferences = main.querySelector('.settings-preferences');
+    if (!heading || !preferences || main.querySelector('.pocket-title-setting')) return;
     const button = document.createElement('button');
     button.type = 'button'; button.className = 'b2 pocket-title-setting'; button.style.marginTop = '12px';
     button.innerHTML = `${icon('edit')} Customize dashboard title`;
@@ -130,7 +134,7 @@
       try { localStorage.setItem(TITLE_KEY, answer.trim().slice(0, 32) || 'My Finance'); } catch {}
       setTitle();
     });
-    heading.after(button);
+    preferences.append(button);
   };
 
   const updatePrivacy = () => {
@@ -231,28 +235,56 @@
   };
   const wireQuickAdd = () => {
     const fab = document.querySelector('.fab');
-    if (!fab || fab.dataset.pocketQuickMenuReady) return;
-    fab.dataset.pocketQuickMenuReady = '1';
-    const menu = document.createElement('div');
-    menu.className = 'pocket-fab-menu pocket-hidden'; menu.setAttribute('aria-hidden', 'true');
-    menu.innerHTML = [
-      { kind: 'expense', label: 'Expense', icon: 'bolt' },
-      { kind: 'income', label: 'Income', icon: 'wallet' },
-      { kind: 'transfer', label: 'Transfer', icon: 'arrow' }
-    ].map(item => `<button type="button" data-kind="${item.kind}"><span class="mini">${icon(item.icon)}</span><span>${item.label}</span></button>`).join('');
-    document.body.append(menu);
-    fab.onclick = event => {
-      event.preventDefault(); event.stopPropagation();
-      const opening = menu.classList.contains('pocket-hidden');
-      menu.classList.toggle('pocket-hidden', !opening); menu.setAttribute('aria-hidden', String(!opening));
-      fab.setAttribute('aria-expanded', String(opening)); fab.classList.toggle('pocket-fab-open', opening);
-    };
-    menu.querySelectorAll('button').forEach(button => button.addEventListener('click', () => {
-      if (typeof window.quickAdd === 'function') window.quickAdd(button.dataset.kind);
-      closeMenu(menu, fab);
-    }));
-    document.addEventListener('click', event => { if (!menu.contains(event.target) && !fab.contains(event.target)) closeMenu(menu, fab); });
-    document.addEventListener('keydown', event => { if (event.key === 'Escape') closeMenu(menu, fab); });
+    if (!fab) return;
+    let menu = document.querySelector('.pocket-fab-menu');
+    if (!menu) {
+      menu = document.createElement('div');
+      menu.className = 'pocket-fab-menu pocket-hidden'; menu.setAttribute('aria-hidden', 'true');
+      menu.innerHTML = [
+        { kind: 'expense', label: 'Expense', icon: 'bolt' },
+        { kind: 'income', label: 'Income', icon: 'wallet' },
+        { kind: 'transfer', label: 'Transfer', icon: 'arrow' }
+      ].map(item => `<button type="button" data-kind="${item.kind}"><span class="mini">${icon(item.icon)}</span><span>${item.label}</span></button>`).join('');
+      document.body.append(menu);
+    }
+    if (!fab.dataset.pocketQuickMenuReady) {
+      fab.dataset.pocketQuickMenuReady = '1';
+      fab.onclick = event => {
+        event.preventDefault(); event.stopPropagation();
+        if (main.dataset.view === 'acc') {
+          closeMenu(menu, fab);
+          if (typeof window.accForm === 'function') window.accForm();
+          return;
+        }
+        const opening = menu.classList.contains('pocket-hidden');
+        menu.classList.toggle('pocket-hidden', !opening); menu.setAttribute('aria-hidden', String(!opening));
+        fab.setAttribute('aria-expanded', String(opening)); fab.classList.toggle('pocket-fab-open', opening);
+      };
+      menu.querySelectorAll('button').forEach(button => button.addEventListener('click', () => {
+        if (typeof window.quickAdd === 'function') window.quickAdd(button.dataset.kind);
+        closeMenu(menu, fab);
+      }));
+      document.addEventListener('click', event => { if (!menu.contains(event.target) && !fab.contains(event.target)) closeMenu(menu, fab); });
+      document.addEventListener('keydown', event => { if (event.key === 'Escape') closeMenu(menu, fab); });
+    }
+    const accountPage = main.dataset.view === 'acc';
+    fab.classList.toggle('pocket-fab-account', accountPage);
+    fab.setAttribute('aria-label', accountPage ? 'Add account' : 'Add transaction');
+    fab.title = accountPage ? 'Add account' : 'Add transaction';
+    if (accountPage) closeMenu(menu, fab);
+    let transferButton = document.querySelector('.pocket-account-transfer');
+    if (!transferButton) {
+      transferButton = document.createElement('button');
+      transferButton.type = 'button';
+      transferButton.className = 'pocket-account-transfer pocket-hidden';
+      transferButton.setAttribute('aria-label', 'Transfer');
+      transferButton.innerHTML = `${icon('arrow')}<span>Transfer</span>`;
+      transferButton.addEventListener('click', () => {
+        if (typeof window.quickAdd === 'function') window.quickAdd('transfer');
+      });
+      document.body.append(transferButton);
+    }
+    transferButton.classList.toggle('pocket-hidden', !accountPage);
   };
 
   let queued = false;

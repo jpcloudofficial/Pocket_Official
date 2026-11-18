@@ -554,7 +554,7 @@
         .ag {
             display: grid;
             grid-template-columns: repeat(2, minmax(0, 1fr));
-            grid-auto-rows: minmax(94px, auto);
+            grid-auto-rows: 108px;
             gap: 12px
         }
 
@@ -562,16 +562,71 @@
             border: 1px solid var(--bd);
             border-radius: 20px;
             padding: 14px;
-            cursor: pointer
+            cursor: pointer;
+            min-height: 0;
+            overflow: hidden
         }
 
         .ac b {
-            font-size: 16px
+            min-width: 0;
+            overflow: hidden;
+            font-size: 16px;
+            text-overflow: ellipsis;
+            white-space: nowrap
         }
 
         .av {
             font-size: 22px;
             font-weight: 700;
+            margin-top: 10px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap
+        }
+
+        .account-balance-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-top: 10px
+        }
+
+        .account-balance-row>small {
+            flex: 1;
+            min-width: 0
+        }
+
+        .account-balance-row>.big {
+            flex: none;
+            margin: 0;
+            text-align: right;
+            white-space: nowrap
+        }
+
+        .settings-actions {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 8px
+        }
+
+        .settings-actions .b2 {
+            width: 100%;
+            min-height: 44px;
+            justify-content: flex-start;
+            padding: 8px 10px;
+            font-size: 12px;
+            text-align: left;
+            white-space: normal
+        }
+
+        .settings-preferences .pocket-title-setting {
+            width: 100%;
+            justify-content: flex-start
+        }
+
+        .settings-note {
+            display: block;
             margin-top: 10px
         }
 
@@ -726,6 +781,25 @@
             z-index: 6
         }
 
+        .fab-label {
+            display: none
+        }
+
+        .fab.pocket-fab-account {
+            display: flex;
+            width: auto;
+            min-width: 52px;
+            padding: 0 16px;
+            gap: 8px;
+            border-radius: 28px;
+            font-weight: 700;
+            white-space: nowrap
+        }
+
+        .fab.pocket-fab-account .fab-label {
+            display: inline
+        }
+
         @media(max-width:760px) {
 
             input,
@@ -785,6 +859,10 @@
                 grid-row: 1
             }
 
+            .tx-list-row:not(.recent-link) .tx-actions {
+                order: -1
+            }
+
             .tx-list-row.recent-link {
                 grid-template-columns: 44px minmax(0, 1fr) auto;
                 row-gap: 0
@@ -803,7 +881,7 @@
                 grid-column: 3;
                 grid-row: 1;
                 justify-content: flex-end;
-                align-self: start
+                align-self: center
             }
 
             aside {
@@ -888,9 +966,9 @@
             <nav id="nv"></nav>
         </aside>
         <main id="m"></main>
-    </div><button class="fab" onclick="txForm()" aria-label="Add transaction"><svg viewBox="0 0 24 24" width="24"
+    </div><button class="fab" onclick="primaryAdd()" aria-label="Add transaction" title="Add transaction"><svg viewBox="0 0 24 24" width="24"
             height="24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
-            <path d="M12 5v14M5 12h14" /></svg></button>
+            <path d="M12 5v14M5 12h14" /></svg><span class="fab-label">Add account</span></button>
     <div id="ov">
         <div id="ovc"></div>
     </div>
@@ -1422,6 +1500,11 @@
             }
         }
 
+        function primaryAdd() {
+            if (U.v === 'acc') accForm();
+            else txForm()
+        }
+
         function cashbackForm(expenseId) {
             const expense = D.tx.find(item => item.id === expenseId && item.type === 'expense');
             if (!expense) return info('The linked expense could not be found.');
@@ -1766,7 +1849,7 @@
 <div class="row" style="margin-top:10px">${U.f==='custom'?`<input type="date" value="${U.cf||''}" style="width:auto" onchange="U.cf=this.value;render()"><input type="date" value="${U.ct||''}" style="width:auto" onchange="U.ct=this.value;render()">`:''}</div>${alerts()}
 <div class="hero"><small>Total Balance</small><div class="hb">${peso(tot,1)}</div><div class="two"><div><small>Income</small><div class="hn" style="color:var(--in)">${peso(inc)}</div></div><div><small>Expenses</small><div class="hn" style="color:var(--ex)">${peso(exp)}</div></div></div><small class="pocket-summary-amounts">Available ${peso(av)}${cr<0?' · Card owed '+peso(-cr):''}</small></div><div class="row mo dashboard-shortcuts" style="margin-top:12px"><button class="chip" onclick="go('bud')">Budgets</button><button class="chip" onclick="go('goal')">Savings goals</button><button class="chip" onclick="go('rec')">Recurring</button><button class="chip" onclick="go('cash')">Cashback</button></div>
 <div class="row end" style="margin-top:18px"><button class="b2" onclick="quickAdd('expense')">${ic('plus')} Expense</button><button class="b2" onclick="quickAdd('income')">${ic('plus')} Income</button><button class="b2" onclick="quickAdd('transfer')">${ic('arrow-left-right')} Transfer</button></div>
-<div class="row sp" style="margin-top:22px"><h3 class="sec" style="margin:0">My Accounts</h3>${accountPages.length>1?`<small id="account-page-indicator" class="mu" aria-live="polite">Swipe · 1/${accountPages.length}</small>`:''}</div>${accountPages.length?`<div class="account-carousel" role="region" aria-label="My Accounts; swipe horizontally for more" onscroll="accountPageChanged(this)"><div class="account-carousel-track">${accountPages.map(page=>`<div class="ag account-page">${page.map(accountCard).join('')}</div>`).join('')}</div></div>`:'<div class="empty">No accounts yet.</div>'}<div class="row sp" style="margin-top:22px"><h3 class="sec" style="margin:0">Recent Transactions</h3><button class="chip" onclick="go('tx')">View all</button></div><div style="margin-top:6px">${D.tx.length?sorted().slice(0,6).map(t=>row(t,false,true)).join(''):'<div class="empty">No transactions yet.</div>'}</div><div class="g g2"><div class="card"><h3>Income vs. expenses</h3>${bars([ks.map(k=>sum(D.tx.filter(t=>ym(t.date)===k),'income')),ks.map(k=>sum(D.tx.filter(t=>ym(t.date)===k),'expense'))],L,['#16a34a','#ea580c'])}</div>
+<div class="row sp" style="margin-top:22px"><h3 class="sec" style="margin:0">My Accounts</h3>${accountPages.length>1?`<small id="account-page-indicator" class="mu" aria-live="polite">Swipe · 1/${accountPages.length}</small>`:''}</div>${accountPages.length?`<div class="account-carousel" role="region" aria-label="My Accounts; swipe horizontally for more" onscroll="accountPageChanged(this)"><div class="account-carousel-track">${accountPages.map(page=>`<div class="ag account-page">${page.map(accountCard).join('')}</div>`).join('')}</div></div>`:'<div class="empty">No accounts yet.</div>'}<div class="row sp" style="margin-top:22px"><h3 class="sec" style="margin:0">Recent Transactions</h3><button class="chip" onclick="go('tx')">View all</button></div><div style="margin-top:6px">${D.tx.length?sorted().slice(0,3).map(t=>row(t,false,true)).join(''):'<div class="empty">No transactions yet.</div>'}</div><div class="g g2"><div class="card"><h3>Income vs. expenses</h3>${bars([ks.map(k=>sum(D.tx.filter(t=>ym(t.date)===k),'income')),ks.map(k=>sum(D.tx.filter(t=>ym(t.date)===k),'expense'))],L,['#16a34a','#ea580c'])}</div>
 <div class="card"><h3>Expenses by category</h3>${catBars(T)}</div>
 
 </div>`
@@ -1888,7 +1971,7 @@
             D.acc = D.acc.filter(a => a.id !== id)
         });
         V.acc = () =>
-            `<div class="row sp"><div><h2>Accounts</h2><small>Total Balance ${peso(D.acc.filter(x=>!isSav(x)).reduce((s,x)=>s+bal(x),0))} · Savings ${peso(D.acc.filter(isSav).reduce((s,x)=>s+bal(x),0))}</small></div><div class="row"><button class="b2" onclick="trForm()">${ic('arrow-left-right')} Transfer</button><button class="b1" onclick="accForm()">${ic('plus')} Add account</button></div></div><div class="g g2">${D.acc.map(a=>{const b=bal(a);return`<div class="card"><div class="row"><span class="dot" style="background:${a.color}22;color:${a.color}">${ic(a.icon||'wallet')}</span><div class="gr"><b>${esc(a.name)}</b><br><small>${a.type} · since ${fd(a.created)}</small></div><button class="ib" onclick="accForm('${a.id}')" aria-label="Edit">${ic('pencil')}</button><button class="ib" onclick="delAcc('${a.id}')" aria-label="Delete">${ic('trash-2')}</button></div><div class="big" style="color:${b<0?'var(--ex)':'inherit'}">${peso(b)}</div><small>${a.type==='Credit Card'?'Liability — not counted as available cash':isSav(a)?'Savings — kept separate from Total Balance':'Initial '+peso(a.initial)}</small></div>`}).join('')}</div>`;
+            `<div class="row sp"><div><h2>Accounts</h2><small>Total Balance ${peso(D.acc.filter(x=>!isSav(x)).reduce((s,x)=>s+bal(x),0))} · Savings ${peso(D.acc.filter(isSav).reduce((s,x)=>s+bal(x),0))}</small></div></div><div class="g g2">${D.acc.map(a=>{const b=bal(a);return`<div class="card"><div class="row"><span class="dot" style="background:${a.color}22;color:${a.color}">${ic(a.icon||'wallet')}</span><div class="gr"><b>${esc(a.name)}</b><br><small>${a.type} · since ${fd(a.created)}</small></div><button class="ib" onclick="accForm('${a.id}')" aria-label="Edit">${ic('pencil')}</button><button class="ib" onclick="delAcc('${a.id}')" aria-label="Delete">${ic('trash-2')}</button></div><div class="account-balance-row"><small>${a.type==='Credit Card'?'Liability — not counted as available cash':isSav(a)?'Savings — kept separate from Total Balance':'Initial '+peso(a.initial)}</small><div class="big" style="color:${b<0?'var(--ex)':'inherit'}">${peso(b)}</div></div></div>`}).join('')}</div>`;
 
         function budForm(id) {
             openForm(id ? 'Edit budget' : 'Set budget', () => [{
@@ -2128,10 +2211,12 @@
             }, 'Restore')
         }
         V.set = () =>
-            `<h2>Settings</h2><div class="g g2"><div class="card"><h3>Preferences</h3><div class="row sp"><span>Currency</span><b>Philippine Peso (₱)</b></div><div class="row sp" style="margin-top:8px"><span>Date format</span><b>DD/MM/YYYY</b></div><div class="row sp" style="margin-top:8px"><span>Theme</span><button class="b2" onclick="D.theme=D.theme==='dark'?'light':'dark';save();render()">${ic(D.theme==='dark'?'sun':'moon')} ${D.theme==='dark'?'Light':'Dark'} mode</button></div></div>
-<div class="card"><h3>Manage</h3><div class="row"><button class="b2" onclick="go('acc')">${ic('wallet')} Accounts</button><button class="b2" onclick="go('cat')">${ic('tag')} Categories</button><button class="b2" onclick="go('bud')">${ic('gauge')} Budgets</button><button class="b2" onclick="go('goal')">${ic('target')} Savings goals</button><button class="b2" onclick="go('rec')">${ic('repeat')} Recurring transactions</button></div></div>
-<div class="card"><h3>Export</h3><div class="row"><button class="b2" onclick="showText('Transactions (CSV)',csv())">${ic('file-text')} Transactions CSV</button><button class="b2" onclick="showText('Monthly report (CSV)',repCsv())">${ic('bar-chart-3')} Report CSV</button><button class="b2" onclick="exportAllData()">${ic('download')} Export all data (JSON)</button></div></div>
-<div class="card"><h3>Data controls &amp; backups</h3><div class="row"><button class="b2" onclick="showText('Backup',JSON.stringify(D))">${ic('save')} View / copy backup</button><button class="b2" onclick="showText('Restore backup','',1)">${ic('upload')} Restore backup</button><button class="b2" style="color:var(--ex)" onclick="clearTransactionHistory()">${ic('trash-2')} Clear transaction history</button><button class="b2" onclick="ask('Reset all amounts to ₱0? This clears every transaction, sets all account balances to ₱0 and empties savings goals.',()=>zero(D),'Reset')">${ic('rotate-ccw')} Reset all amounts</button><button class="b2" onclick="ask('Load the sample data? Your changes will be lost.',()=>{D=seed();D.v2=D.v3=1},'Load')">${ic('rotate-ccw')} Load sample data</button></div><small>Data is saved in this browser. Backups are files you download and store yourself; Pocket does not upload them to the cloud.</small></div></div>`;
+            `<h2>Settings</h2><div class="g g2">
+<div class="card settings-preferences"><h3>Preferences</h3><div class="row sp"><span>Currency</span><b>Philippine Peso (₱)</b></div><div class="row sp" style="margin-top:8px"><span>Date format</span><b>DD/MM/YYYY</b></div><div class="row sp" style="margin-top:8px"><span>Theme</span><button class="b2" onclick="D.theme=D.theme==='dark'?'light':'dark';save();render()">${ic(D.theme==='dark'?'sun':'moon')} ${D.theme==='dark'?'Light':'Dark'} mode</button></div></div>
+<div class="card"><h3>Manage</h3><div class="settings-actions"><button class="b2" onclick="go('acc')">${ic('wallet')} Accounts</button><button class="b2" onclick="go('cat')">${ic('tag')} Categories</button><button class="b2" onclick="go('bud')">${ic('gauge')} Budgets</button><button class="b2" onclick="go('goal')">${ic('target')} Savings goals</button><button class="b2" onclick="go('rec')">${ic('repeat')} Recurring transactions</button></div></div>
+<div class="card"><h3>Export</h3><div class="settings-actions"><button class="b2" onclick="showText('Transactions (CSV)',csv())">${ic('file-text')} Transactions CSV</button><button class="b2" onclick="showText('Monthly report (CSV)',repCsv())">${ic('bar-chart-3')} Report CSV</button><button class="b2" onclick="exportAllData()">${ic('download')} Export all data (JSON)</button></div></div>
+<div class="card"><h3>Back up &amp; restore</h3><div class="settings-actions"><button class="b2" onclick="showText('Backup',JSON.stringify(D))">${ic('save')} View / copy backup</button><button class="b2" onclick="showText('Restore backup','',1)">${ic('upload')} Restore backup</button></div><small class="settings-note">Data is saved in this browser. Backups are files you download and store yourself; Pocket does not upload them to the cloud.</small></div>
+<div class="card"><h3>Data management</h3><small class="settings-note">These actions can clear or replace local data. You’ll be asked to confirm before they run.</small><div class="settings-actions" style="margin-top:10px"><button class="b2" style="color:var(--ex)" onclick="clearTransactionHistory()">${ic('trash-2')} Clear transaction history</button><button class="b2" onclick="ask('Reset all amounts to ₱0? This clears every transaction, sets all account balances to ₱0 and empties savings goals.',()=>zero(D),'Reset')">${ic('rotate-ccw')} Reset all amounts</button><button class="b2" onclick="ask('Load the sample data? Your changes will be lost.',()=>{D=seed();D.v2=D.v3=1},'Load')">${ic('rotate-ccw')} Load sample data</button></div></div></div>`;
         const ico = p =>
             `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`,
             NI = {
