@@ -67,7 +67,8 @@
         .app {
             display: flex;
             min-height: 100vh;
-            min-height: 100dvh
+            min-height: 100dvh;
+            overflow-x: clip
         }
 
         aside {
@@ -87,7 +88,29 @@
             padding: 0 12px 18px
         }
 
+        #nv {
+            position: relative
+        }
+
+        #nv .nav-indicator {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 0;
+            height: 0;
+            border-radius: 10px;
+            background: var(--bd);
+            pointer-events: none;
+            z-index: 0
+        }
+
+        #nv .nav-indicator.ready {
+            transition: transform .32s cubic-bezier(.2, .8, .2, 1), width .24s ease, height .24s ease
+        }
+
         nav button {
+            position: relative;
+            z-index: 1;
             display: flex;
             gap: 10px;
             align-items: center;
@@ -99,17 +122,28 @@
             border-radius: 10px;
             font: inherit;
             font-weight: 600;
-            cursor: pointer
+            cursor: pointer;
+            transition: background-color .18s ease, color .18s ease, transform .18s ease
         }
 
         nav button.on {
-            background: var(--bd);
+            background: none;
             color: var(--tx)
+        }
+
+        nav button:active {
+            transform: scale(.96)
         }
 
         nav i,
         nav svg {
-            display: none
+            display: none;
+            transition: transform .18s ease
+        }
+
+        nav button.on i,
+        nav button.on svg {
+            transform: scale(1.08)
         }
 
         main {
@@ -1066,6 +1100,11 @@
 
             nav button.on {
                 color: var(--tx);
+                background: none
+            }
+
+            #nv .nav-indicator {
+                border-radius: 22px;
                 background: var(--sq)
             }
 
@@ -1090,6 +1129,19 @@
 
             .fab {
                 bottom: calc(92px + env(safe-area-inset-bottom, 0px))
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            nav button,
+            nav i,
+            nav svg,
+            #nv .nav-indicator {
+                transition: none !important
+            }
+
+            nav button:active {
+                transform: none
             }
         }
     </style>
@@ -2514,26 +2566,53 @@ ${summaryWidget}${shortcutsWidget}${actionsWidget}${accountsWidget}${transaction
                 if (typeof main.animate === 'function') {
                     pageTransition?.cancel();
                     pageTransition = main.animate([
-                        { opacity: .7, transform: `translateX(${to > from ? 14 : -14}px)` },
-                        { opacity: 1, transform: 'translateX(0)' }
-                    ], { duration: 220, easing: 'ease-out' });
+                        { transform: `translateX(${to > from ? 100 : -100}%)` },
+                        { transform: 'translateX(0)' }
+                    ], { duration: 280, easing: 'cubic-bezier(.22, .68, 0, 1)' });
                 }
             }
             scrollTo(0, 0)
+        }
+
+        function updateNavigationIndicator() {
+            const nav = $('#nv'),
+                indicator = nav.querySelector('.nav-indicator'),
+                activeButton = [...nav.querySelectorAll('button')].find(button => button.dataset.view === U.v);
+            if (!indicator || !activeButton) return;
+            indicator.style.width = `${activeButton.offsetWidth}px`;
+            indicator.style.height = `${activeButton.offsetHeight}px`;
+            indicator.style.transform = `translate(${activeButton.offsetLeft}px, ${activeButton.offsetTop}px)`;
         }
 
         function render() {
             closeTitleMenu();
             document.documentElement.dataset.theme = D.theme;
             document.querySelector('meta[name=theme-color]').content = D.theme === 'dark' ? '#000000' : '#f5f5f4';
-            $('#nv').innerHTML = NAV.map(n =>
-                `<button class="${U.v===n[0]?'on':''}${n[3]?'':' dm'}" aria-label="${n[1]}" onclick="go('${n[0]}')">${NI[n[0]]||''}<span>${n[1]}</span></button>`
+            const nav = $('#nv');
+            if (!nav.querySelector('button')) {
+                nav.innerHTML = NAV.map(n =>
+                    `<button data-view="${n[0]}" class="${n[3]?'':'dm'}" aria-label="${n[1]}" onclick="go('${n[0]}')">${NI[n[0]]||''}<span>${n[1]}</span></button>`
                 ).join('');
+            }
+            let indicator = nav.querySelector('.nav-indicator');
+            const isFirstIndicator = !indicator;
+            if (isFirstIndicator) {
+                indicator = document.createElement('div');
+                indicator.className = 'nav-indicator';
+                indicator.setAttribute('aria-hidden', 'true');
+                nav.prepend(indicator);
+            }
+            nav.querySelectorAll('button').forEach(button =>
+                button.classList.toggle('on', button.dataset.view === U.v)
+            );
+            updateNavigationIndicator();
+            if (isFirstIndicator) requestAnimationFrame(() => indicator.classList.add('ready'));
             $('#m').dataset.view = U.v;
             $('#m').innerHTML = V[U.v]();
             setupTitleMenu();
             lu()
         }
+        window.addEventListener('resize', updateNavigationIndicator);
         const okId = s => typeof s === 'string' && /^[\w-]{1,40}$/.test(s),
             okCol = s => /^#[0-9a-fA-F]{6}$/.test(s),
             okD = s => /^\d{4}-\d\d-\d\d$/.test(s),
