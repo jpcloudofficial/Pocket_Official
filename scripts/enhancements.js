@@ -1,5 +1,4 @@
 (() => {
-  const TITLE_KEY = 'pocket.dashboardTitle';
   const PRIVACY_KEY = 'pocket.hideAmounts';
   const main = document.querySelector('#m');
   if (!main) return;
@@ -15,11 +14,7 @@
     };
     return `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths[name] || ''}</svg>`;
   };
-  const savedTitle = () => { try { return localStorage.getItem(TITLE_KEY); } catch { return null; } };
-  const storedTitle = () => savedTitle() || 'My Finance';
   const dashboardTitle = () => {
-    const customTitle = savedTitle();
-    if (customTitle && customTitle !== 'My Finance') return customTitle;
     const name = window.pocketApp?.getData?.().name;
     return typeof name === 'string' && name.trim() ? `Hi, ${name.trim()}` : 'My Finance';
   };
@@ -129,23 +124,6 @@
   const watchTransactionForm = () => {
     const form = document.querySelector('#f');
     if (form) attachAutoCategory(form);
-  };
-
-  const addTitleSetting = () => {
-    const heading = [...main.querySelectorAll('h2')].find(item => item.textContent.trim() === 'Settings');
-    const preferences = main.querySelector('.settings-preferences');
-    const dashboardPreferences = preferences?.querySelector('.settings-preference-dashboard') || preferences;
-    if (!heading || !dashboardPreferences || main.querySelector('.pocket-title-setting')) return;
-    const button = document.createElement('button');
-    button.type = 'button'; button.className = 'b2 pocket-title-setting';
-    button.innerHTML = `${icon('edit')} Customize dashboard title`;
-    button.addEventListener('click', () => {
-      const answer = window.prompt('Choose a dashboard title (up to 32 characters):', storedTitle());
-      if (answer === null) return;
-      try { localStorage.setItem(TITLE_KEY, answer.trim().slice(0, 32) || 'My Finance'); } catch {}
-      setTitle();
-    });
-    dashboardPreferences.append(button);
   };
 
   const updatePrivacy = () => {
@@ -377,9 +355,7 @@
   const enhance = () => {
     queued = false;
     installStyles();
-    const settingsPage = [...main.querySelectorAll('h2')].some(item => item.textContent.trim() === 'Settings');
-    if (settingsPage) addTitleSetting();
-    else {
+    if (main.dataset.view !== 'set') {
       if (main.dataset.view === 'dash') setTitle();
       addCarousel();
       addPagePrivacyButton();

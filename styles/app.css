@@ -870,7 +870,6 @@
             text-transform: uppercase
         }
 
-        .settings-preferences .pocket-title-setting,
         .settings-preferences .dashboard-layout-setting {
             width: 100%;
             margin: 0;
@@ -917,6 +916,11 @@
             grid-column: 1 / -1
         }
 
+        .cloud-login-options {
+            display: grid;
+            gap: 12px
+        }
+
         .cloud-sync-card form:not([hidden]),
         .cloud-sync-card #cloud-user-controls:not([hidden]) {
             display: grid;
@@ -939,21 +943,15 @@
             justify-content: center
         }
 
-        .cloud-auth-divider {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            color: var(--mu);
-            font-size: 12px;
-            margin: 12px 0
+        .cloud-email-options {
+            border-top: 1px solid var(--bd);
+            padding-top: 10px
         }
 
-        .cloud-auth-divider::before,
-        .cloud-auth-divider::after {
-            content: '';
-            flex: 1;
-            height: 1px;
-            background: var(--bd)
+        .cloud-email-options summary {
+            color: var(--mu);
+            cursor: pointer;
+            font-size: 13px
         }
 
         .cloud-sync-error {

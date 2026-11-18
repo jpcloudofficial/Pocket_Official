@@ -365,11 +365,6 @@ const K = 'pera.v1',
                 ...vals,
                 ...get()
             }, submit, rr);
-            if (el('acc') && el('cashbackAccount')) {
-                el('acc').addEventListener('change', () => {
-                    el('cashbackAccount').value = el('acc').value
-                });
-            }
             const go2 = () => {
                 const v = get();
                 for (const x of f) {
@@ -421,7 +416,12 @@ const K = 'pera.v1',
                             t: 'number',
                             req: 1,
                             pos: 1
-                        },
+                        }, ...(!t && v.type === 'expense' ? [{
+                            k: 'cashbackAmount',
+                            l: 'Cashback',
+                            t: 'number',
+                            pos: 1
+                        }] : []),
                         tr ? {
                             k: 'acc',
                             l: 'From',
@@ -453,17 +453,7 @@ const K = 'pera.v1',
                             k: 'note',
                             l: 'Notes (optional)',
                             t: 'area'
-                        }, ...(!t && v.type === 'expense' ? [{
-                            k: 'cashbackAmount',
-                            l: 'Expected cashback (optional)',
-                            t: 'number',
-                            pos: 1
-                        }, {
-                            k: 'cashbackAccount',
-                            l: 'Cashback deposit account (defaults to expense account)',
-                            t: 'sel',
-                            o: ac
-                        }] : [])
+                        }
                     ]
                 },
                 t || {
@@ -479,7 +469,7 @@ const K = 'pera.v1',
                     const cashbackAmount = +v.cashbackAmount || 0;
                     if (cashbackAmount > 0 && v.type !== 'expense') return 'Cashback can only be added to an expense.';
                     if (cashbackAmount > amt) return 'Cashback can’t exceed the expense amount.';
-                    if (cashbackAmount > 0 && !A(v.cashbackAccount)) return 'Choose an account for the cashback deposit.';
+                    if (cashbackAmount > 0 && !A(v.acc)) return 'Choose an expense account for the cashback deposit.';
                     if (linkedCashback && (tr || v.type !== 'expense')) return 'Remove the linked cashback claim before changing this expense type.';
                     if (linkedCashback && amt < linkedCashback.amount) return 'This expense amount is below its cashback claim. Update the claim first.';
                     if (tr) {
@@ -519,7 +509,7 @@ const K = 'pera.v1',
                             expenseTitle: title,
                             expenseDate: v.date,
                             amount: cashbackAmount,
-                            account: v.cashbackAccount,
+                            account: v.acc,
                             created: today(),
                             status: 'pending',
                             receivedDate: '',
@@ -1292,7 +1282,7 @@ ${summaryWidget}${shortcutsWidget}${actionsWidget}${accountsWidget}${transaction
         }
         V.set = () =>
             `<h2>Settings</h2><div class="g g2">
-<div class="card cloud-sync-card" id="cloud-sync-card"><h3>Cloud sync</h3><p class="settings-note">Sign in to sync your Pocket data with Firebase Firestore. Your local copy remains available on this device.</p><p id="cloud-sync-status" role="status">Connecting to Firebase…</p><p class="cloud-sync-error" id="cloud-sync-error" role="alert" hidden></p><button class="b2 cloud-google-button" type="button" data-cloud-action="google-sign-in">Continue with Google</button><div class="cloud-auth-divider"><span>or use email</span></div><form id="cloud-auth-form"><label>Email<input id="cloud-email" type="email" autocomplete="email" required></label><label>Password<input id="cloud-password" type="password" autocomplete="current-password" minlength="6" required></label><div class="settings-actions"><button class="b1" type="submit" data-cloud-action="sign-in">Sign in</button><button class="b2" type="button" data-cloud-action="signup">Create account</button><button class="b2" type="button" data-cloud-action="password-reset">Forgot password?</button></div></form><div id="cloud-user-controls" hidden><div class="settings-actions"><button class="b2" type="button" data-cloud-action="sign-out">Sign out</button></div></div><div id="cloud-conflict" class="cloud-conflict" hidden><p>Cloud data changed while this device also has local changes. Choose which copy to keep.</p><div class="settings-actions"><button class="b1" type="button" data-cloud-action="use-cloud">Use cloud copy</button><button class="b2" type="button" data-cloud-action="keep-local">Keep this device</button></div></div></div>
+<div class="card cloud-sync-card" id="cloud-sync-card"><h3>Cloud sync</h3><p class="settings-note">Sync your data across devices.</p><p id="cloud-sync-status" role="status">Connecting to Firebase…</p><p class="cloud-sync-error" id="cloud-sync-error" role="alert" hidden></p><div id="cloud-login-options"><button class="b2 cloud-google-button" type="button" data-cloud-action="google-sign-in">Continue with Google</button><details class="cloud-email-options"><summary>Use email instead</summary><form id="cloud-auth-form"><label>Email<input id="cloud-email" type="email" autocomplete="email" required></label><label>Password<input id="cloud-password" type="password" autocomplete="current-password" minlength="6" required></label><div class="settings-actions"><button class="b1" type="submit" data-cloud-action="sign-in">Sign in</button><button class="b2" type="button" data-cloud-action="signup">Create account</button><button class="b2" type="button" data-cloud-action="password-reset">Forgot password?</button></div></form></details></div><div id="cloud-user-controls" hidden><div class="settings-actions"><button class="b2" type="button" data-cloud-action="sign-out">Sign out</button></div></div><div id="cloud-conflict" class="cloud-conflict" hidden><p>Cloud data changed while this device also has local changes. Choose which copy to keep.</p><div class="settings-actions"><button class="b1" type="button" data-cloud-action="use-cloud">Use cloud copy</button><button class="b2" type="button" data-cloud-action="keep-local">Keep this device</button></div></div></div>
 ${profileSettingsCard()}
 <div class="card settings-preferences"><h3>Preferences</h3><div class="settings-preference-list"><div class="settings-preference-row"><span>Currency</span><b>Philippine Peso (₱)</b></div><div class="settings-preference-row"><span>Date format</span><b>DD/MM/YYYY</b></div><div class="settings-preference-row"><span>Theme</span><button class="b2" onclick="D.theme=D.theme==='dark'?'light':'dark';save();render()">${ic(D.theme==='dark'?'sun':'moon')} ${D.theme==='dark'?'Light':'Dark'} mode</button></div></div><div class="settings-preference-dashboard"><small>Dashboard</small><button class="b2 dashboard-layout-setting" onclick="dashboardSettingsForm()">${ic('bar-chart-3')} Customize Dashboard</button></div></div>
 <div class="card"><h3>Manage</h3><div class="settings-actions"><button class="b2" onclick="go('acc')">${ic('wallet')} Accounts</button><button class="b2" onclick="go('cat')">${ic('tag')} Categories</button><button class="b2" onclick="go('bud')">${ic('gauge')} Budgets</button><button class="b2" onclick="go('goal')">${ic('target')} Savings goals</button><button class="b2" onclick="go('rec')">${ic('repeat')} Recurring transactions</button><button class="b2" onclick="go('cash')">${ic('coins')} Cashback</button></div></div>
