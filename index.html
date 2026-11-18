@@ -122,7 +122,7 @@
         #m > .row:first-child,
         #m > h2:first-child {
             position: sticky;
-            top: env(safe-area-inset-top, 0px);
+            top: calc(24px + env(safe-area-inset-top, 0px));
             z-index: 4;
             background: var(--bg);
             padding-block: 8px
@@ -764,8 +764,46 @@
             .tx-list-row>.tx-end {
                 grid-column: 2;
                 grid-row: 2;
-                justify-content: space-between;
-                gap: 8px
+                flex-direction: column;
+                align-items: flex-end;
+                justify-content: flex-start;
+                gap: 0
+            }
+
+            .tx-list-row:not(.recent-link) {
+                grid-template-columns: 44px minmax(0, 1fr) max-content;
+                row-gap: 0
+            }
+
+            .tx-list-row:not(.recent-link)>.dot {
+                grid-row: 1;
+                align-self: center
+            }
+
+            .tx-list-row:not(.recent-link)>.tx-end {
+                grid-column: 3;
+                grid-row: 1
+            }
+
+            .tx-list-row.recent-link {
+                grid-template-columns: 44px minmax(0, 1fr) auto;
+                row-gap: 0
+            }
+
+            .tx-list-row.recent-link>.dot {
+                grid-row: 1
+            }
+
+            .tx-list-row.recent-link>.tx-copy {
+                grid-column: 2;
+                grid-row: 1
+            }
+
+            .tx-list-row.recent-link>.tx-end {
+                grid-column: 3;
+                grid-row: 1;
+                justify-content: flex-end;
+                align-self: start
             }
 
             aside {
@@ -829,6 +867,11 @@
 
             main {
                 padding: 16px 16px 130px
+            }
+
+            #m > .row:first-child,
+            #m > h2:first-child {
+                top: calc(16px + env(safe-area-inset-top, 0px))
             }
 
             .fab {
