@@ -50,7 +50,7 @@ const K = 'pera.v1',
             ['Teal', '#0f766e']
         ];
         const defaultDashboardWidgets = () => Object.fromEntries(DASHBOARD_WIDGETS.map(([id, , enabled]) => [id, enabled]));
-        let D, accountStackOrder = [], accountStackExpanded = false, U = {
+        let D, accountStackOrder = [], accountStackSignature = '', accountStackExpanded = false, U = {
             v: 'dash',
             ry: new Date().getFullYear(),
             ra: '',
@@ -870,11 +870,15 @@ const K = 'pera.v1',
             indicator.textContent = `Swipe · ${page}/${count}`
         }
         function accountStackAccounts() {
+            const sortedAccounts = D.acc.slice().sort((first, second) =>
+                second.name.localeCompare(first.name, undefined, { sensitivity: 'base' }) || first.id.localeCompare(second.id)
+            );
+            const signature = JSON.stringify(sortedAccounts.map(({ id, name }) => [id, name]));
+            if (signature !== accountStackSignature) {
+                accountStackOrder = sortedAccounts.map(account => account.id);
+                accountStackSignature = signature
+            }
             const byId = new Map(D.acc.map(account => [account.id, account]));
-            accountStackOrder = accountStackOrder.filter(id => byId.has(id));
-            D.acc.forEach(account => {
-                if (!accountStackOrder.includes(account.id)) accountStackOrder.push(account.id)
-            });
             return accountStackOrder.map(id => byId.get(id));
         }
         function renderAccountStackLayout(restoreFocus) {
