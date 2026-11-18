@@ -124,9 +124,10 @@
   const addTitleSetting = () => {
     const heading = [...main.querySelectorAll('h2')].find(item => item.textContent.trim() === 'Settings');
     const preferences = main.querySelector('.settings-preferences');
-    if (!heading || !preferences || main.querySelector('.pocket-title-setting')) return;
+    const dashboardPreferences = preferences?.querySelector('.settings-preference-dashboard') || preferences;
+    if (!heading || !dashboardPreferences || main.querySelector('.pocket-title-setting')) return;
     const button = document.createElement('button');
-    button.type = 'button'; button.className = 'b2 pocket-title-setting'; button.style.marginTop = '12px';
+    button.type = 'button'; button.className = 'b2 pocket-title-setting';
     button.innerHTML = `${icon('edit')} Customize dashboard title`;
     button.addEventListener('click', () => {
       const answer = window.prompt('Choose a dashboard title (up to 32 characters):', storedTitle());
@@ -134,7 +135,7 @@
       try { localStorage.setItem(TITLE_KEY, answer.trim().slice(0, 32) || 'My Finance'); } catch {}
       setTitle();
     });
-    preferences.append(button);
+    dashboardPreferences.append(button);
   };
 
   const updatePrivacy = () => {
@@ -256,6 +257,11 @@
           if (typeof window.accForm === 'function') window.accForm();
           return;
         }
+        if (main.dataset.view === 'rec') {
+          closeMenu(menu, fab);
+          if (typeof window.recurringForm === 'function') window.recurringForm();
+          return;
+        }
         const opening = menu.classList.contains('pocket-hidden');
         menu.classList.toggle('pocket-hidden', !opening); menu.setAttribute('aria-hidden', String(!opening));
         fab.setAttribute('aria-expanded', String(opening)); fab.classList.toggle('pocket-fab-open', opening);
@@ -268,12 +274,16 @@
       document.addEventListener('keydown', event => { if (event.key === 'Escape') closeMenu(menu, fab); });
     }
     const accountPage = main.dataset.view === 'acc';
+    const recurringPage = main.dataset.view === 'rec';
     const hideFab = main.dataset.view === 'set' || main.dataset.view === 'rep';
-    fab.classList.toggle('pocket-fab-account', accountPage);
+    const fabLabel = accountPage ? 'Add account' : recurringPage ? 'Add schedule' : 'Add transaction';
+    fab.classList.toggle('pocket-fab-labeled', accountPage || recurringPage);
     fab.classList.toggle('pocket-hidden', hideFab);
-    fab.setAttribute('aria-label', accountPage ? 'Add account' : 'Add transaction');
-    fab.title = accountPage ? 'Add account' : 'Add transaction';
-    if (accountPage || hideFab) closeMenu(menu, fab);
+    fab.setAttribute('aria-label', fabLabel);
+    fab.title = fabLabel;
+    const label = fab.querySelector('.fab-label');
+    if (label) label.textContent = fabLabel;
+    if (accountPage || recurringPage || hideFab) closeMenu(menu, fab);
     let transferButton = document.querySelector('.pocket-account-transfer');
     if (!transferButton) {
       transferButton = document.createElement('button');
