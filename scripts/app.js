@@ -3,13 +3,21 @@ const K = 'pera.v1',
             $ = s => document.querySelector(s),
             uid = () => Math.random().toString(36).slice(2, 9),
             pad = n => String(n).padStart(2, '0');
+const DATE_FORMATS = ['DD/MM/YYYY', 'MM/DD/YYYY', 'YYYY-MM-DD'];
         const iso = d => d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()),
             today = () => iso(new Date()),
             fd = s => {
                 if (!s) return '';
                 const [year, month, day] = s.split('-');
-                return `${day}/${month}/${year}`;
+        const format = currentDateFormat();
+        return format === 'MM/DD/YYYY' ? `${month}/${day}/${year}` :
+            format === 'YYYY-MM-DD' ? `${year}-${month}-${day}` : `${day}/${month}/${year}`;
             };
+function syncDateInput(input) {
+    const wrap = input.parentElement;
+    wrap.classList.toggle('is-empty', !input.value);
+    wrap.querySelector('.date-input-value').textContent = fd(input.value)
+}
         const peso = (n, f) => (n < 0 ? '−' : '') + '₱' + Math.abs(n).toLocaleString('en-PH', {
             minimumFractionDigits: f ? 2 : Number.isInteger(Math.abs(n)) ? 0 : 2,
             maximumFractionDigits: 2
@@ -62,6 +70,7 @@ const K = 'pera.v1',
             tf: '',
             tt: ''
         };
+        const currentDateFormat = () => DATE_FORMATS.includes(D?.dateFormat) ? D.dateFormat : DATE_FORMATS[0];
 
         function seed() {
             const now = new Date(),
@@ -185,6 +194,7 @@ const K = 'pera.v1',
                 name: '',
                 profileAccent: PROFILE_COLORS[0][1],
                 theme: matchMedia('(prefers-color-scheme:dark)').matches ? 'dark' : 'light',
+                dateFormat: DATE_FORMATS[0],
                 acc,
                 cats: cs.map(c => ({
                     id: k(c[0]),
@@ -453,7 +463,7 @@ const K = 'pera.v1',
                     x.t === 'sel' ?
                     `<select name="${x.k}"${x.req?' required':''} hidden aria-hidden="true" tabindex="-1">${placeholder?`<option value=""${!selectedOption?' selected':''}${x.req?' disabled':''}>${esc(placeholder)}</option>`:''}${x.o.map(o=>`<option value="${o[0]}"${optionSelected(o)?' selected':''}>${esc(o[1])}</option>`).join('')}</select><button type="button" class="form-select-trigger" data-select-name="${x.k}" data-select-label="${esc(x.l)}" aria-label="${esc(x.l)}: ${esc(selectedOption?.[1] || (emptyOption && !placeholder ? emptyOption[1] : placeholder) || '')}" aria-haspopup="listbox" aria-expanded="false">${esc(selectedOption?.[1] || (emptyOption && !placeholder ? emptyOption[1] : placeholder) || '')}</button>` :
                     x.t === 'date' ?
-                    `<span class="date-input-wrap${v ? '' : ' is-empty'}"><input name="${x.k}" type="date" value="${esc(v)}" onchange="this.parentElement.classList.toggle('is-empty',!this.value)"><span class="date-input-placeholder">${esc(x.placeholder || 'Choose date')}</span><span class="date-input-chevron" aria-hidden="true"></span></span>` :
+                    `<span class="date-input-wrap${v ? '' : ' is-empty'}"><input name="${x.k}" type="date" value="${esc(v)}" onchange="syncDateInput(this)"><span class="date-input-value">${esc(fd(v))}</span><span class="date-input-placeholder">${esc(x.placeholder || 'Choose date')}</span><span class="date-input-chevron" aria-hidden="true"></span></span>` :
                     x.t === 'area' ? `<textarea name="${x.k}" rows="2">${esc(v)}</textarea>` :
                     `<input name="${x.k}" type="${x.t||'text'}" value="${esc(v)}" ${x.t==='number'?'step="0.01"':''}>`;
                 return `<label>${x.l}${x.req?' *':''}${i}</label>`
@@ -1254,7 +1264,7 @@ ${summaryWidget}${shortcutsWidget}${actionsWidget}${accountsWidget}${transaction
                 `<option value="${x.id}">${esc(x.name)}</option>`).join('');
             return `<div class="row sp pocket-privacy-header"><h2>Transactions</h2></div>
 <div class="f"><input placeholder="Search by name" value="${esc(U.q)}" oninput="U.q=this.value;fl()"><select aria-label="Filter by category" onchange="U.c=this.value;fl()">${o(D.cats,'All categories').replace(`value="${U.c}"`,`value="${U.c}" selected`)}</select><select aria-label="Filter by account" onchange="U.a=this.value;fl()">${o(D.acc,'All accounts').replace(`value="${U.a}"`,`value="${U.a}" selected`)}</select>
-<select aria-label="Filter by type" onchange="U.ty=this.value;fl()">${[['','All types'],['income','Income'],['expense','Expense'],['transfer','Transfer']].map(x=>`<option value="${x[0]}"${U.ty===x[0]?' selected':''}>${x[1]}</option>`).join('')}</select><span class="date-input-wrap date-filter${U.tf ? '' : ' is-empty'}"><input type="date" aria-label="From date" value="${esc(U.tf)}" onchange="U.tf=this.value;this.parentElement.classList.toggle('is-empty',!this.value);fl()"><span class="date-input-placeholder">From date</span><span class="date-input-chevron" aria-hidden="true"></span></span><span class="date-input-wrap date-filter${U.tt ? '' : ' is-empty'}"><input type="date" aria-label="To date" value="${esc(U.tt)}" onchange="U.tt=this.value;this.parentElement.classList.toggle('is-empty',!this.value);fl()"><span class="date-input-placeholder">To date</span><span class="date-input-chevron" aria-hidden="true"></span></span></div><div class="card" id="tl">${txList()}</div>`
+<select aria-label="Filter by type" onchange="U.ty=this.value;fl()">${[['','All types'],['income','Income'],['expense','Expense'],['transfer','Transfer']].map(x=>`<option value="${x[0]}"${U.ty===x[0]?' selected':''}>${x[1]}</option>`).join('')}</select><span class="date-input-wrap date-filter${U.tf ? '' : ' is-empty'}"><input type="date" aria-label="From date" value="${esc(U.tf)}" onchange="U.tf=this.value;syncDateInput(this);fl()"><span class="date-input-value">${esc(fd(U.tf))}</span><span class="date-input-placeholder">From date</span><span class="date-input-chevron" aria-hidden="true"></span></span><span class="date-input-wrap date-filter${U.tt ? '' : ' is-empty'}"><input type="date" aria-label="To date" value="${esc(U.tt)}" onchange="U.tt=this.value;syncDateInput(this);fl()"><span class="date-input-value">${esc(fd(U.tt))}</span><span class="date-input-placeholder">To date</span><span class="date-input-chevron" aria-hidden="true"></span></span></div><div class="card" id="tl">${txList()}</div>`
         };
         V.cash = () => cashbackSection();
         const trForm = () => txFormT();
@@ -1615,7 +1625,7 @@ ${summaryWidget}${shortcutsWidget}${actionsWidget}${accountsWidget}${transaction
   <div id="cloud-conflict" class="cloud-conflict" hidden><p>Cloud data changed while this device also has local changes. Choose which copy to keep.</p><div class="settings-actions"><button class="b1" type="button" data-cloud-action="use-cloud">Use cloud copy</button><button class="b2" type="button" data-cloud-action="keep-local">Keep this device</button></div></div>
 </div>
 ${profileSettingsCard()}
-<div class="card settings-preferences"><h3>Preferences</h3><div class="settings-preference-list"><div class="settings-preference-row"><span>Currency</span><b>Philippine Peso (₱)</b></div><div class="settings-preference-row"><span>Date format</span><b>DD/MM/YYYY</b></div><div class="settings-preference-row"><span>Theme</span><button class="b2" onclick="D.theme=D.theme==='dark'?'light':'dark';save();render()">${ic(D.theme==='dark'?'sun':'moon')} ${D.theme==='dark'?'Light':'Dark'} mode</button></div></div><div class="settings-preference-dashboard"><small>Dashboard</small><button class="b2 dashboard-layout-setting" onclick="dashboardSettingsForm()">${ic('bar-chart-3')} Customize Dashboard</button></div></div>
+<div class="card settings-preferences"><h3>Preferences</h3><div class="settings-preference-list"><div class="settings-preference-row"><span>Currency</span><b>Philippine Peso (₱)</b></div><div class="settings-preference-row"><span>Date format</span><select aria-label="Date format" onchange="D.dateFormat=this.value;save();render()">${DATE_FORMATS.map(format=>`<option value="${format}"${currentDateFormat()===format?' selected':''}>${format}</option>`).join('')}</select></div><div class="settings-preference-row"><span>Theme</span><button class="b2" onclick="D.theme=D.theme==='dark'?'light':'dark';save();render()">${ic(D.theme==='dark'?'sun':'moon')} ${D.theme==='dark'?'Light':'Dark'} mode</button></div></div><div class="settings-preference-dashboard"><small>Dashboard</small><button class="b2 dashboard-layout-setting" onclick="dashboardSettingsForm()">${ic('bar-chart-3')} Customize Dashboard</button></div></div>
 <div class="card"><h3>Manage</h3><div class="settings-actions"><button class="b2" onclick="go('acc')">${ic('wallet')} Accounts</button><button class="b2" onclick="go('cat')">${ic('tag')} Categories</button><button class="b2" onclick="go('bud')">${ic('gauge')} Budgets</button><button class="b2" onclick="go('goal')">${ic('target')} Savings goals</button><button class="b2" onclick="go('rec')">${ic('repeat')} Recurring transactions</button><button class="b2" onclick="go('cash')">${ic('coins')} Cashback</button></div></div>
 <div class="card"><h3>Export</h3><div class="settings-actions"><button class="b2" onclick="showText('Transactions (CSV)',csv())">${ic('file-text')} Transactions CSV</button><button class="b2" onclick="showText('Monthly report (CSV)',repCsv())">${ic('bar-chart-3')} Report CSV</button><button class="b2" onclick="exportAllData()">${ic('download')} Export all data (JSON)</button></div></div>
 <div class="card"><h3>Back up &amp; restore</h3><div class="settings-actions"><button class="b2" onclick="showText('Backup',JSON.stringify(D))">${ic('save')} View / copy backup</button><button class="b2" onclick="showText('Restore backup','',1)">${ic('upload')} Restore backup</button></div><small class="settings-note">Data is saved in this browser. Backups are files you download and store yourself; Pocket does not upload them to the cloud.</small></div>
@@ -1826,6 +1836,7 @@ ${profileSettingsCard()}
                 name: sx(d.name, 32).trim(),
                 profileAccent: PROFILE_COLORS.some(([, color]) => color === d.profileAccent) ? d.profileAccent : PROFILE_COLORS[0][1],
                 theme: d.theme === 'light' ? 'light' : 'dark',
+                dateFormat: DATE_FORMATS.includes(d.dateFormat) ? d.dateFormat : DATE_FORMATS[0],
                 dashboardWidgets: Object.fromEntries(DASHBOARD_WIDGETS.map(([id, , enabled]) => [
                     id,
                     typeof dashboardWidgets[id] === 'boolean' ? dashboardWidgets[id] : enabled
