@@ -1626,6 +1626,7 @@
             }
 
             .fab {
+                right: 14px;
                 bottom: calc(92px + env(safe-area-inset-bottom, 0px))
             }
         }

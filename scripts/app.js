@@ -50,7 +50,8 @@ const K = 'pera.v1',
             ['Teal', '#0f766e']
         ];
         const defaultDashboardWidgets = () => Object.fromEntries(DASHBOARD_WIDGETS.map(([id, , enabled]) => [id, enabled]));
-        let D, accountStackOrder = [], accountStackSignature = '', accountStackExpanded = false, U = {
+        let D, accountStackOrder = [], accountStackSignature = '', accountStackExpanded = false,
+            accountStackAnimating = false, U = {
             v: 'dash',
             ry: new Date().getFullYear(),
             ra: '',
@@ -884,10 +885,11 @@ const K = 'pera.v1',
             const byId = new Map(D.acc.map(account => [account.id, account]));
             return accountStackOrder.map(id => byId.get(id));
         }
-        function renderAccountStackLayout(restoreFocus) {
+        function renderAccountStackLayout(restoreFocus, skipAccountId) {
             const stack = $('#m .account-stack');
             const previousPositions = new Map(stack ? Array.from(stack.querySelectorAll('.account-stack-card'))
                 .map(card => [card.dataset.accountId, card.getBoundingClientRect()]) : []);
+            if (skipAccountId) previousPositions.delete(skipAccountId);
             render();
             const nextStack = $('#m .account-stack');
             if (restoreFocus && nextStack) nextStack.focus();
@@ -905,10 +907,52 @@ const K = 'pera.v1',
                 ], { duration: 260, easing: 'cubic-bezier(.22,.61,.36,1)' })
             })
         }
-        function sendAccountCardToBack(restoreFocus) {
-            if (accountStackOrder.length < 2 || !$('#m .account-stack')) return;
-            accountStackOrder.unshift(accountStackOrder.pop());
-            renderAccountStackLayout(restoreFocus)
+        function resetAccountCardTransform(card) {
+            if (!card || !card.style.transform) return;
+            if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || typeof card.animate !== 'function') {
+                card.style.transform = '';
+                return
+            }
+            const animation = card.animate([
+                { transform: card.style.transform },
+                { transform: 'translate3d(0,0,0)' }
+            ], { duration: 180, easing: 'cubic-bezier(.22,.61,.36,1)', fill: 'forwards' });
+            animation.onfinish = () => {
+                card.style.transform = '';
+                animation.cancel()
+            }
+        }
+        function sendAccountCardToBack(restoreFocus, direction = -1, draggedCard) {
+            const stack = $('#m .account-stack');
+            if (accountStackOrder.length < 2 || !stack || accountStackAnimating) return;
+            const front = draggedCard || stack.querySelector('.account-stack-card.is-front');
+            if (!front) return;
+            if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || typeof front.animate !== 'function') {
+                front.style.transform = '';
+                accountStackOrder.unshift(accountStackOrder.pop());
+                renderAccountStackLayout(restoreFocus);
+                return
+            }
+            accountStackAnimating = true;
+            const startTransform = front.style.transform || 'translate3d(0,0,0)',
+                distance = Math.max(window.innerWidth, stack.clientWidth);
+            const animation = front.animate([
+                { transform: startTransform, opacity: 1 },
+                { transform: `translate3d(${direction * distance}px,0,0) rotate(${direction * 8}deg)`, opacity: 0 }
+            ], { duration: 220, easing: 'cubic-bezier(.4,0,1,1)', fill: 'forwards' });
+            animation.onfinish = () => {
+                if (!front.isConnected || $('#m .account-stack') !== stack) {
+                    accountStackAnimating = false;
+                    return
+                }
+                accountStackOrder.unshift(accountStackOrder.pop());
+                renderAccountStackLayout(restoreFocus, front.dataset.accountId);
+                accountStackAnimating = false
+            };
+            animation.oncancel = () => {
+                accountStackAnimating = false;
+                if (front.isConnected) front.style.transform = ''
+            }
         }
         function setAccountStackExpanded(expanded, restoreFocus) {
             if (accountStackExpanded === expanded) return;
@@ -922,26 +966,45 @@ const K = 'pera.v1',
             const stack = $('#m .account-stack');
             if (!stack || stack.dataset.swipeReady) return;
             stack.dataset.swipeReady = '1';
-            let pointerStart = null, touchStart = null;
+            let pointerStart = null, touchStart = null, draggedCard = null;
             stack.addEventListener('pointerdown', event => {
-                if (event.button !== 0 || event.target.closest('button,a,input,select,textarea')) return;
+                if (event.button !== 0 || accountStackAnimating || event.target.closest('button,a,input,select,textarea')) return;
                 pointerStart = { x: event.clientX, y: event.clientY };
+                draggedCard = stack.querySelector('.account-stack-card.is-front');
                 stack.setPointerCapture(event.pointerId);
+            });
+            stack.addEventListener('pointermove', event => {
+                if (!pointerStart || !draggedCard) return;
+                const dx = event.clientX - pointerStart.x,
+                    dy = event.clientY - pointerStart.y;
+                if (Math.abs(dx) < 8 || Math.abs(dx) < Math.abs(dy)) return;
+                const rotation = Math.max(-8, Math.min(8, dx / Math.max(1, stack.clientWidth) * 10));
+                draggedCard.style.transform = `translate3d(${dx}px,${dy * .12}px,0) rotate(${rotation}deg)`
             });
             stack.addEventListener('pointerup', event => {
                 if (!pointerStart) return;
                 const dx = event.clientX - pointerStart.x,
-                    dy = event.clientY - pointerStart.y;
+                    dy = event.clientY - pointerStart.y,
+                    card = draggedCard;
                 pointerStart = null;
+                touchStart = null;
+                draggedCard = null;
                 if (Math.abs(dx) >= 48 && Math.abs(dx) >= Math.abs(dy) * 1.25) {
-                    sendAccountCardToBack();
+                    sendAccountCardToBack(false, dx > 0 ? 1 : -1, card);
                     return
                 }
                 if (Math.abs(dy) >= 48 && Math.abs(dy) >= Math.abs(dx) * 1.25) {
                     setAccountStackExpanded(dy > 0)
+                    return
                 }
+                resetAccountCardTransform(card)
             });
-            stack.addEventListener('pointercancel', () => { pointerStart = null });
+            stack.addEventListener('pointercancel', () => {
+                pointerStart = null;
+                touchStart = null;
+                resetAccountCardTransform(draggedCard);
+                draggedCard = null
+            });
             stack.addEventListener('touchstart', event => {
                 if (event.touches.length !== 1) {
                     touchStart = null;
@@ -956,7 +1019,9 @@ const K = 'pera.v1',
                     dx = touch.clientX - touchStart.x,
                     dy = touch.clientY - touchStart.y;
                 touchStart = null;
-                if (Math.abs(dy) >= 48 && Math.abs(dy) >= Math.abs(dx) * 1.25) {
+                if (Math.abs(dx) >= 48 && Math.abs(dx) >= Math.abs(dy) * 1.25) {
+                    sendAccountCardToBack(false, dx > 0 ? 1 : -1)
+                } else if (Math.abs(dy) >= 48 && Math.abs(dy) >= Math.abs(dx) * 1.25) {
                     setAccountStackExpanded(dy > 0)
                 }
             }, { passive: true });
@@ -964,7 +1029,7 @@ const K = 'pera.v1',
             stack.addEventListener('keydown', event => {
                 if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
                     event.preventDefault();
-                    sendAccountCardToBack(true)
+                    sendAccountCardToBack(true, event.key === 'ArrowRight' ? 1 : -1)
                 } else if (event.key === 'ArrowDown') {
                     event.preventDefault();
                     setAccountStackExpanded(true, true)

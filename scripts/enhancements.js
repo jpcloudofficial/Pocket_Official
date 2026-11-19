@@ -52,7 +52,7 @@
       .pocket-category-hint[hidden]{display:none}
       .pocket-category-hint[data-active="true"]{color:var(--in)}
       #m.pocket-private .hb,#m.pocket-private .hn,#m.pocket-private .av,#m.pocket-private .tx-amount{user-select:none}
-      @media(max-width:760px){.pocket-fab-menu{right:22px;bottom:calc(94px + env(safe-area-inset-bottom,0px))}.pocket-account-transfer{right:22px;bottom:calc(152px + env(safe-area-inset-bottom,0px))}}
+      @media(max-width:760px){.pocket-fab-menu{right:14px;bottom:calc(94px + env(safe-area-inset-bottom,0px))}.pocket-account-transfer{right:14px;bottom:calc(152px + env(safe-area-inset-bottom,0px))}}
       @media(prefers-reduced-motion:reduce){.pocket-carousel-track,.pocket-fab-menu,.pocket-account-transfer,.fab{transition:none!important}}
     `;
     document.head.append(style);
