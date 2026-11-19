@@ -400,7 +400,7 @@ const K = 'pera.v1',
             }
         }
 
-        function txForm(id) {
+        function txForm(id, initialType = 'expense') {
             window._dup = '';
             const t = id ? D.tx.find(x => x.id === id) : null;
             openForm(t ? 'Edit transaction' : 'Add transaction', v => {
@@ -470,7 +470,7 @@ const K = 'pera.v1',
                     ]
                 },
                 t || {
-                    type: 'expense',
+                    type: initialType,
                     date: today(),
                     acc: '',
                     to: 'gcash'
@@ -533,12 +533,7 @@ const K = 'pera.v1',
         }
 
         function quickAdd(type) {
-            txForm();
-            const t = document.querySelector('#f [name="type"]');
-            if (t) {
-                t.value = type;
-                t.onchange && t.onchange();
-            }
+            txForm(null, type)
         }
 
         function primaryAdd() {

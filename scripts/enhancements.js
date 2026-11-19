@@ -516,8 +516,14 @@
         fab.setAttribute('aria-expanded', String(opening)); fab.classList.toggle('pocket-fab-open', opening);
       };
       menu.querySelectorAll('button').forEach(button => button.addEventListener('click', () => {
-        if (typeof window.quickAdd === 'function') window.quickAdd(button.dataset.kind);
-        closeMenu(menu, fab);
+        const type = button.dataset.kind;
+        const quickAdd = window.pocketApp && window.pocketApp.quickAdd;
+        if (typeof quickAdd !== 'function') {
+          console.error('Pocket quick-add is unavailable.');
+          return
+        }
+        quickAdd(type);
+        closeMenu(menu, fab)
       }));
       document.addEventListener('click', event => { if (!menu.contains(event.target) && !fab.contains(event.target)) closeMenu(menu, fab); });
       document.addEventListener('keydown', event => { if (event.key === 'Escape') closeMenu(menu, fab); });
@@ -544,7 +550,12 @@
       transferButton.setAttribute('aria-label', 'Transfer');
       transferButton.innerHTML = `${icon('arrow')}<span>Transfer</span>`;
       transferButton.addEventListener('click', () => {
-        if (typeof window.quickAdd === 'function') window.quickAdd('transfer');
+        const quickAdd = window.pocketApp && window.pocketApp.quickAdd;
+        if (typeof quickAdd !== 'function') {
+          console.error('Pocket quick-add is unavailable.');
+          return
+        }
+        quickAdd('transfer');
       });
       document.body.append(transferButton);
     }
