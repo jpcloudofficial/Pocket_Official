@@ -61,7 +61,7 @@
       .pocket-category-hint[data-active="true"]{color:var(--in)}
       #m.pocket-private .hb,#m.pocket-private .hn,#m.pocket-private .av,#m.pocket-private .tx-amount{user-select:none}
       @media(max-width:760px){
-        .pocket-fab-menu{right:14px;bottom:calc(94px + env(safe-area-inset-bottom,0px))}
+        .pocket-fab-menu{right:14px;bottom:calc(152px + env(safe-area-inset-bottom,0px))}
         .pocket-account-transfer{right:14px;bottom:calc(152px + env(safe-area-inset-bottom,0px))}
         .pocket-select-control>select.pocket-select-native{display:none!important}
         .pocket-select-trigger{display:flex;width:100%;min-height:38px;align-items:center;justify-content:space-between;gap:12px;padding:8px 10px;border:1px solid var(--bd);border-radius:10px;background:var(--bg);color:var(--tx);font:inherit;text-align:left;cursor:pointer}
