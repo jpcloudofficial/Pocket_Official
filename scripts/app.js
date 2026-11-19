@@ -922,26 +922,75 @@ const K = 'pera.v1',
             const stack = $('#m .account-stack');
             if (!stack || stack.dataset.swipeReady) return;
             stack.dataset.swipeReady = '1';
-            let pointerStart = null, touchStart = null;
+            let pointerStart = null, touchStart = null, draggedCard = null, cyclingCard = false;
             stack.addEventListener('pointerdown', event => {
-                if (event.button !== 0 || event.target.closest('button,a,input,select,textarea')) return;
+                if (cyclingCard || event.button !== 0 || event.target.closest('button,a,input,select,textarea')) return;
                 pointerStart = { x: event.clientX, y: event.clientY };
+                draggedCard = event.target.closest('.account-stack-card.is-front');
                 stack.setPointerCapture(event.pointerId);
+            });
+            stack.addEventListener('pointermove', event => {
+                if (!pointerStart || !draggedCard) return;
+                const dx = event.clientX - pointerStart.x,
+                    dy = event.clientY - pointerStart.y;
+                if (Math.abs(dx) < Math.abs(dy) * 1.25) return;
+                const width = Math.max(1, stack.clientWidth),
+                    rotation = Math.max(-8, Math.min(8, dx / width * 10));
+                draggedCard.style.transform = `translate3d(${dx}px,0,0) rotate(${rotation}deg)`;
+                draggedCard.style.opacity = String(Math.max(.45, 1 - Math.abs(dx) / width * .8))
             });
             stack.addEventListener('pointerup', event => {
                 if (!pointerStart) return;
                 const dx = event.clientX - pointerStart.x,
-                    dy = event.clientY - pointerStart.y;
+                    dy = event.clientY - pointerStart.y,
+                    card = draggedCard;
                 pointerStart = null;
+                draggedCard = null;
                 if (Math.abs(dx) >= 48 && Math.abs(dx) >= Math.abs(dy) * 1.25) {
-                    sendAccountCardToBack();
+                    if (!card || accountStackOrder.length < 2) {
+                        sendAccountCardToBack();
+                        return
+                    }
+                    cyclingCard = true;
+                    const finishCycle = () => {
+                        card.style.transform = '';
+                        card.style.opacity = '';
+                        sendAccountCardToBack();
+                        cyclingCard = false
+                    };
+                    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || typeof card.animate !== 'function') {
+                        finishCycle();
+                        return
+                    }
+                    const width = Math.max(stack.clientWidth, window.innerWidth),
+                        direction = dx < 0 ? -1 : 1,
+                        rotation = Math.max(-8, Math.min(8, dx / Math.max(1, stack.clientWidth) * 10)),
+                        dragTransform = `translate3d(${dx}px,0,0) rotate(${rotation}deg)`,
+                        dragOpacity = String(Math.max(.45, 1 - Math.abs(dx) / Math.max(1, stack.clientWidth) * .8));
+                    card.style.transform = dragTransform;
+                    card.style.opacity = dragOpacity;
+                    const animation = card.animate([
+                            { transform: dragTransform, opacity: dragOpacity },
+                            { transform: `translate3d(${direction * width}px,0,0) rotate(${direction * 12}deg)`, opacity: 0 }
+                        ], { duration: 180, easing: 'cubic-bezier(.22,.61,.36,1)' });
+                    animation.onfinish = finishCycle;
                     return
                 }
                 if (Math.abs(dy) >= 48 && Math.abs(dy) >= Math.abs(dx) * 1.25) {
                     setAccountStackExpanded(dy > 0)
+                } else if (card) {
+                    card.style.transform = '';
+                    card.style.opacity = ''
                 }
             });
-            stack.addEventListener('pointercancel', () => { pointerStart = null });
+            stack.addEventListener('pointercancel', () => {
+                if (draggedCard) {
+                    draggedCard.style.transform = '';
+                    draggedCard.style.opacity = ''
+                }
+                pointerStart = null;
+                draggedCard = null
+            });
             stack.addEventListener('touchstart', event => {
                 if (event.touches.length !== 1) {
                     touchStart = null;
