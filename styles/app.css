@@ -286,9 +286,14 @@
         }
 
         .big {
+            min-width: 0;
+            max-width: 100%;
+            overflow: hidden;
             font-size: 22px;
             font-weight: 700;
-            margin-top: 2px
+            margin-top: 2px;
+            text-overflow: ellipsis;
+            white-space: nowrap
         }
 
         button,
@@ -412,7 +417,16 @@
         }
 
         .tx-end {
+            min-width: 0;
             gap: 6px
+        }
+
+        .tx-amount {
+            min-width: 0;
+            max-width: 180px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap
         }
 
         .tx:first-child {
@@ -489,6 +503,9 @@
         }
 
         .goal-amount {
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
             white-space: nowrap
         }
 
@@ -582,14 +599,22 @@
 
         .two {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
             gap: 12px;
             margin-bottom: 12px
         }
 
+        .two > div {
+            min-width: 0
+        }
+
         .hn {
+            min-width: 0;
+            overflow: hidden;
             font-size: 26px;
-            font-weight: 700
+            font-weight: 700;
+            text-overflow: ellipsis;
+            white-space: nowrap
         }
 
         .sec {
@@ -628,7 +653,8 @@
             display: flex;
             align-items: center;
             gap: 6px;
-            flex: none;
+            flex: 0 1 auto;
+            min-width: 0;
             white-space: nowrap
         }
 
@@ -638,7 +664,10 @@
         }
 
         .cashback-total b {
-            font-size: 17px
+            min-width: 0;
+            overflow: hidden;
+            font-size: 17px;
+            text-overflow: ellipsis
         }
 
         .cashback-count {
@@ -667,6 +696,14 @@
             grid-template-columns: 44px minmax(0, 1fr) auto;
             align-items: center;
             gap: 10px
+        }
+
+        .cashback-amount {
+            min-width: 0;
+            max-width: 32vw;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap
         }
 
         .cashback-card-title {
@@ -764,6 +801,39 @@
             text-align: center
         }
 
+        .account-stack-summary {
+            align-items: flex-start
+        }
+
+        .account-stack-summary-copy {
+            flex: 1;
+            min-width: 0
+        }
+
+        .account-stack-summary-line {
+            display: flex;
+            gap: 4px;
+            min-width: 0;
+            white-space: nowrap
+        }
+
+        .account-stack-summary-line > span {
+            flex: none
+        }
+
+        .account-stack-summary-line > b {
+            flex: 1;
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap
+        }
+
+        .account-stack-summary-count {
+            flex: none;
+            white-space: nowrap
+        }
+
         .account-stack {
             position: relative;
             isolation: isolate;
@@ -844,6 +914,7 @@
         }
 
         .account-stack-name {
+            flex: 1;
             gap: 10px
         }
 
@@ -876,9 +947,14 @@
         }
 
         .account-stack-balance {
-            flex: none;
+            flex: 0 1 auto;
+            min-width: 0;
+            max-width: 48%;
+            overflow: hidden;
             font-size: 20px;
             font-weight: 700;
+            text-align: right;
+            text-overflow: ellipsis;
             white-space: nowrap
         }
 
@@ -894,7 +970,12 @@
         }
 
         .account-stack-card-footer > small {
-            max-width: 70%
+            flex: 1 1 0;
+            min-width: 0;
+            max-width: 70%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap
         }
 
         .account-stack-actions,
@@ -966,7 +1047,10 @@
         }
 
         .account-balance-row>.big {
-            flex: none;
+            flex: 0 1 50%;
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
             margin: 0;
             text-align: right;
             white-space: nowrap
@@ -1521,27 +1605,6 @@
 
         .date-input-wrap.is-empty .date-input-placeholder {
             display: block
-        }
-
-        .date-input-chevron {
-            position: absolute;
-            top: 50%;
-            right: 15px;
-            z-index: 2;
-            width: 7px;
-            height: 7px;
-            border-right: 1.5px solid var(--mu);
-            border-bottom: 1.5px solid var(--mu);
-            transform: translateY(-70%) rotate(45deg);
-            pointer-events: none
-        }
-
-        .date-input-wrap input[type="date"]::-webkit-calendar-picker-indicator {
-            width: 28px;
-            height: 100%;
-            margin: 0;
-            opacity: 0;
-            cursor: pointer
         }
 
         .date-input-wrap input[type="date"]:focus-visible {
