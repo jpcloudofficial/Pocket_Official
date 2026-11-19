@@ -30,6 +30,13 @@
       .pocket-carousel-track>.hero{position:relative;display:block;flex:0 0 100%;width:100%;min-width:100%;margin:0;padding-right:66px}
       .pocket-carousel-track.is-dragging{transition:none!important}
       .pocket-carousel-controls{display:none!important}
+      .pocket-select-wrap{position:relative;width:100%}
+      .pocket-mobile-select-trigger,.pocket-mobile-select-menu{display:none}
+      .pocket-mobile-select-trigger{position:relative;width:100%;padding:8px 36px 8px 10px;border:1px solid var(--bd);border-radius:10px;background:var(--bg);color:var(--tx);font:inherit;text-align:left;cursor:pointer}
+      .pocket-mobile-select-menu{position:fixed;z-index:1000;overflow-y:auto;overscroll-behavior:contain;padding:6px;border:1px solid var(--bd);border-radius:12px;background:var(--cd);box-shadow:0 12px 30px #0006}
+      .pocket-mobile-select-option{display:block;width:100%;min-height:44px;padding:10px 12px;border:0;border-radius:8px;background:transparent;color:var(--tx);font:inherit;text-align:left;cursor:pointer}
+      .pocket-mobile-select-option[aria-selected="true"]{background:var(--sq);font-weight:700}
+      .pocket-mobile-select-option:focus-visible,.pocket-mobile-select-trigger:focus-visible{outline:2px solid var(--in);outline-offset:2px}
       .pocket-privacy-button{position:absolute;right:14px;top:14px;width:40px;height:40px;padding:0;display:grid;place-items:center;border:1px solid var(--bd);border-radius:11px;background:var(--cd);color:var(--mu);cursor:pointer;z-index:2}
       .pocket-privacy-button svg{display:block}
       .pocket-privacy-header{margin-bottom:10px}
@@ -52,11 +59,184 @@
       .pocket-category-hint[hidden]{display:none}
       .pocket-category-hint[data-active="true"]{color:var(--in)}
       #m.pocket-private .hb,#m.pocket-private .hn,#m.pocket-private .av,#m.pocket-private .tx-amount{user-select:none}
+      @media(max-width:760px){
+        label>.pocket-select-wrap{margin-top:4px;font-weight:400}
+        .pocket-select-wrap>select{position:absolute!important;top:0;left:0;width:1px!important;height:1px!important;padding:0!important;opacity:0!important;pointer-events:none}
+        .pocket-mobile-select-trigger{display:block;min-height:42px;font-size:16px}
+        .pocket-mobile-select-trigger::after{content:'';position:absolute;top:50%;right:13px;width:7px;height:7px;border-right:1.5px solid var(--mu);border-bottom:1.5px solid var(--mu);transform:translateY(-70%) rotate(45deg);pointer-events:none}
+        .pocket-mobile-select-menu{display:block}
+      }
       @media(max-width:760px){.pocket-fab-menu{right:14px;bottom:calc(94px + env(safe-area-inset-bottom,0px))}.pocket-account-transfer{right:14px;bottom:calc(152px + env(safe-area-inset-bottom,0px))}}
       @media(prefers-reduced-motion:reduce){.pocket-carousel-track,.pocket-fab-menu,.pocket-account-transfer,.fab{transition:none!important}}
     `;
     document.head.append(style);
   };
+
+  const mobileSelectMedia = window.matchMedia('(max-width:760px)');
+  let activeMobileSelect = null, mobileSelectMenuId = 0;
+  const selectedOption = select => select.options[select.selectedIndex];
+  const syncMobileSelect = select => {
+    const control = select.closest('.pocket-select-wrap'),
+      trigger = control && control.querySelector('.pocket-mobile-select-trigger'),
+      option = selectedOption(select);
+    if (!trigger) return;
+    const label = trigger.dataset.fieldLabel;
+    trigger.querySelector('span').textContent = option ? option.textContent : '';
+    trigger.setAttribute('aria-label', label ? `${label}: ${option ? option.textContent : ''}` : option ? option.textContent : 'Choose an option')
+  };
+  const setMobileSelectMode = select => {
+    const trigger = select.closest('.pocket-select-wrap')?.querySelector('.pocket-mobile-select-trigger');
+    if (!trigger) return;
+    if (mobileSelectMedia.matches) {
+      select.tabIndex = -1;
+      select.setAttribute('aria-hidden', 'true');
+      trigger.removeAttribute('aria-hidden')
+    } else {
+      select.removeAttribute('aria-hidden');
+      if (select.dataset.pocketOriginalTabindex === '') select.removeAttribute('tabindex');
+      else select.setAttribute('tabindex', select.dataset.pocketOriginalTabindex);
+      trigger.setAttribute('aria-hidden', 'true')
+    }
+  };
+  const closeMobileSelect = restoreFocus => {
+    if (!activeMobileSelect) return;
+    const { select, trigger, menu } = activeMobileSelect;
+    menu.remove();
+    trigger.setAttribute('aria-expanded', 'false');
+    activeMobileSelect = null;
+    if (restoreFocus) trigger.focus();
+    syncMobileSelect(select)
+  };
+  const positionMobileSelectMenu = () => {
+    if (!activeMobileSelect) return;
+    const { trigger, menu } = activeMobileSelect,
+      rect = trigger.getBoundingClientRect(),
+      margin = 12,
+      width = Math.min(rect.width, window.innerWidth - margin * 2),
+      left = Math.max(margin, Math.min(rect.left, window.innerWidth - width - margin)),
+      top = Math.max(0, rect.bottom + 4),
+      availableHeight = Math.max(96, window.innerHeight - top - 12);
+    menu.style.left = `${left}px`;
+    menu.style.top = `${top}px`;
+    menu.style.width = `${width}px`;
+    menu.style.maxHeight = `${Math.min(window.innerHeight * .7, availableHeight)}px`
+  };
+  const chooseMobileSelectOption = option => {
+    if (!activeMobileSelect || option.disabled) return;
+    const { select } = activeMobileSelect;
+    if (select.value === option.value) {
+      closeMobileSelect(false);
+      return
+    }
+    select.value = option.value;
+    closeMobileSelect(false);
+    select.dispatchEvent(new Event('change', { bubbles: true }))
+  };
+  const openMobileSelect = (select, trigger) => {
+    if (activeMobileSelect) closeMobileSelect(false);
+    const menu = document.createElement('div'),
+      id = `pocket-mobile-select-${++mobileSelectMenuId}`,
+      label = trigger.dataset.fieldLabel;
+    menu.className = 'pocket-mobile-select-menu';
+    menu.id = id;
+    menu.setAttribute('role', 'listbox');
+    menu.setAttribute('aria-label', label || 'Options');
+    Array.from(select.options).forEach(option => {
+      const item = document.createElement('div');
+      item.className = 'pocket-mobile-select-option';
+      item.id = `${id}-option-${menu.childElementCount}`;
+      item.setAttribute('role', 'option');
+      item.setAttribute('aria-selected', String(option.selected));
+      item.tabIndex = -1;
+      item.textContent = option.textContent;
+      if (option.disabled) item.setAttribute('aria-disabled', 'true');
+      item.addEventListener('click', () => chooseMobileSelectOption(option));
+      menu.append(item)
+    });
+    document.body.append(menu);
+    activeMobileSelect = { select, trigger, menu };
+    trigger.setAttribute('aria-controls', id);
+    trigger.setAttribute('aria-expanded', 'true');
+    positionMobileSelectMenu();
+    const selected = menu.querySelector('[aria-selected="true"]');
+    (selected || menu.firstElementChild)?.focus()
+  };
+  const wireMobileSelects = root => {
+    root.querySelectorAll('select').forEach(select => {
+      if (!select.dataset.pocketMobileSelectReady) {
+        select.dataset.pocketMobileSelectReady = '1';
+        select.dataset.pocketOriginalTabindex = select.getAttribute('tabindex') || '';
+        const label = select.closest('label'),
+          labelText = label && Array.from(label.childNodes)
+            .filter(node => node.nodeType === Node.TEXT_NODE)
+            .map(node => node.textContent).join(' ').replace(/\*/g, '').trim(),
+          wrapper = document.createElement('span'),
+          trigger = document.createElement('button'),
+          value = document.createElement('span');
+        wrapper.className = 'pocket-select-wrap';
+        trigger.type = 'button';
+        trigger.className = 'pocket-mobile-select-trigger';
+        trigger.dataset.fieldLabel = labelText || '';
+        trigger.setAttribute('aria-haspopup', 'listbox');
+        trigger.setAttribute('aria-expanded', 'false');
+        trigger.append(value);
+        select.before(wrapper);
+        wrapper.append(select, trigger);
+        trigger.addEventListener('click', event => {
+          event.preventDefault();
+          if (activeMobileSelect && activeMobileSelect.trigger === trigger) closeMobileSelect(false);
+          else openMobileSelect(select, trigger)
+        });
+        trigger.addEventListener('keydown', event => {
+          if (event.key === 'ArrowDown' || event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            if (!activeMobileSelect || activeMobileSelect.trigger !== trigger) openMobileSelect(select, trigger)
+          }
+        });
+        select.addEventListener('change', () => syncMobileSelect(select))
+      }
+      syncMobileSelect(select);
+      setMobileSelectMode(select)
+    })
+  };
+  mobileSelectMedia.addEventListener('change', () => {
+    closeMobileSelect(false);
+    document.querySelectorAll('.pocket-select-wrap>select').forEach(setMobileSelectMode)
+  });
+  document.addEventListener('pointerdown', event => {
+    if (activeMobileSelect && !activeMobileSelect.menu.contains(event.target) &&
+      !activeMobileSelect.trigger.contains(event.target)) closeMobileSelect(false)
+  }, true);
+  document.addEventListener('keydown', event => {
+    if (!activeMobileSelect) return;
+    const { trigger, menu } = activeMobileSelect,
+      options = Array.from(menu.querySelectorAll('[role="option"]:not([aria-disabled="true"])')),
+      currentIndex = options.indexOf(document.activeElement);
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      closeMobileSelect(true)
+    } else if (event.key === 'Tab') {
+      closeMobileSelect(false)
+    } else if (event.key === 'ArrowDown' || event.key === 'ArrowUp' || event.key === 'Home' || event.key === 'End') {
+      event.preventDefault();
+      const nextIndex = event.key === 'Home' ? 0 : event.key === 'End' ? options.length - 1 :
+        (currentIndex + (event.key === 'ArrowDown' ? 1 : -1) + options.length) % options.length;
+      options[nextIndex]?.focus()
+    } else if (event.key === 'Enter' || event.key === ' ') {
+      const option = options[currentIndex];
+      if (option) {
+        event.preventDefault();
+        chooseMobileSelectOption(activeMobileSelect.select.options[Array.from(menu.children).indexOf(option)])
+      }
+    }
+  });
+  document.addEventListener('scroll', event => {
+    if (activeMobileSelect && !activeMobileSelect.menu.contains(event.target)) closeMobileSelect(false)
+  }, true);
+  window.addEventListener('resize', () => {
+    if (mobileSelectMedia.matches) positionMobileSelectMenu();
+    else closeMobileSelect(false)
+  });
 
   const pageTitle = () => main.querySelector(':scope > .row.sp h2');
   const setTitle = () => {
@@ -114,6 +294,7 @@
       const option = rule && [...catEl.options].find(item => normalize(item.textContent) === normalize(rule.category));
       if (!option) { hint.textContent = ''; delete hint.dataset.active; hint.hidden = true; hint.style.display = 'none'; return; }
       applying = true; catEl.value = option.value; applying = false;
+      syncMobileSelect(catEl);
       hint.textContent = `Suggested: ${option.textContent} · change if needed`;
       hint.dataset.active = 'true';
       hint.hidden = false;
@@ -380,6 +561,7 @@
       addPagePrivacyButton();
       removeLegacyDashboardControls();
     }
+    wireMobileSelects(main);
     wireQuickAdd();
     wirePageSwipe();
     updatePrivacy();
@@ -390,6 +572,9 @@
   });
   observer.observe(main, { childList: true, subtree: true });
   const formRoot = document.querySelector('#ovc');
-  if (formRoot) new MutationObserver(watchTransactionForm).observe(formRoot, { childList: true, subtree: true });
+  if (formRoot) new MutationObserver(() => {
+    watchTransactionForm();
+    wireMobileSelects(formRoot)
+  }).observe(formRoot, { childList: true, subtree: true });
   enhance();
 })();
