@@ -1052,6 +1052,14 @@ function syncDateInput(input) {
             if (restoreFocus && nextStack) nextStack.focus();
             if (!nextStack || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
             nextStack.querySelectorAll('.account-stack-card').forEach(card => {
+                if (card.dataset.accountId === skipAccountId) {
+                    const distance = Math.max(nextStack.clientWidth, window.innerWidth);
+                    card.animate([
+                        { transform: `translate3d(${-distance}px,0,0)`, opacity: 0 },
+                        { transform: 'translate3d(0,0,0)', opacity: 1 }
+                    ], { duration: 260, easing: 'cubic-bezier(.22,.61,.36,1)' });
+                    return
+                }
                 const previous = previousPositions.get(card.dataset.accountId);
                 if (!previous) return;
                 const current = card.getBoundingClientRect(),
@@ -1088,8 +1096,9 @@ function syncDateInput(input) {
                 };
                 return
             }
+            const outgoingId = frontCard && frontCard.dataset.accountId;
             accountStackOrder.unshift(accountStackOrder.pop());
-            renderAccountStackLayout(restoreFocus)
+            renderAccountStackLayout(restoreFocus, outgoingId)
         }
         function setAccountStackExpanded(expanded, restoreFocus) {
             if (accountStackExpanded === expanded) return;
