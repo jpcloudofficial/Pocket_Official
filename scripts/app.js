@@ -442,11 +442,16 @@ const K = 'pera.v1',
         function openForm(title, fn, vals, submit, rr) {
             const f = fn(vals).filter(Boolean);
             const fld = x => {
-                const v = vals[x.k] ?? '';
+                const v = vals[x.k] ?? '',
+                    selectedOption = x.t === 'sel' && x.o.find(o => o[0] == v),
+                    emptyOption = x.t === 'sel' && x.o.find(o => o[0] === ''),
+                    label = x.l.replace(/\s*\([^)]*\)\s*$/, '').trim().toLowerCase(),
+                    placeholder = x.t === 'sel' && (x.placeholder || (!selectedOption && !emptyOption ? `Choose ${label}` : '')),
+                    optionSelected = option => selectedOption ? option[0] == v : !placeholder && option[0] === '';
                 const i = x.t === 'icons' ?
                     `<input type="hidden" name="${x.k}" value="${esc(v)}"><button type="button" class="b2 it" onclick="tg(this)"><span>${ic(v||'tag')}</span> Change icon</button><div class="ip" hidden>${ICONS.map(o=>`<button type="button" class="ib${o[0]==v?' sel':''}" onclick="pick(this,'${o[0]}')">${ic(o[0])}</button>`).join('')}</div>` :
                     x.t === 'sel' ?
-                    `<select name="${x.k}"${x.req?' required':''} hidden aria-hidden="true" tabindex="-1">${x.placeholder?`<option value="" disabled${v===''?' selected':''}>${esc(x.placeholder)}</option>`:''}${x.o.map(o=>`<option value="${o[0]}"${o[0]==v?' selected':''}>${esc(o[1])}</option>`).join('')}</select><button type="button" class="form-select-trigger" data-select-name="${x.k}" data-select-label="${esc(x.l)}" aria-label="${esc(x.l)}: ${esc(x.o.find(o=>o[0]==v)?.[1] || x.placeholder || '')}" aria-haspopup="listbox" aria-expanded="false">${esc(x.o.find(o=>o[0]==v)?.[1] || x.placeholder || '')}</button>` :
+                    `<select name="${x.k}"${x.req?' required':''} hidden aria-hidden="true" tabindex="-1">${placeholder?`<option value=""${!selectedOption?' selected':''}${x.req?' disabled':''}>${esc(placeholder)}</option>`:''}${x.o.map(o=>`<option value="${o[0]}"${optionSelected(o)?' selected':''}>${esc(o[1])}</option>`).join('')}</select><button type="button" class="form-select-trigger" data-select-name="${x.k}" data-select-label="${esc(x.l)}" aria-label="${esc(x.l)}: ${esc(selectedOption?.[1] || (emptyOption && !placeholder ? emptyOption[1] : placeholder) || '')}" aria-haspopup="listbox" aria-expanded="false">${esc(selectedOption?.[1] || (emptyOption && !placeholder ? emptyOption[1] : placeholder) || '')}</button>` :
                     x.t === 'area' ? `<textarea name="${x.k}" rows="2">${esc(v)}</textarea>` :
                     `<input name="${x.k}" type="${x.t||'text'}" value="${esc(v)}" ${x.t==='number'?'step="0.01"':''}>`;
                 return `<label>${x.l}${x.req?' *':''}${i}</label>`
@@ -530,8 +535,9 @@ const K = 'pera.v1',
                         }] : []),
                         tr ? {
                             k: 'acc',
-                            l: 'From',
+                            l: 'From account',
                             t: 'sel',
+                            req: 1,
                             o: ac
                         } : {
                             k: 'cat',
@@ -544,8 +550,9 @@ const K = 'pera.v1',
                         },
                         tr ? {
                             k: 'to',
-                            l: 'To',
+                            l: 'To account',
                             t: 'sel',
+                            req: 1,
                             o: ac
                         } : {
                             k: 'acc',
@@ -670,7 +677,7 @@ const K = 'pera.v1',
             openForm('Track cashback', () => [{
                 k: 'amount', l: 'Expected cashback (₱)', t: 'number', req: 1, pos: 1
             }, {
-                k: 'account', l: 'Deposit account', t: 'sel', o: D.acc.map(account => [account.id, account.name])
+                k: 'account', l: 'Deposit account', t: 'sel', req: 1, o: D.acc.map(account => [account.id, account.name])
             }], { amount: '', account: expense.acc }, value => {
                 const amount = +value.amount;
                 if (amount > expense.amount) return 'Cashback can’t exceed the linked expense amount.';
@@ -801,15 +808,15 @@ const K = 'pera.v1',
                 }, {
                     k: 'amount', l: 'Amount (₱)', t: 'number', req: 1, pos: 1
                 }, transfer ? {
-                    k: 'acc', l: 'From account', t: 'sel', o: accounts
+                    k: 'acc', l: 'From account', t: 'sel', req: 1, o: accounts
                 } : {
-                    k: 'cat', l: 'Category', t: 'sel',
+                    k: 'cat', l: 'Category', t: 'sel', req: 1,
                     o: D.cats.filter(category => v.type === 'income' ? category.g === 'Income' : category.g !== 'Income')
                         .map(category => [category.id, category.name])
                 }, transfer ? {
-                    k: 'to', l: 'To account', t: 'sel', o: accounts
+                    k: 'to', l: 'To account', t: 'sel', req: 1, o: accounts
                 } : {
-                    k: 'acc', l: 'Account', t: 'sel', o: accounts
+                    k: 'acc', l: 'Account', t: 'sel', req: 1, o: accounts
                 }, {
                     k: 'frequency', l: 'Repeat', t: 'sel', o: RECURRENCES
                 }, {
@@ -1318,6 +1325,8 @@ ${summaryWidget}${shortcutsWidget}${actionsWidget}${accountsWidget}${transaction
                 k: 'cat',
                 l: 'Category',
                 t: 'sel',
+                req: 1,
+                placeholder: 'Choose category',
                 o: D.cats.filter(c => c.g !== 'Income').map(c => [c.id, c.name])
             }, {
                 k: 'amt',
