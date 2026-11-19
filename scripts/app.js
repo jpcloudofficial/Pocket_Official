@@ -1707,18 +1707,33 @@ ${profileSettingsCard()}
                 ['set', 'Settings']
             ]]
         ];
-        let titleMenu, titleMenuTrigger, pageTransition;
+        let titleMenu, titleMenuTrigger, pageTransition, titleMenuCloseTimer, titleMenuOpenTimer;
 
         function closeTitleMenu() {
-            if (!titleMenu) return;
-            titleMenu.hidden = true;
+            if (!titleMenu || titleMenu.hidden || titleMenu.classList.contains('is-closing')) return;
+            window.clearTimeout(titleMenuOpenTimer);
+            titleMenu.classList.remove('is-opening');
+            titleMenu.classList.add('is-closing');
+            titleMenu.setAttribute('aria-hidden', 'true');
+            titleMenu.inert = true;
             titleMenuTrigger?.setAttribute('aria-expanded', 'false');
-            titleMenuTrigger = null
+            titleMenuTrigger = null;
+            window.clearTimeout(titleMenuCloseTimer);
+            titleMenuCloseTimer = window.setTimeout(() => {
+                titleMenu.hidden = true;
+                titleMenu.classList.remove('is-closing');
+                titleMenuCloseTimer = 0
+            }, window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 140)
         }
 
         function openTitleMenu(trigger) {
             closeTitleMenu();
+            window.clearTimeout(titleMenuCloseTimer);
+            window.clearTimeout(titleMenuOpenTimer);
+            titleMenu.classList.remove('is-closing', 'is-opening');
             titleMenu.hidden = false;
+            titleMenu.inert = false;
+            titleMenu.setAttribute('aria-hidden', 'false');
             titleMenuTrigger = trigger;
             trigger.setAttribute('aria-expanded', 'true');
             const rect = trigger.getBoundingClientRect(),
@@ -1727,7 +1742,13 @@ ${profileSettingsCard()}
                 below = rect.bottom + 6,
                 top = below + menu.height <= innerHeight - 8 ? below : Math.max(8, rect.top - menu.height - 6);
             titleMenu.style.left = `${left}px`;
-            titleMenu.style.top = `${top}px`
+            titleMenu.style.top = `${top}px`;
+            void titleMenu.offsetWidth;
+            titleMenu.classList.add('is-opening');
+            titleMenuOpenTimer = window.setTimeout(() => {
+                titleMenu.classList.remove('is-opening');
+                titleMenuOpenTimer = 0
+            }, window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 180)
         }
 
         function setupTitleMenu() {
@@ -1735,7 +1756,9 @@ ${profileSettingsCard()}
                 titleMenu = document.createElement('div');
                 titleMenu.className = 'page-title-menu';
                 titleMenu.setAttribute('role', 'menu');
+                titleMenu.setAttribute('aria-hidden', 'true');
                 titleMenu.hidden = true;
+                titleMenu.inert = true;
                 document.body.append(titleMenu);
                 titleMenu.addEventListener('click', event => {
                     const item = event.target.closest('button[data-page]');

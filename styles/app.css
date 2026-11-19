@@ -190,11 +190,21 @@
             border: 1px solid var(--bd);
             border-radius: 12px;
             background: var(--cd);
-            box-shadow: 0 12px 30px #0004
+            box-shadow: 0 12px 30px #0004;
+            transform-origin: top left
         }
 
         .page-title-menu[hidden] {
             display: none
+        }
+
+        .page-title-menu.is-opening {
+            animation: pocket-dropdown-in .16s ease-out both
+        }
+
+        .page-title-menu.is-closing {
+            pointer-events: none;
+            animation: pocket-dropdown-out .12s ease-in both
         }
 
         .page-title-menu-group {
@@ -1587,15 +1597,15 @@
             background: var(--cd);
             box-shadow: 0 10px 28px #0006;
             transform-origin: top center;
-            animation: pocket-select-in .16s ease-out both
+            animation: pocket-dropdown-in .16s ease-out both
         }
 
         .pocket-select-menu.is-closing {
             pointer-events: none;
-            animation: pocket-select-out .12s ease-in both
+            animation: pocket-dropdown-out .12s ease-in both
         }
 
-        @keyframes pocket-select-in {
+        @keyframes pocket-dropdown-in {
             from {
                 opacity: 0;
                 transform: translateY(-5px) scale(.99)
@@ -1607,7 +1617,7 @@
             }
         }
 
-        @keyframes pocket-select-out {
+        @keyframes pocket-dropdown-out {
             from {
                 opacity: 1;
                 transform: translateY(0) scale(1)
@@ -1620,10 +1630,12 @@
         }
 
         @media(prefers-reduced-motion:reduce) {
+            .page-title-menu.is-opening,
             .pocket-select-menu {
                 animation-duration: .01ms
             }
 
+            .page-title-menu.is-closing,
             .pocket-select-menu.is-closing {
                 animation-duration: .01ms
             }
