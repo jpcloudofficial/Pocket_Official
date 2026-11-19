@@ -335,6 +335,99 @@ const K = 'pera.v1',
             document.body.classList.remove('pocket-modal-open')
         };
 
+        function wireSelectPicker(select, trigger, label) {
+            const updateTrigger = () => {
+                const text = select.options[select.selectedIndex]?.textContent || '';
+                trigger.textContent = text;
+                trigger.setAttribute('aria-label', `${label}: ${text}`)
+            };
+            select.addEventListener('change', updateTrigger);
+            trigger.addEventListener('click', () => {
+                const overlay = document.createElement('div'),
+                    menu = document.createElement('div');
+                overlay.className = 'pocket-select-overlay';
+                menu.className = 'pocket-select-menu';
+                menu.setAttribute('role', 'listbox');
+                menu.setAttribute('aria-label', label);
+                const closePicker = () => {
+                    overlay.remove();
+                    trigger.setAttribute('aria-expanded', 'false');
+                    trigger.focus()
+                };
+                overlay.addEventListener('click', event => {
+                    if (event.target === overlay) closePicker()
+                });
+                const availableOptions = Array.from(select.options).filter(option => !option.disabled);
+                availableOptions.forEach(option => {
+                    const item = document.createElement('button');
+                    item.type = 'button';
+                    item.className = 'pocket-select-option';
+                    item.setAttribute('role', 'option');
+                    item.setAttribute('aria-selected', String(option.value === select.value));
+                    item.textContent = option.textContent;
+                    item.addEventListener('click', () => {
+                        select.value = option.value;
+                        closePicker();
+                        select.dispatchEvent(new Event('change', { bubbles: true }))
+                    });
+                    menu.append(item)
+                });
+                menu.addEventListener('keydown', event => {
+                    if (event.key === 'Escape') {
+                        event.preventDefault();
+                        closePicker()
+                    } else if (event.key === 'ArrowDown' || event.key === 'ArrowUp' || event.key === 'Home' || event.key === 'End') {
+                        const items = Array.from(menu.querySelectorAll('.pocket-select-option')),
+                            index = items.indexOf(document.activeElement),
+                            next = event.key === 'Home' ? 0 :
+                                event.key === 'End' ? items.length - 1 :
+                                    (index + (event.key === 'ArrowDown' ? 1 : -1) + items.length) % items.length;
+                        if (items.length) {
+                            event.preventDefault();
+                            items[next].focus()
+                        }
+                    }
+                });
+                const bounds = trigger.getBoundingClientRect(),
+                    viewportWidth = document.documentElement.clientWidth || window.innerWidth,
+                    width = Math.min(bounds.width, viewportWidth - 16),
+                    left = Math.max(8, Math.min(bounds.left, viewportWidth - width - 8)),
+                    availableHeight = Math.max(80, window.innerHeight - bounds.bottom - 8);
+                menu.style.left = `${left}px`;
+                menu.style.top = `${bounds.bottom + 4}px`;
+                menu.style.width = `${width}px`;
+                menu.style.maxHeight = `${Math.min(220, availableHeight)}px`;
+                overlay.append(menu);
+                document.body.append(overlay);
+                trigger.setAttribute('aria-expanded', 'true');
+                const selectedButton = availableOptions.find(option => option.value === select.value);
+                const initialOption = selectedButton && Array.from(menu.children)
+                    .find(button => button.textContent === selectedButton.textContent) || menu.querySelector('button');
+                (initialOption || trigger).focus();
+                if (initialOption) menu.scrollTop = initialOption.offsetTop
+            })
+        }
+
+        function wireRenderedSelects(root) {
+            root.querySelectorAll('select').forEach(select => {
+                if (select.hidden) return;
+                const selected = select.options[select.selectedIndex],
+                    label = select.getAttribute('aria-label') || 'Choose an option',
+                    trigger = document.createElement('button');
+                trigger.type = 'button';
+                trigger.className = 'form-select-trigger';
+                trigger.setAttribute('aria-haspopup', 'listbox');
+                trigger.setAttribute('aria-expanded', 'false');
+                trigger.textContent = selected?.textContent || '';
+                trigger.setAttribute('aria-label', `${label}: ${trigger.textContent}`);
+                select.hidden = true;
+                select.setAttribute('aria-hidden', 'true');
+                select.tabIndex = -1;
+                select.insertAdjacentElement('afterend', trigger);
+                wireSelectPicker(select, trigger, label)
+            })
+        }
+
         function ask(msg, fn, ok = 'Delete') {
             window._f = () => {
                 cl();
@@ -353,9 +446,7 @@ const K = 'pera.v1',
                 const i = x.t === 'icons' ?
                     `<input type="hidden" name="${x.k}" value="${esc(v)}"><button type="button" class="b2 it" onclick="tg(this)"><span>${ic(v||'tag')}</span> Change icon</button><div class="ip" hidden>${ICONS.map(o=>`<button type="button" class="ib${o[0]==v?' sel':''}" onclick="pick(this,'${o[0]}')">${ic(o[0])}</button>`).join('')}</div>` :
                     x.t === 'sel' ?
-                    x.custom ?
-                    `<select name="${x.k}"${x.req?' required':''} hidden aria-hidden="true" tabindex="-1">${x.placeholder?`<option value="" disabled${v===''?' selected':''}>${esc(x.placeholder)}</option>`:''}${x.o.map(o=>`<option value="${o[0]}"${o[0]==v?' selected':''}>${esc(o[1])}</option>`).join('')}</select><button type="button" class="form-select-trigger" data-select-name="${x.k}" data-select-label="${esc(x.l)}" aria-label="${esc(x.l)}: ${esc(x.o.find(o=>o[0]==v)?.[1] || x.placeholder || '')}" aria-haspopup="dialog" aria-expanded="false">${esc(x.o.find(o=>o[0]==v)?.[1] || x.placeholder || '')}</button>` :
-                    `<select name="${x.k}"${x.req?' required':''}>${x.placeholder?`<option value="" disabled${v===''?' selected':''}>${esc(x.placeholder)}</option>`:''}${x.o.map(o=>`<option value="${o[0]}"${o[0]==v?' selected':''}>${esc(o[1])}</option>`).join('')}</select>` :
+                    `<select name="${x.k}"${x.req?' required':''} hidden aria-hidden="true" tabindex="-1">${x.placeholder?`<option value="" disabled${v===''?' selected':''}>${esc(x.placeholder)}</option>`:''}${x.o.map(o=>`<option value="${o[0]}"${o[0]==v?' selected':''}>${esc(o[1])}</option>`).join('')}</select><button type="button" class="form-select-trigger" data-select-name="${x.k}" data-select-label="${esc(x.l)}" aria-label="${esc(x.l)}: ${esc(x.o.find(o=>o[0]==v)?.[1] || x.placeholder || '')}" aria-haspopup="listbox" aria-expanded="false">${esc(x.o.find(o=>o[0]==v)?.[1] || x.placeholder || '')}</button>` :
                     x.t === 'area' ? `<textarea name="${x.k}" rows="2">${esc(v)}</textarea>` :
                     `<input name="${x.k}" type="${x.t||'text'}" value="${esc(v)}" ${x.t==='number'?'step="0.01"':''}>`;
                 return `<label>${x.l}${x.req?' *':''}${i}</label>`
@@ -374,78 +465,7 @@ const K = 'pera.v1',
                     $('#er').textContent = m
                 };
             F.querySelectorAll('.form-select-trigger').forEach(trigger => {
-                const select = el(trigger.dataset.selectName);
-                trigger.addEventListener('click', () => {
-                    const overlay = document.createElement('div'),
-                        dialog = document.createElement('div'),
-                        heading = document.createElement('h3'),
-                        options = document.createElement('div'),
-                        footer = document.createElement('div'),
-                        closeButton = document.createElement('button');
-                    overlay.className = 'pocket-select-overlay';
-                    overlay.addEventListener('click', event => {
-                        if (event.target === overlay) closePicker()
-                    });
-                    dialog.className = 'pocket-select-dialog';
-                    dialog.setAttribute('role', 'dialog');
-                    dialog.setAttribute('aria-modal', 'true');
-                    heading.textContent = trigger.dataset.selectLabel;
-                    options.className = 'pocket-select-options';
-                    options.setAttribute('role', 'listbox');
-                    options.setAttribute('aria-label', trigger.dataset.selectLabel);
-                    const availableOptions = Array.from(select.options).filter(option => !option.disabled);
-                    availableOptions.forEach(option => {
-                        const item = document.createElement('button');
-                        item.type = 'button';
-                        item.className = 'pocket-select-option';
-                        item.setAttribute('role', 'option');
-                        item.setAttribute('aria-selected', String(option.value === select.value));
-                        item.textContent = option.textContent;
-                        item.addEventListener('click', () => {
-                            select.value = option.value;
-                            select.dispatchEvent(new Event('change', { bubbles: true }));
-                            trigger.textContent = option.textContent;
-                            trigger.setAttribute('aria-label', `${trigger.dataset.selectLabel}: ${option.textContent}`);
-                            closePicker()
-                        });
-                        options.append(item)
-                    });
-                    closeButton.type = 'button';
-                    closeButton.className = 'b2';
-                    closeButton.textContent = 'Cancel';
-                    footer.className = 'pocket-select-footer';
-                    footer.append(closeButton);
-                    dialog.append(heading, options, footer);
-                    overlay.append(dialog);
-                    const closePicker = () => {
-                        overlay.remove();
-                        trigger.setAttribute('aria-expanded', 'false');
-                        trigger.focus()
-                    };
-                    closeButton.addEventListener('click', closePicker);
-                    overlay.addEventListener('keydown', event => {
-                        if (event.key === 'Escape') {
-                            event.preventDefault();
-                            closePicker()
-                        } else if (event.key === 'Tab') {
-                            const focusable = Array.from(dialog.querySelectorAll('button:not(:disabled)')),
-                                first = focusable[0],
-                                last = focusable[focusable.length - 1];
-                            if (event.shiftKey && document.activeElement === first) {
-                                event.preventDefault();
-                                last.focus()
-                            } else if (!event.shiftKey && document.activeElement === last) {
-                                event.preventDefault();
-                                first.focus()
-                            }
-                        }
-                    });
-                    document.body.append(overlay);
-                    trigger.setAttribute('aria-expanded', 'true');
-                    const selected = availableOptions.find(option => option.value === select.value);
-                    const selectedButton = selected && Array.from(options.children).find(button => button.textContent === selected.textContent);
-                    (selectedButton || options.querySelector('button') || closeButton).focus()
-                })
+                wireSelectPicker(el(trigger.dataset.selectName), trigger, trigger.dataset.selectLabel)
             });
             if (rr) el(rr).onchange = () => openForm(title, fn, {
                 ...vals,
@@ -517,7 +537,6 @@ const K = 'pera.v1',
                             k: 'cat',
                             l: 'Category',
                             t: 'sel',
-                            custom: true,
                             req: 1,
                             placeholder: 'Choose category',
                             o: D.cats.filter(c => v.type === 'income' ? c.g === 'Income' : c.g !== 'Income')
@@ -532,7 +551,6 @@ const K = 'pera.v1',
                             k: 'acc',
                             l: 'Account',
                             t: 'sel',
-                            custom: true,
                             req: 1,
                             placeholder: 'Choose account',
                             o: ac
@@ -1195,8 +1213,8 @@ ${summaryWidget}${shortcutsWidget}${actionsWidget}${accountsWidget}${transaction
             const o = (L, all) => `<option value="">${all}</option>` + L.map(x =>
                 `<option value="${x.id}">${esc(x.name)}</option>`).join('');
             return `<div class="row sp pocket-privacy-header"><h2>Transactions</h2></div>
-<div class="f"><input placeholder="Search by name" value="${esc(U.q)}" oninput="U.q=this.value;fl()"><select onchange="U.c=this.value;fl()">${o(D.cats,'All categories').replace(`value="${U.c}"`,`value="${U.c}" selected`)}</select><select onchange="U.a=this.value;fl()">${o(D.acc,'All accounts').replace(`value="${U.a}"`,`value="${U.a}" selected`)}</select>
-<select onchange="U.ty=this.value;fl()">${[['','All types'],['income','Income'],['expense','Expense'],['transfer','Transfer']].map(x=>`<option value="${x[0]}"${U.ty===x[0]?' selected':''}>${x[1]}</option>`).join('')}</select><input type="date" value="${U.tf}" onchange="U.tf=this.value;fl()"><input type="date" value="${U.tt}" onchange="U.tt=this.value;fl()"></div><div class="card" id="tl">${txList()}</div>`
+<div class="f"><input placeholder="Search by name" value="${esc(U.q)}" oninput="U.q=this.value;fl()"><select aria-label="Filter by category" onchange="U.c=this.value;fl()">${o(D.cats,'All categories').replace(`value="${U.c}"`,`value="${U.c}" selected`)}</select><select aria-label="Filter by account" onchange="U.a=this.value;fl()">${o(D.acc,'All accounts').replace(`value="${U.a}"`,`value="${U.a}" selected`)}</select>
+<select aria-label="Filter by type" onchange="U.ty=this.value;fl()">${[['','All types'],['income','Income'],['expense','Expense'],['transfer','Transfer']].map(x=>`<option value="${x[0]}"${U.ty===x[0]?' selected':''}>${x[1]}</option>`).join('')}</select><input type="date" value="${U.tf}" onchange="U.tf=this.value;fl()"><input type="date" value="${U.tt}" onchange="U.tt=this.value;fl()"></div><div class="card" id="tl">${txList()}</div>`
         };
         V.cash = () => cashbackSection();
         const trForm = () => txFormT();
@@ -1405,7 +1423,7 @@ ${summaryWidget}${shortcutsWidget}${actionsWidget}${accountsWidget}${transaction
                 hist = MO.map((_, i) => ids.reduce((s, a) => s + bal(a, iso(new Date(y, i + 1, 0))), 0)),
                 o = (L, v) => L.map(x => `<option value="${x[0]}"${x[0]==v?' selected':''}>${esc(x[1])}</option>`)
                 .join('');
-            return `<div class="row sp"><h2>Reports</h2></div><div class="f"><select onchange="U.ry=this.value;render()">${o(yrs.map(x=>[x,x]),y)}</select><select onchange="U.ra=this.value;render()">${o([['','All accounts'],...D.acc.map(a=>[a.id,a.name])],U.ra)}</select><select onchange="U.rc=this.value;render()">${o([['','All categories'],...D.cats.map(c=>[c.id,c.name])],U.rc)}</select></div>
+            return `<div class="row sp"><h2>Reports</h2></div><div class="f"><select aria-label="Report year" onchange="U.ry=this.value;render()">${o(yrs.map(x=>[x,x]),y)}</select><select aria-label="Filter by account" onchange="U.ra=this.value;render()">${o([['','All accounts'],...D.acc.map(a=>[a.id,a.name])],U.ra)}</select><select aria-label="Filter by category" onchange="U.rc=this.value;render()">${o([['','All categories'],...D.cats.map(c=>[c.id,c.name])],U.rc)}</select></div>
 <div class="g g2"><div class="card"><h3>Income vs. expenses (monthly)</h3>${bars([inc,exp],MO,['#16a34a','#ea580c'])}</div><div class="card"><h3>Spending trend</h3>${line(exp,MO,'#ea580c')}</div><div class="card"><h3>Expenses by category</h3>${catBars(T)}</div><div class="card"><h3>Account balance history</h3>${line(hist,MO,'#2563eb')}</div><div class="card"><h3>Monthly savings (income − expenses)</h3>${bars([inc.map((v,i)=>v-exp[i])],MO,['#16a34a'])}</div></div>`
         };
 
@@ -1741,6 +1759,7 @@ ${profileSettingsCard()}
             if (isFirstIndicator) requestAnimationFrame(() => indicator.classList.add('ready'));
             $('#m').dataset.view = U.v;
             $('#m').innerHTML = V[U.v]();
+            wireRenderedSelects($('#m'));
             setupTitleMenu();
             if (U.v === 'acc') wireAccountStack();
             lu()

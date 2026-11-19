@@ -1,4 +1,4 @@
-const CACHE = 'pera-v78';
+const CACHE = 'pera-v79';
 const FILES = [
   './',
   'index.html',
