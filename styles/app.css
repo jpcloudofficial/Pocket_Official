@@ -1381,6 +1381,89 @@
             background-repeat: no-repeat
         }
 
+        .form-select-trigger {
+            width: 100%;
+            padding: 8px 36px 8px 10px;
+            border: 1px solid var(--bd);
+            border-radius: 10px;
+            background-color: var(--bg);
+            background-image: linear-gradient(45deg, transparent 50%, var(--mu) 50%), linear-gradient(135deg, var(--mu) 50%, transparent 50%);
+            background-position: calc(100% - 17px) 50%, calc(100% - 12px) 50%;
+            background-size: 5px 5px, 5px 5px;
+            background-repeat: no-repeat;
+            color: var(--tx);
+            font: inherit;
+            text-align: left;
+            cursor: pointer
+        }
+
+        .form-select-trigger:focus-visible,
+        .pocket-select-option:focus-visible,
+        .pocket-select-footer .b2:focus-visible {
+            outline: 2px solid var(--in);
+            outline-offset: 2px
+        }
+
+        .pocket-select-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 60;
+            display: grid;
+            place-items: center;
+            padding: 24px;
+            background: #0009
+        }
+
+        .pocket-select-dialog {
+            display: flex;
+            flex-direction: column;
+            width: min(100%, 420px);
+            max-height: min(72vh, 600px);
+            overflow: hidden;
+            border: 1px solid var(--bd);
+            border-radius: 16px;
+            background: var(--cd);
+            box-shadow: 0 16px 40px #0006
+        }
+
+        .pocket-select-dialog h3 {
+            flex: none;
+            padding: 16px 18px 12px
+        }
+
+        .pocket-select-options {
+            min-height: 0;
+            overflow-y: auto;
+            overscroll-behavior: contain;
+            -webkit-overflow-scrolling: touch
+        }
+
+        .pocket-select-option {
+            display: block;
+            width: 100%;
+            min-height: 48px;
+            padding: 12px 18px;
+            border: 0;
+            border-bottom: 1px solid var(--bd);
+            background: transparent;
+            color: var(--tx);
+            font: inherit;
+            text-align: left;
+            cursor: pointer
+        }
+
+        .pocket-select-option[aria-selected="true"] {
+            background: var(--sq);
+            font-weight: 700
+        }
+
+        .pocket-select-footer {
+            display: flex;
+            justify-content: flex-end;
+            flex: none;
+            padding: 10px 14px
+        }
+
         #ov input[type="date"]::-webkit-calendar-picker-indicator {
             margin-left: auto;
             cursor: pointer

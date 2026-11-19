@@ -322,12 +322,14 @@ const K = 'pera.v1',
             lu = () => {};
 
         function ov(h) {
+            document.querySelectorAll('.pocket-select-overlay').forEach(menu => menu.remove());
             $('#ovc').innerHTML = h;
             document.body.classList.add('pocket-modal-open');
             $('#ov').style.display = 'flex';
             lu()
         }
         const cl = () => {
+            document.querySelectorAll('.pocket-select-overlay').forEach(menu => menu.remove());
             $('#ov').style.display = 'none';
             $('#ov').classList.remove('form-open');
             document.body.classList.remove('pocket-modal-open')
@@ -351,6 +353,8 @@ const K = 'pera.v1',
                 const i = x.t === 'icons' ?
                     `<input type="hidden" name="${x.k}" value="${esc(v)}"><button type="button" class="b2 it" onclick="tg(this)"><span>${ic(v||'tag')}</span> Change icon</button><div class="ip" hidden>${ICONS.map(o=>`<button type="button" class="ib${o[0]==v?' sel':''}" onclick="pick(this,'${o[0]}')">${ic(o[0])}</button>`).join('')}</div>` :
                     x.t === 'sel' ?
+                    x.custom ?
+                    `<select name="${x.k}"${x.req?' required':''} hidden aria-hidden="true" tabindex="-1">${x.placeholder?`<option value="" disabled${v===''?' selected':''}>${esc(x.placeholder)}</option>`:''}${x.o.map(o=>`<option value="${o[0]}"${o[0]==v?' selected':''}>${esc(o[1])}</option>`).join('')}</select><button type="button" class="form-select-trigger" data-select-name="${x.k}" data-select-label="${esc(x.l)}" aria-label="${esc(x.l)}: ${esc(x.o.find(o=>o[0]==v)?.[1] || x.placeholder || '')}" aria-haspopup="dialog" aria-expanded="false">${esc(x.o.find(o=>o[0]==v)?.[1] || x.placeholder || '')}</button>` :
                     `<select name="${x.k}"${x.req?' required':''}>${x.placeholder?`<option value="" disabled${v===''?' selected':''}>${esc(x.placeholder)}</option>`:''}${x.o.map(o=>`<option value="${o[0]}"${o[0]==v?' selected':''}>${esc(o[1])}</option>`).join('')}</select>` :
                     x.t === 'area' ? `<textarea name="${x.k}" rows="2">${esc(v)}</textarea>` :
                     `<input name="${x.k}" type="${x.t||'text'}" value="${esc(v)}" ${x.t==='number'?'step="0.01"':''}>`;
@@ -369,6 +373,80 @@ const K = 'pera.v1',
                 er = m => {
                     $('#er').textContent = m
                 };
+            F.querySelectorAll('.form-select-trigger').forEach(trigger => {
+                const select = el(trigger.dataset.selectName);
+                trigger.addEventListener('click', () => {
+                    const overlay = document.createElement('div'),
+                        dialog = document.createElement('div'),
+                        heading = document.createElement('h3'),
+                        options = document.createElement('div'),
+                        footer = document.createElement('div'),
+                        closeButton = document.createElement('button');
+                    overlay.className = 'pocket-select-overlay';
+                    overlay.addEventListener('click', event => {
+                        if (event.target === overlay) closePicker()
+                    });
+                    dialog.className = 'pocket-select-dialog';
+                    dialog.setAttribute('role', 'dialog');
+                    dialog.setAttribute('aria-modal', 'true');
+                    heading.textContent = trigger.dataset.selectLabel;
+                    options.className = 'pocket-select-options';
+                    options.setAttribute('role', 'listbox');
+                    options.setAttribute('aria-label', trigger.dataset.selectLabel);
+                    const availableOptions = Array.from(select.options).filter(option => !option.disabled);
+                    availableOptions.forEach(option => {
+                        const item = document.createElement('button');
+                        item.type = 'button';
+                        item.className = 'pocket-select-option';
+                        item.setAttribute('role', 'option');
+                        item.setAttribute('aria-selected', String(option.value === select.value));
+                        item.textContent = option.textContent;
+                        item.addEventListener('click', () => {
+                            select.value = option.value;
+                            select.dispatchEvent(new Event('change', { bubbles: true }));
+                            trigger.textContent = option.textContent;
+                            trigger.setAttribute('aria-label', `${trigger.dataset.selectLabel}: ${option.textContent}`);
+                            closePicker()
+                        });
+                        options.append(item)
+                    });
+                    closeButton.type = 'button';
+                    closeButton.className = 'b2';
+                    closeButton.textContent = 'Cancel';
+                    footer.className = 'pocket-select-footer';
+                    footer.append(closeButton);
+                    dialog.append(heading, options, footer);
+                    overlay.append(dialog);
+                    const closePicker = () => {
+                        overlay.remove();
+                        trigger.setAttribute('aria-expanded', 'false');
+                        trigger.focus()
+                    };
+                    closeButton.addEventListener('click', closePicker);
+                    overlay.addEventListener('keydown', event => {
+                        if (event.key === 'Escape') {
+                            event.preventDefault();
+                            closePicker()
+                        } else if (event.key === 'Tab') {
+                            const focusable = Array.from(dialog.querySelectorAll('button:not(:disabled)')),
+                                first = focusable[0],
+                                last = focusable[focusable.length - 1];
+                            if (event.shiftKey && document.activeElement === first) {
+                                event.preventDefault();
+                                last.focus()
+                            } else if (!event.shiftKey && document.activeElement === last) {
+                                event.preventDefault();
+                                first.focus()
+                            }
+                        }
+                    });
+                    document.body.append(overlay);
+                    trigger.setAttribute('aria-expanded', 'true');
+                    const selected = availableOptions.find(option => option.value === select.value);
+                    const selectedButton = selected && Array.from(options.children).find(button => button.textContent === selected.textContent);
+                    (selectedButton || options.querySelector('button') || closeButton).focus()
+                })
+            });
             if (rr) el(rr).onchange = () => openForm(title, fn, {
                 ...vals,
                 ...get()
@@ -392,7 +470,7 @@ const K = 'pera.v1',
             };
             $('#sv').onclick = go2;
             F.onkeydown = e => {
-                if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') {
+                if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA' && !e.target.matches('.form-select-trigger')) {
                     e.preventDefault();
                     go2()
                 }
@@ -439,6 +517,7 @@ const K = 'pera.v1',
                             k: 'cat',
                             l: 'Category',
                             t: 'sel',
+                            custom: true,
                             req: 1,
                             placeholder: 'Choose category',
                             o: D.cats.filter(c => v.type === 'income' ? c.g === 'Income' : c.g !== 'Income')
@@ -453,6 +532,7 @@ const K = 'pera.v1',
                             k: 'acc',
                             l: 'Account',
                             t: 'sel',
+                            custom: true,
                             req: 1,
                             placeholder: 'Choose account',
                             o: ac
