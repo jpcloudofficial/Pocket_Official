@@ -34,7 +34,7 @@
       .pocket-privacy-button svg{display:block}
       .pocket-privacy-header{margin-bottom:10px}
       .pocket-privacy-header>.pocket-privacy-button{position:static;flex:0 0 40px;margin-left:auto}
-      .pocket-fab-menu{position:fixed;right:20px;bottom:calc(82px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:8px;z-index:30}
+      .pocket-fab-menu{position:fixed;right:20px;bottom:calc(82px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:8px;z-index:30;transform-origin:bottom right}
       .pocket-fab-menu button{border:0;border-radius:12px;padding:10px 14px;min-width:156px;min-height:48px;background:var(--cd);color:var(--tx);box-shadow:0 8px 22px #0004;display:flex;align-items:center;gap:10px;font-weight:700;cursor:pointer}
       .pocket-fab-menu button .mini{display:grid;place-items:center;width:26px;height:26px;border-radius:8px;background:var(--sq)}
       .pocket-fab-menu button[data-kind="expense"] .mini{color:var(--ex)}
@@ -51,12 +51,20 @@
       .pocket-hidden{display:none!important}
       .fab{z-index:22;transition:opacity .2s ease,transform .2s ease}
       .fab.pocket-fab-open{opacity:0;transform:scale(.7);pointer-events:none}
+      .pocket-fab-menu.pocket-fab-opening{animation:pocket-fab-menu-in .2s cubic-bezier(.2,.8,.2,1) both}
+      .pocket-fab-menu.pocket-fab-closing{pointer-events:none;animation:pocket-fab-menu-out .18s ease-in both}
+      .pocket-fab-menu.pocket-fab-opening button{animation:pocket-fab-action-in .2s cubic-bezier(.2,.8,.2,1) both}
+      .pocket-fab-menu.pocket-fab-opening button:nth-child(1){animation-delay:.08s}
+      .pocket-fab-menu.pocket-fab-opening button:nth-child(2){animation-delay:.04s}
+      @keyframes pocket-fab-menu-in{from{opacity:0;transform:scale(.7) translateY(8px)}to{opacity:1;transform:scale(1) translateY(0)}}
+      @keyframes pocket-fab-menu-out{from{opacity:1;transform:scale(1) translateY(0)}to{opacity:0;transform:scale(.7) translateY(8px)}}
+      @keyframes pocket-fab-action-in{from{opacity:0;transform:translateY(8px) scale(.94)}to{opacity:1;transform:translateY(0) scale(1)}}
       .pocket-category-hint{display:block;color:var(--mu);font-size:12px;margin:6px 2px 0;min-height:17px}
       .pocket-category-hint[hidden]{display:none}
       .pocket-category-hint[data-active="true"]{color:var(--in)}
       #m.pocket-private .hb,#m.pocket-private .hn,#m.pocket-private .av,#m.pocket-private .tx-amount{user-select:none}
       @media(max-width:760px){.pocket-fab-menu{right:14px;bottom:calc(84px + env(safe-area-inset-bottom,0px))}.pocket-account-transfer{right:14px;bottom:calc(142px + env(safe-area-inset-bottom,0px))}}
-      @media(prefers-reduced-motion:reduce){.pocket-carousel-track,.pocket-fab-menu,.pocket-account-transfer,.fab{transition:none!important}}
+      @media(prefers-reduced-motion:reduce){.pocket-carousel-track,.pocket-fab-menu,.pocket-account-transfer,.fab{transition:none!important}.pocket-fab-menu.pocket-fab-opening,.pocket-fab-menu.pocket-fab-closing,.pocket-fab-menu.pocket-fab-opening button{animation-duration:.01ms!important}}
     `;
     document.head.append(style);
   };
@@ -270,14 +278,43 @@
   };
 
   const closeMenu = (menu, fab) => {
-    menu.classList.add('pocket-hidden'); menu.setAttribute('aria-hidden', 'true');
-    fab.setAttribute('aria-expanded', 'false'); fab.classList.remove('pocket-fab-open');
+    menu.setAttribute('aria-hidden', 'true');
+    fab.setAttribute('aria-expanded', 'false');
+    fab.classList.remove('pocket-fab-open');
+    if (menu.classList.contains('pocket-hidden') || menu.classList.contains('pocket-fab-closing')) return;
+    window.clearTimeout(menu._pocketOpenTimer);
+    menu.classList.remove('pocket-fab-opening');
+    menu.classList.add('pocket-fab-closing');
+    menu._pocketCloseTimer = window.setTimeout(() => {
+      menu.classList.remove('pocket-fab-closing');
+      menu.classList.add('pocket-hidden');
+      menu._pocketCloseTimer = 0;
+    }, window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 180);
+  };
+  const openMenu = (menu, fab) => {
+    window.clearTimeout(menu._pocketCloseTimer);
+    window.clearTimeout(menu._pocketOpenTimer);
+    menu.classList.remove('pocket-hidden', 'pocket-fab-closing', 'pocket-fab-opening');
+    void menu.offsetWidth;
+    menu.classList.add('pocket-fab-opening');
+    menu.setAttribute('aria-hidden', 'false');
+    fab.setAttribute('aria-expanded', 'true');
+    fab.classList.add('pocket-fab-open');
+    menu._pocketOpenTimer = window.setTimeout(() => {
+      menu.classList.remove('pocket-fab-opening');
+      menu._pocketOpenTimer = 0;
+    }, window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 300);
   };
   let lastScrollY = window.scrollY;
   window.addEventListener('scroll', () => {
     const currentScrollY = window.scrollY;
     const scrollDelta = currentScrollY - lastScrollY;
     lastScrollY = currentScrollY;
+    if (scrollDelta) {
+      const fab = document.querySelector('.fab');
+      const menu = document.querySelector('.pocket-fab-menu');
+      if (fab && menu && !menu.classList.contains('pocket-hidden')) closeMenu(menu, fab);
+    }
     if (currentScrollY <= 0) {
       document.body.classList.remove('pocket-actions-scroll-hidden');
     } else if (Math.abs(scrollDelta) >= 4) {
@@ -334,8 +371,8 @@
           return;
         }
         const opening = menu.classList.contains('pocket-hidden');
-        menu.classList.toggle('pocket-hidden', !opening); menu.setAttribute('aria-hidden', String(!opening));
-        fab.setAttribute('aria-expanded', String(opening)); fab.classList.toggle('pocket-fab-open', opening);
+        if (opening || menu.classList.contains('pocket-fab-closing')) openMenu(menu, fab);
+        else closeMenu(menu, fab);
       };
       menu.querySelectorAll('button').forEach(button => button.addEventListener('click', () => {
         if (typeof window.quickAdd === 'function') window.quickAdd(button.dataset.kind);

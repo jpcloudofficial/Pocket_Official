@@ -369,9 +369,67 @@
             min-width: 100%
         }
 
-        input[type=color] {
-            padding: 2px;
-            height: 38px
+        .color-picker {
+            display: grid;
+            gap: 8px
+        }
+
+        .color-swatches {
+            display: grid;
+            grid-template-columns: repeat(6, minmax(0, 1fr));
+            gap: 8px;
+            max-width: 304px
+        }
+
+        .color-swatch {
+            width: 100%;
+            aspect-ratio: 1;
+            min-width: 0;
+            padding: 5px;
+            border: 1px solid var(--bd);
+            border-radius: 10px;
+            background: var(--bg);
+            cursor: pointer
+        }
+
+        .color-swatch::before {
+            display: block;
+            width: 100%;
+            height: 100%;
+            border-radius: 6px;
+            background: var(--form-swatch);
+            content: ''
+        }
+
+        .color-swatch[aria-pressed=true] {
+            padding: 4px;
+            border: 2px solid var(--tx)
+        }
+
+        .color-swatch:focus-visible {
+            outline: 2px solid var(--in);
+            outline-offset: 2px
+        }
+
+        .color-code-row {
+            display: flex;
+            gap: 8px;
+            align-items: center
+        }
+
+        .color-preview {
+            flex: none;
+            width: 24px;
+            height: 24px;
+            border: 1px solid var(--bd);
+            border-radius: 6px;
+            background: var(--form-swatch)
+        }
+
+        .color-hex-input {
+            max-width: 148px;
+            font-family: ui-monospace, monospace;
+            text-transform: uppercase
         }
 
         .f {
@@ -1527,7 +1585,48 @@
             border: 1px solid var(--bd);
             border-radius: 10px;
             background: var(--cd);
-            box-shadow: 0 10px 28px #0006
+            box-shadow: 0 10px 28px #0006;
+            transform-origin: top center;
+            animation: pocket-select-in .16s ease-out both
+        }
+
+        .pocket-select-menu.is-closing {
+            pointer-events: none;
+            animation: pocket-select-out .12s ease-in both
+        }
+
+        @keyframes pocket-select-in {
+            from {
+                opacity: 0;
+                transform: translateY(-5px) scale(.99)
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1)
+            }
+        }
+
+        @keyframes pocket-select-out {
+            from {
+                opacity: 1;
+                transform: translateY(0) scale(1)
+            }
+
+            to {
+                opacity: 0;
+                transform: translateY(-4px) scale(.99)
+            }
+        }
+
+        @media(prefers-reduced-motion:reduce) {
+            .pocket-select-menu {
+                animation-duration: .01ms
+            }
+
+            .pocket-select-menu.is-closing {
+                animation-duration: .01ms
+            }
         }
 
         .pocket-select-menu::-webkit-scrollbar {

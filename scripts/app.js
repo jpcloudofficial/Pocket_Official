@@ -57,6 +57,10 @@ function syncDateInput(input) {
             ['Orange', '#ea580c'],
             ['Teal', '#0f766e']
         ];
+        const FORM_COLORS = [
+            '#2563eb', '#6366f1', '#7c3aed', '#a855f7', '#db2777', '#e11d48',
+            '#dc2626', '#ea580c', '#d97706', '#16a34a', '#0f766e', '#0891b2'
+        ];
         const defaultDashboardWidgets = () => Object.fromEntries(DASHBOARD_WIDGETS.map(([id, , enabled]) => [id, enabled]));
         let D, accountStackOrder = [], accountStackSignature = '', accountStackExpanded = false, U = {
             v: 'dash',
@@ -339,7 +343,8 @@ function syncDateInput(input) {
             lu()
         }
         const cl = () => {
-            document.querySelectorAll('.pocket-select-overlay').forEach(menu => menu.remove());
+            document.querySelectorAll('.pocket-select-overlay').forEach(menu =>
+                menu.closePicker ? menu.closePicker(false) : menu.remove());
             $('#ov').style.display = 'none';
             $('#ov').classList.remove('form-open');
             document.body.classList.remove('pocket-modal-open')
@@ -359,11 +364,23 @@ function syncDateInput(input) {
                 menu.className = 'pocket-select-menu';
                 menu.setAttribute('role', 'listbox');
                 menu.setAttribute('aria-label', label);
-                const closePicker = () => {
-                    overlay.remove();
+                let closing = false;
+                const closePicker = (restoreFocus = true) => {
+                    window.removeEventListener('scroll', closeOnScroll, true);
+                    window.removeEventListener('resize', closeOnResize);
+                    if (!overlay.isConnected || closing) return;
+                    closing = true;
+                    menu.classList.add('is-closing');
                     trigger.setAttribute('aria-expanded', 'false');
-                    trigger.focus()
+                    window.setTimeout(() => overlay.remove(),
+                        window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 140);
+                    if (restoreFocus && trigger.isConnected) trigger.focus({ preventScroll: true })
                 };
+                const closeOnScroll = event => {
+                    if (!menu.contains(event.target)) closePicker(false)
+                };
+                const closeOnResize = () => closePicker(false);
+                overlay.closePicker = closePicker;
                 overlay.addEventListener('click', event => {
                     if (event.target === overlay) closePicker()
                 });
@@ -409,6 +426,8 @@ function syncDateInput(input) {
                 menu.style.maxHeight = `${Math.min(220, availableHeight)}px`;
                 overlay.append(menu);
                 document.body.append(overlay);
+                window.addEventListener('scroll', closeOnScroll, true);
+                window.addEventListener('resize', closeOnResize);
                 trigger.setAttribute('aria-expanded', 'true');
                 const selectedButton = availableOptions.find(option => option.value === select.value);
                 const initialOption = selectedButton && Array.from(menu.children)
@@ -462,6 +481,8 @@ function syncDateInput(input) {
                     `<input type="hidden" name="${x.k}" value="${esc(v)}"><button type="button" class="b2 it" onclick="tg(this)"><span>${ic(v||'tag')}</span> Change icon</button><div class="ip" hidden>${ICONS.map(o=>`<button type="button" class="ib${o[0]==v?' sel':''}" onclick="pick(this,'${o[0]}')">${ic(o[0])}</button>`).join('')}</div>` :
                     x.t === 'sel' ?
                     `<select name="${x.k}"${x.req?' required':''} hidden aria-hidden="true" tabindex="-1">${placeholder?`<option value=""${!selectedOption?' selected':''}${x.req?' disabled':''}>${esc(placeholder)}</option>`:''}${x.o.map(o=>`<option value="${o[0]}"${optionSelected(o)?' selected':''}>${esc(o[1])}</option>`).join('')}</select><button type="button" class="form-select-trigger" data-select-name="${x.k}" data-select-label="${esc(x.l)}" aria-label="${esc(x.l)}: ${esc(selectedOption?.[1] || (emptyOption && !placeholder ? emptyOption[1] : placeholder) || '')}" aria-haspopup="listbox" aria-expanded="false">${esc(selectedOption?.[1] || (emptyOption && !placeholder ? emptyOption[1] : placeholder) || '')}</button>` :
+                    x.t === 'color' ?
+                    `<div class="color-picker"><div class="color-swatches" role="group" aria-label="${esc(x.l)} presets">${FORM_COLORS.map(color=>`<button type="button" class="color-swatch" data-color="${color}" style="--form-swatch:${color}" aria-label="${color}" aria-pressed="${String(v).toLowerCase()===color}"></button>`).join('')}</div><div class="color-code-row"><span class="color-preview" aria-hidden="true" style="--form-swatch:${okCol(v)?v:'#2563eb'}"></span><input class="color-hex-input" name="${x.k}" type="text" value="${esc(v)}" maxlength="7" spellcheck="false" autocapitalize="characters" aria-label="${esc(x.l)} hex code" placeholder="#2563eb"></div><small>Choose a swatch or enter a 6-digit hex code.</small></div>` :
                     x.t === 'date' ?
                     `<span class="date-input-wrap${v ? '' : ' is-empty'}"><input name="${x.k}" type="date" value="${esc(v)}" onchange="syncDateInput(this)"><span class="date-input-value">${esc(fd(v))}</span><span class="date-input-placeholder">${esc(x.placeholder || 'Choose date')}</span></span>` :
                     x.t === 'area' ? `<textarea name="${x.k}" rows="2">${esc(v)}</textarea>` :
@@ -484,6 +505,21 @@ function syncDateInput(input) {
             F.querySelectorAll('.form-select-trigger').forEach(trigger => {
                 wireSelectPicker(el(trigger.dataset.selectName), trigger, trigger.dataset.selectLabel)
             });
+            F.querySelectorAll('.color-picker').forEach(picker => {
+                const input = picker.querySelector('.color-hex-input'),
+                    preview = picker.querySelector('.color-preview'),
+                    swatches = Array.from(picker.querySelectorAll('.color-swatch')),
+                    syncColor = () => {
+                        const value = input.value.toLowerCase();
+                        swatches.forEach(swatch => swatch.setAttribute('aria-pressed', String(swatch.dataset.color === value)));
+                        preview.style.setProperty('--form-swatch', okCol(value) ? value : 'transparent')
+                    };
+                swatches.forEach(swatch => swatch.addEventListener('click', () => {
+                    input.value = swatch.dataset.color;
+                    syncColor()
+                }));
+                input.addEventListener('input', syncColor)
+            });
             if (rr) el(rr).onchange = () => openForm(title, fn, {
                 ...vals,
                 ...get()
@@ -498,6 +534,7 @@ function syncDateInput(input) {
                         if (!x.neg && n < 0) return er(x.l + ' can’t be negative');
                         if (x.pos && n <= 0) return er(x.l + ' must be greater than 0')
                     }
+                    if (x.t === 'color' && !okCol(v[x.k])) return er(x.l + ' must be a 6-digit hex color, such as #2563eb');
                 }
                 const m = submit(v);
                 if (m) return er(m);
