@@ -45,9 +45,6 @@
       body.pocket-modal-open .pocket-account-transfer{display:none!important}
       .pocket-fab-menu,.pocket-account-transfer{transition:transform .24s ease,opacity .24s ease}
       body.pocket-actions-scroll-hidden .fab,body.pocket-actions-scroll-hidden .pocket-account-transfer,body.pocket-actions-scroll-hidden .pocket-fab-menu{transform:translateX(calc(100% + 80px));opacity:0;pointer-events:none}
-      @media(max-width:760px){
-        .fab{right:52px}
-      }
       .pocket-hidden{display:none!important}
       .fab{z-index:22;transition:opacity .2s ease,transform .2s ease}
       .fab.pocket-fab-open{opacity:0;transform:scale(.7);pointer-events:none}
@@ -55,7 +52,7 @@
       .pocket-category-hint[hidden]{display:none}
       .pocket-category-hint[data-active="true"]{color:var(--in)}
       #m.pocket-private .hb,#m.pocket-private .hn,#m.pocket-private .av,#m.pocket-private .tx-amount{user-select:none}
-      @media(max-width:760px){.pocket-fab-menu{right:52px;bottom:calc(94px + env(safe-area-inset-bottom,0px))}.pocket-account-transfer{right:52px;bottom:calc(152px + env(safe-area-inset-bottom,0px))}}
+      @media(max-width:760px){.pocket-fab-menu{right:22px;bottom:calc(94px + env(safe-area-inset-bottom,0px))}.pocket-account-transfer{right:22px;bottom:calc(152px + env(safe-area-inset-bottom,0px))}}
       @media(prefers-reduced-motion:reduce){.pocket-carousel-track,.pocket-fab-menu,.pocket-account-transfer,.fab{transition:none!important}}
     `;
     document.head.append(style);
