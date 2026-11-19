@@ -993,9 +993,10 @@ const K = 'pera.v1',
             const byId = new Map(D.acc.map(account => [account.id, account]));
             return accountStackOrder.map(id => byId.get(id));
         }
-        function renderAccountStackLayout(restoreFocus) {
+        function renderAccountStackLayout(restoreFocus, skipAccountId) {
             const stack = $('#m .account-stack');
             const previousPositions = new Map(stack ? Array.from(stack.querySelectorAll('.account-stack-card'))
+                .filter(card => card.dataset.accountId !== skipAccountId)
                 .map(card => [card.dataset.accountId, card.getBoundingClientRect()]) : []);
             render();
             const nextStack = $('#m .account-stack');
@@ -1014,8 +1015,30 @@ const K = 'pera.v1',
                 ], { duration: 260, easing: 'cubic-bezier(.22,.61,.36,1)' })
             })
         }
-        function sendAccountCardToBack(restoreFocus) {
-            if (accountStackOrder.length < 2 || !$('#m .account-stack')) return;
+        function sendAccountCardToBack(restoreFocus, skipAnimation) {
+            const stack = $('#m .account-stack'),
+                frontCard = stack && stack.querySelector('.account-stack-card.is-front');
+            if (accountStackOrder.length < 2 || !stack) return;
+            if (!skipAnimation && frontCard && !window.matchMedia('(prefers-reduced-motion: reduce)').matches && typeof frontCard.animate === 'function') {
+                const nextButton = $('#m .account-stack-controls button');
+                if (nextButton) nextButton.disabled = true;
+                stack.classList.add('is-swiping');
+                const distance = Math.max(stack.clientWidth, window.innerWidth),
+                    animation = frontCard.animate([
+                        { transform: 'translate3d(0,0,0)', opacity: 1 },
+                        { transform: `translate3d(${distance}px,0,0) rotate(12deg)`, opacity: 0 }
+                    ], { duration: 180, easing: 'cubic-bezier(.22,.61,.36,1)' });
+                animation.onfinish = () => {
+                    const outgoingId = frontCard.dataset.accountId;
+                    accountStackOrder.unshift(accountStackOrder.pop());
+                    renderAccountStackLayout(restoreFocus, outgoingId)
+                };
+                animation.oncancel = () => {
+                    stack.classList.remove('is-swiping');
+                    if (nextButton && nextButton.isConnected) nextButton.disabled = false
+                };
+                return
+            }
             accountStackOrder.unshift(accountStackOrder.pop());
             renderAccountStackLayout(restoreFocus)
         }
@@ -1042,7 +1065,8 @@ const K = 'pera.v1',
                 if (!pointerStart || !draggedCard) return;
                 const dx = event.clientX - pointerStart.x,
                     dy = event.clientY - pointerStart.y;
-                if (Math.abs(dx) < Math.abs(dy) * 1.25) return;
+                if (Math.abs(dx) < 6 || Math.abs(dx) < Math.abs(dy) * 1.25) return;
+                stack.classList.add('is-swiping');
                 const width = Math.max(1, stack.clientWidth),
                     rotation = Math.max(-8, Math.min(8, dx / width * 10));
                 draggedCard.style.transform = `translate3d(${dx}px,0,0) rotate(${rotation}deg)`;
@@ -1057,14 +1081,16 @@ const K = 'pera.v1',
                 draggedCard = null;
                 if (Math.abs(dx) >= 48 && Math.abs(dx) >= Math.abs(dy) * 1.25) {
                     if (!card || accountStackOrder.length < 2) {
+                        stack.classList.remove('is-swiping');
                         sendAccountCardToBack();
                         return
                     }
                     cyclingCard = true;
                     const finishCycle = () => {
+                        stack.classList.remove('is-swiping');
                         card.style.transform = '';
                         card.style.opacity = '';
-                        sendAccountCardToBack();
+                        sendAccountCardToBack(undefined, true);
                         cyclingCard = false
                     };
                     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || typeof card.animate !== 'function') {
@@ -1085,6 +1111,7 @@ const K = 'pera.v1',
                     animation.onfinish = finishCycle;
                     return
                 }
+                stack.classList.remove('is-swiping');
                 if (Math.abs(dy) >= 48 && Math.abs(dy) >= Math.abs(dx) * 1.25) {
                     setAccountStackExpanded(dy > 0)
                 } else if (card) {
@@ -1098,7 +1125,8 @@ const K = 'pera.v1',
                     draggedCard.style.opacity = ''
                 }
                 pointerStart = null;
-                draggedCard = null
+                draggedCard = null;
+                stack.classList.remove('is-swiping')
             });
             stack.addEventListener('touchstart', event => {
                 if (event.touches.length !== 1) {
@@ -1118,7 +1146,10 @@ const K = 'pera.v1',
                     setAccountStackExpanded(dy > 0)
                 }
             }, { passive: true });
-            stack.addEventListener('touchcancel', () => { touchStart = null }, { passive: true });
+            stack.addEventListener('touchcancel', () => {
+                touchStart = null;
+                stack.classList.remove('is-swiping')
+            }, { passive: true });
             stack.addEventListener('keydown', event => {
                 if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
                     event.preventDefault();
@@ -1310,14 +1341,15 @@ ${summaryWidget}${shortcutsWidget}${actionsWidget}${accountsWidget}${transaction
             const cards = visibleAccounts.map((account, index) => {
                 const balance = bal(account);
                 const isFront = index === visibleAccounts.length - 1;
+                const isNext = index === visibleAccounts.length - 2;
                 const balanceNote = account.type === 'Credit Card' ? 'Liability · not counted in available balance' :
                     isSav(account) ? 'Savings · kept separate from total balance' : `Initial ${peso(account.initial)}`;
                 const actions = isFront ?
                     `<div class="account-stack-actions"><button class="ib" onclick="accForm('${account.id}')" aria-label="Edit ${esc(account.name)}">${ic('pencil')}</button><button class="ib" onclick="delAcc('${account.id}')" aria-label="Delete ${esc(account.name)}">${ic('trash-2')}</button></div>` :
                     '';
-                return `<article class="account-stack-card${isFront ? ' is-front' : ''}" data-account-id="${esc(account.id)}" aria-hidden="${!isFront && !accountStackExpanded}" style="--account-accent:${esc(account.color)};--stack-offset:${index * stackGap}px;z-index:${index}"><div class="account-stack-card-heading"><div class="account-stack-name"><span class="account-stack-icon">${ic(account.icon || 'wallet')}</span><span class="account-stack-name-copy"><b>${esc(account.name)}</b><small>${esc(account.type)} · since ${fd(account.created)}</small></span></div><b class="account-stack-balance" style="color:${balance < 0 ? 'var(--ex)' : 'var(--tx)'}">${peso(balance)}</b></div><div class="account-stack-card-footer"><small>${balanceNote}</small>${actions}</div></article>`
+                return `<article class="account-stack-card${isFront ? ' is-front' : ''}${isNext ? ' is-next' : ''}" data-account-id="${esc(account.id)}" aria-hidden="${!isFront && !accountStackExpanded}" style="--account-accent:${esc(account.color)};--stack-offset:${index * stackGap}px;z-index:${index}"><div class="account-stack-card-heading"><div class="account-stack-name"><span class="account-stack-icon">${ic(account.icon || 'wallet')}</span><span class="account-stack-name-copy"><b>${esc(account.name)}</b><small>${esc(account.type)} · since ${fd(account.created)}</small></span></div><b class="account-stack-balance" style="color:${balance < 0 ? 'var(--ex)' : 'var(--tx)'}">${peso(balance)}</b></div><div class="account-stack-card-footer"><small>${balanceNote}</small>${actions}</div></article>`
             }).join('');
-            return `<div class="row sp account-stack-summary"><div><h2>Accounts</h2><small>Total Balance ${peso(D.acc.filter(account => !isSav(account)).reduce((total, account) => total + bal(account), 0))} · Savings ${peso(D.acc.filter(isSav).reduce((total, account) => total + bal(account), 0))}</small></div><small>${accounts.length} accounts</small></div>${accounts.length ? `<div class="account-stack-wrap"><small class="account-stack-hint">${accountStackExpanded ? 'Swipe up to return to the card stack.' : 'Swipe down to see each account name and balance.'}</small><div class="${stackClass}" role="region" aria-expanded="${accountStackExpanded}" aria-label="Account cards. Swipe down to show all account names and balances, or swipe up to collapse." tabindex="0" style="height:${stackHeight}px">${cards}</div><div class="account-stack-footer"><small>${accountStackExpanded ? 'Swipe up to collapse the cards.' : 'Swipe down for all balances or left and right to cycle cards.'}</small><button type="button" class="chip" aria-label="Show next account" ${accounts.length < 2 ? 'disabled' : ''} onclick="sendAccountCardToBack()">Next card</button><button type="button" class="chip" aria-label="${accountStackExpanded ? 'Collapse account cards' : 'Show all account balances'}" aria-expanded="${accountStackExpanded}" ${accounts.length < 2 ? 'disabled' : ''} onclick="toggleAccountStackExpanded()">${accountStackExpanded ? 'Collapse cards' : 'Show balances'}</button></div></div>` : '<div class="empty">No accounts yet.</div>'}`
+            return `<div class="row sp account-stack-summary"><div><h2>Accounts</h2><small>Total Balance ${peso(D.acc.filter(account => !isSav(account)).reduce((total, account) => total + bal(account), 0))} · Savings ${peso(D.acc.filter(isSav).reduce((total, account) => total + bal(account), 0))}</small></div><small>${accounts.length} accounts</small></div>${accounts.length ? `<div class="account-stack-wrap"><div class="account-stack-controls"><button type="button" class="chip" aria-label="Show next account" ${accounts.length < 2 ? 'disabled' : ''} onclick="sendAccountCardToBack()">Next card</button><button type="button" class="chip" aria-label="${accountStackExpanded ? 'Collapse account cards' : 'Show all account balances'}" aria-expanded="${accountStackExpanded}" ${accounts.length < 2 ? 'disabled' : ''} onclick="toggleAccountStackExpanded()">${accountStackExpanded ? 'Collapse cards' : 'Show balances'}</button></div><small class="account-stack-hint">${accountStackExpanded ? 'Swipe up to return to the card stack.' : 'Swipe down to see each account name and balance.'}</small><div class="${stackClass}" role="region" aria-expanded="${accountStackExpanded}" aria-label="Account cards. Swipe down to show all account names and balances, or swipe up to collapse." tabindex="0" style="height:${stackHeight}px">${cards}</div><div class="account-stack-footer"><small>${accountStackExpanded ? 'Swipe up to collapse the cards.' : 'Down for balances · sideways to switch'}</small></div></div>` : '<div class="empty">No accounts yet.</div>'}`
         };
 
         function budForm(id) {

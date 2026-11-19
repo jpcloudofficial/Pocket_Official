@@ -813,6 +813,18 @@
             visibility: visible
         }
 
+        .account-stack.is-swiping .account-stack-card.is-next > * {
+            visibility: visible
+        }
+
+        .account-stack-controls {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 6px;
+            margin: 8px 0 6px
+        }
+
         .account-stack-card-heading,
         .account-stack-name {
             display: flex;
