@@ -1346,7 +1346,11 @@ ${summaryWidget}${shortcutsWidget}${actionsWidget}${accountsWidget}${transaction
             delete D.budgets[id]
         });
         V.bud = () => {
-            const L = bstat();
+            const categoryName = id => C(id)?.name || 'Unknown category',
+                L = bstat().sort((first, second) =>
+                    categoryName(first.id).localeCompare(categoryName(second.id), undefined, { sensitivity: 'base' }) ||
+                    first.id.localeCompare(second.id)
+                );
             return `<div class="row sp"><div><h2>Budgets</h2><small>As of ${MO[new Date().getMonth()]} ${new Date().getFullYear()}</small></div></div>${alerts()}<div class="g g2">${L.length ? L.map(x => {
                 const c = C(x.id) || { name: 'Unknown category', color: '#999' };
                 const col = x.p >= 100 ? 'var(--ex)' : x.p >= 75 ? '#eab308' : 'var(--in)';
