@@ -352,7 +352,7 @@ const K = 'pera.v1',
                 const i = x.t === 'icons' ?
                     `<input type="hidden" name="${x.k}" value="${esc(v)}"><button type="button" class="b2 it" onclick="tg(this)"><span>${ic(v||'tag')}</span> Change icon</button><div class="ip" hidden>${ICONS.map(o=>`<button type="button" class="ib${o[0]==v?' sel':''}" onclick="pick(this,'${o[0]}')">${ic(o[0])}</button>`).join('')}</div>` :
                     x.t === 'sel' ?
-                    `<select name="${x.k}">${x.o.map(o=>`<option value="${o[0]}"${o[0]==v?' selected':''}>${esc(o[1])}</option>`).join('')}</select>` :
+                    `<select name="${x.k}">${x.placeholder?`<option value=""${v===''?' selected':''}>${esc(x.placeholder)}</option>`:''}${x.o.map(o=>`<option value="${o[0]}"${o[0]==v?' selected':''}>${esc(o[1])}</option>`).join('')}</select>` :
                     x.t === 'area' ? `<textarea name="${x.k}" rows="2">${esc(v)}</textarea>` :
                     `<input name="${x.k}" type="${x.t||'text'}" value="${esc(v)}" ${x.t==='number'?'step="0.01"':''}>`;
                 return `<label>${x.l}${x.req?' *':''}${i}</label>`
@@ -435,11 +435,13 @@ const K = 'pera.v1',
                             k: 'acc',
                             l: 'From',
                             t: 'sel',
+                            req: 1,
                             o: ac
                         } : {
                             k: 'cat',
-                            l: 'Choose category',
+                            l: 'Category',
                             t: 'sel',
+                            placeholder: 'Choose category',
                             o: D.cats.filter(c => v.type === 'income' ? c.g === 'Income' : c.g !== 'Income')
                                 .map(c => [c.id, c.name])
                         },
@@ -447,11 +449,13 @@ const K = 'pera.v1',
                             k: 'to',
                             l: 'To',
                             t: 'sel',
+                            req: 1,
                             o: ac
                         } : {
                             k: 'acc',
-                            l: 'Choose account',
+                            l: 'Account',
                             t: 'sel',
+                            placeholder: 'Choose account',
                             o: ac
                         }, {
                             k: 'date',
@@ -468,7 +472,7 @@ const K = 'pera.v1',
                 t || {
                     type: 'expense',
                     date: today(),
-                    acc: 'cash',
+                    acc: '',
                     to: 'gcash'
                 }, v => {
                     const amt = +v.amount,

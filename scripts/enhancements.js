@@ -43,6 +43,14 @@
       .pocket-account-transfer{position:fixed;right:22px;bottom:82px;z-index:21;width:147px;height:52px;padding:0 16px;border:1px solid var(--bd);border-radius:28px;background:var(--cd);color:var(--tx);box-shadow:0 4px 14px #0004;display:flex;align-items:center;justify-content:flex-start;gap:8px;font:inherit;font-weight:700;cursor:pointer}
       .pocket-account-transfer svg{width:24px;height:24px;flex:none}
       body.pocket-modal-open .pocket-account-transfer{display:none!important}
+      .pocket-select-control{width:100%}
+      .pocket-select-trigger{display:none}
+      #pocket-select-menu{position:fixed;z-index:50;overflow-y:auto;overscroll-behavior:contain;padding:4px;border:1px solid var(--bd);border-radius:12px;background:var(--cd);box-shadow:0 12px 30px #0005}
+      #pocket-select-menu[hidden]{display:none}
+      #pocket-select-menu button{display:flex;width:100%;min-height:44px;align-items:center;justify-content:space-between;padding:10px 12px;border:0;border-radius:8px;background:transparent;color:var(--tx);font:inherit;text-align:left;cursor:pointer}
+      #pocket-select-menu button[aria-selected="true"]{background:var(--sq);font-weight:700}
+      #pocket-select-menu button:disabled{opacity:.5;cursor:default}
+      #pocket-select-menu button:focus-visible,.pocket-select-trigger:focus-visible{outline:2px solid var(--in);outline-offset:2px}
       .pocket-fab-menu,.pocket-account-transfer{transition:transform .24s ease,opacity .24s ease}
       body.pocket-actions-scroll-hidden .fab,body.pocket-actions-scroll-hidden .pocket-account-transfer,body.pocket-actions-scroll-hidden .pocket-fab-menu{transform:translateX(calc(100% + 80px));opacity:0;pointer-events:none}
       .pocket-hidden{display:none!important}
@@ -52,11 +60,173 @@
       .pocket-category-hint[hidden]{display:none}
       .pocket-category-hint[data-active="true"]{color:var(--in)}
       #m.pocket-private .hb,#m.pocket-private .hn,#m.pocket-private .av,#m.pocket-private .tx-amount{user-select:none}
-      @media(max-width:760px){.pocket-fab-menu{right:14px;bottom:calc(94px + env(safe-area-inset-bottom,0px))}.pocket-account-transfer{right:14px;bottom:calc(152px + env(safe-area-inset-bottom,0px))}}
+      @media(max-width:760px){
+        .pocket-fab-menu{right:14px;bottom:calc(94px + env(safe-area-inset-bottom,0px))}
+        .pocket-account-transfer{right:14px;bottom:calc(152px + env(safe-area-inset-bottom,0px))}
+        .pocket-select-control>select.pocket-select-native{display:none!important}
+        .pocket-select-trigger{display:flex;width:100%;min-height:38px;align-items:center;justify-content:space-between;gap:12px;padding:8px 10px;border:1px solid var(--bd);border-radius:10px;background:var(--bg);color:var(--tx);font:inherit;text-align:left;cursor:pointer}
+        .pocket-select-trigger svg{width:14px;height:14px;flex:none;color:var(--mu)}
+      }
       @media(prefers-reduced-motion:reduce){.pocket-carousel-track,.pocket-fab-menu,.pocket-account-transfer,.fab{transition:none!important}}
     `;
     document.head.append(style);
   };
+
+  let activeSelect = null;
+  const closeSelectMenu = restoreFocus => {
+    const menu = document.querySelector('#pocket-select-menu');
+    if (!menu || !activeSelect) return;
+    const trigger = activeSelect.trigger;
+    activeSelect.select.setAttribute('aria-expanded', 'false');
+    trigger.setAttribute('aria-expanded', 'false');
+    menu.hidden = true;
+    activeSelect = null;
+    if (restoreFocus && trigger.isConnected) trigger.focus();
+  };
+  const syncSelectTrigger = select => {
+    const trigger = select.parentElement?.querySelector('.pocket-select-trigger');
+    const value = trigger?.querySelector('.pocket-select-value');
+    if (value) value.textContent = select.selectedOptions[0]?.textContent || '';
+  };
+  const positionSelectMenu = () => {
+    const menu = document.querySelector('#pocket-select-menu');
+    if (!menu || !activeSelect) return;
+    const rect = activeSelect.trigger.getBoundingClientRect();
+    const width = Math.min(Math.max(rect.width, 200), window.innerWidth - 24);
+    menu.style.width = `${width}px`;
+    menu.style.maxHeight = `${Math.max(120, Math.min(320, window.innerHeight - 24))}px`;
+    const menuHeight = Math.min(menu.scrollHeight, window.innerHeight - 24);
+    const below = window.innerHeight - rect.bottom - 12;
+    const above = rect.top - 12;
+    const top = below >= Math.min(menuHeight, 200) || below >= above
+      ? rect.bottom + 4
+      : Math.max(12, rect.top - menuHeight - 4);
+    menu.style.left = `${Math.max(12, Math.min(rect.left, window.innerWidth - width - 12))}px`;
+    menu.style.top = `${Math.min(top, window.innerHeight - menuHeight - 12)}px`;
+  };
+  const getSelectMenu = () => {
+    let menu = document.querySelector('#pocket-select-menu');
+    if (menu) return menu;
+    menu = document.createElement('div');
+    menu.id = 'pocket-select-menu';
+    menu.setAttribute('role', 'listbox');
+    menu.setAttribute('aria-label', 'Select an option');
+    menu.tabIndex = -1;
+    menu.hidden = true;
+    menu.addEventListener('click', event => {
+      const optionButton = event.target.closest('button[data-option-index]');
+      if (!optionButton || !activeSelect) return;
+      const { select, trigger } = activeSelect;
+      const optionIndex = Number(optionButton.dataset.optionIndex);
+      const changed = select.selectedIndex !== optionIndex;
+      select.selectedIndex = optionIndex;
+      syncSelectTrigger(select);
+      closeSelectMenu(true);
+      if (changed) {
+        select.dispatchEvent(new Event('input', { bubbles: true }));
+        select.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+      trigger.focus();
+    });
+    menu.addEventListener('keydown', event => {
+      const options = [...menu.querySelectorAll('button[data-option-index]:not(:disabled)')];
+      const currentIndex = options.indexOf(document.activeElement);
+      let nextIndex = currentIndex;
+      if (event.key === 'ArrowDown') nextIndex = Math.min(options.length - 1, currentIndex + 1);
+      else if (event.key === 'ArrowUp') nextIndex = Math.max(0, currentIndex - 1);
+      else if (event.key === 'Home') nextIndex = 0;
+      else if (event.key === 'End') nextIndex = options.length - 1;
+      else if (event.key === 'Escape') {
+        event.preventDefault();
+        closeSelectMenu(true);
+        return;
+      } else if (event.key === 'Tab') {
+        closeSelectMenu(false);
+        return;
+      } else {
+        return;
+      }
+      event.preventDefault();
+      options[nextIndex]?.focus();
+    });
+    document.body.append(menu);
+    return menu;
+  };
+  const openSelectMenu = (select, trigger) => {
+    const menu = getSelectMenu();
+    if (activeSelect?.select === select) {
+      closeSelectMenu(false);
+      return;
+    }
+    closeSelectMenu(false);
+    activeSelect = { select, trigger };
+    menu.replaceChildren();
+    [...select.options].forEach((option, index) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.dataset.optionIndex = String(index);
+      button.setAttribute('role', 'option');
+      button.setAttribute('aria-selected', String(index === select.selectedIndex));
+      button.disabled = option.disabled;
+      button.textContent = option.textContent;
+      menu.append(button);
+    });
+    menu.hidden = false;
+    select.setAttribute('aria-expanded', 'true');
+    trigger.setAttribute('aria-expanded', 'true');
+    positionSelectMenu();
+    menu.querySelector(`[data-option-index="${select.selectedIndex}"]:not(:disabled)`)?.focus();
+  };
+  const wireMobileSelect = select => {
+    if (select.dataset.pocketSelectReady) {
+      syncSelectTrigger(select);
+      return;
+    }
+    select.dataset.pocketSelectReady = '1';
+    const control = document.createElement('div');
+    control.className = 'pocket-select-control';
+    select.before(control);
+    control.append(select);
+    select.classList.add('pocket-select-native');
+    const trigger = document.createElement('button');
+    trigger.type = 'button';
+    trigger.className = 'pocket-select-trigger';
+    trigger.setAttribute('role', 'combobox');
+    trigger.setAttribute('aria-haspopup', 'listbox');
+    trigger.setAttribute('aria-expanded', 'false');
+    trigger.setAttribute('aria-controls', 'pocket-select-menu');
+    const label = select.closest('label');
+    const labelText = label ? [...label.childNodes].find(node => node.nodeType === Node.TEXT_NODE)?.textContent.trim() : '';
+    trigger.setAttribute('aria-label', labelText || 'Choose an option');
+    trigger.innerHTML = '<span class="pocket-select-value"></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m7 10 5 5 5-5"/></svg>';
+    control.append(trigger);
+    syncSelectTrigger(select);
+    trigger.addEventListener('click', () => openSelectMenu(select, trigger));
+    trigger.addEventListener('keydown', event => {
+      if (['Enter', ' ', 'ArrowDown', 'ArrowUp'].includes(event.key)) {
+        event.preventDefault();
+        openSelectMenu(select, trigger);
+      }
+    });
+    select.addEventListener('change', () => syncSelectTrigger(select));
+    if (label) {
+      label.addEventListener('click', event => {
+        if (event.target !== label) return;
+        event.preventDefault();
+        trigger.focus();
+        openSelectMenu(select, trigger);
+      });
+    }
+  };
+  const wireMobileSelects = root => root.querySelectorAll('select').forEach(wireMobileSelect);
+  document.addEventListener('pointerdown', event => {
+    if (!activeSelect || activeSelect.trigger.contains(event.target) || document.querySelector('#pocket-select-menu')?.contains(event.target)) return;
+    closeSelectMenu(false);
+  });
+  window.addEventListener('resize', positionSelectMenu);
+  window.addEventListener('scroll', () => {
+    if (activeSelect) closeSelectMenu(false);
+  }, true);
 
   const pageTitle = () => main.querySelector(':scope > .row.sp h2');
   const setTitle = () => {
@@ -114,6 +284,7 @@
       const option = rule && [...catEl.options].find(item => normalize(item.textContent) === normalize(rule.category));
       if (!option) { hint.textContent = ''; delete hint.dataset.active; hint.hidden = true; hint.style.display = 'none'; return; }
       applying = true; catEl.value = option.value; applying = false;
+      syncSelectTrigger(catEl);
       hint.textContent = `Suggested: ${option.textContent} · change if needed`;
       hint.dataset.active = 'true';
       hint.hidden = false;
@@ -125,7 +296,10 @@
   };
   const watchTransactionForm = () => {
     const form = document.querySelector('#f');
-    if (form) attachAutoCategory(form);
+    if (form) {
+      attachAutoCategory(form);
+      wireMobileSelects(form);
+    }
   };
 
   const updatePrivacy = () => {
@@ -383,6 +557,7 @@
     wireQuickAdd();
     wirePageSwipe();
     updatePrivacy();
+    wireMobileSelects(main);
     watchTransactionForm();
   };
   const observer = new MutationObserver(() => {
