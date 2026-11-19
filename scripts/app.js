@@ -255,7 +255,10 @@ const K = 'pera.v1',
             }
             return Math.round(b * 100) / 100
         }
-        const sorted = () => [...D.tx].sort((a, b) => (b.date + (b.time || '')).localeCompare(a.date + (a.time || '')));
+        const sorted = () => D.tx.map((transaction, index) => ({ transaction, index }))
+            .sort((a, b) => b.transaction.date.localeCompare(a.transaction.date) ||
+                (b.transaction.time || '').localeCompare(a.transaction.time || '') || b.index - a.index)
+            .map(({ transaction }) => transaction);
         const sum = (L, ty) => L.filter(t => t.type === ty).reduce((s, t) => s + t.amount, 0);
 
         function rng() {
@@ -434,7 +437,7 @@ const K = 'pera.v1',
                             o: ac
                         } : {
                             k: 'cat',
-                            l: 'Category',
+                            l: 'Choose category',
                             t: 'sel',
                             o: D.cats.filter(c => v.type === 'income' ? c.g === 'Income' : c.g !== 'Income')
                                 .map(c => [c.id, c.name])
@@ -446,7 +449,7 @@ const K = 'pera.v1',
                             o: ac
                         } : {
                             k: 'acc',
-                            l: 'Account',
+                            l: 'Choose account',
                             t: 'sel',
                             o: ac
                         }, {
@@ -1318,7 +1321,7 @@ ${summaryWidget}${shortcutsWidget}${actionsWidget}${accountsWidget}${transaction
             D.cats = D.cats.filter(c => c.id !== id)
         });
         V.cat = () =>
-            `<div class="row sp"><h2>Categories</h2></div>${[['Daily','Daily expenses'],['Financial','Financial transactions'],['Income','Income']].map(([g,l])=>`<div class="card" style="margin-top:14px"><h3>${l}</h3>${D.cats.filter(c=>c.g===g).map(c=>`<div class="tx"><span class="dot" style="background:${c.color}22;color:${c.color}">${ic(c.icon)}</span><b class="gr">${esc(c.name)}</b><button class="ib" onclick="catForm('${c.id}')">${ic('pencil')}</button><button class="ib" onclick="delCat('${c.id}')">${ic('trash-2')}</button></div>`).join('')}</div>`).join('')}`;
+            `<div class="row sp"><h2>Categories</h2></div>${[['Daily','Daily expenses'],['Financial','Financial transactions'],['Income','Income']].map(([g,l])=>`<div class="card" style="margin-top:14px"><h3>${l}</h3>${D.cats.filter(c=>c.g===g).sort((a,b)=>a.name.localeCompare(b.name,undefined,{sensitivity:'base'})||a.id.localeCompare(b.id)).map(c=>`<div class="tx"><span class="dot" style="background:${c.color}22;color:${c.color}">${ic(c.icon)}</span><b class="gr">${esc(c.name)}</b><button class="ib" onclick="catForm('${c.id}')">${ic('pencil')}</button><button class="ib" onclick="delCat('${c.id}')">${ic('trash-2')}</button></div>`).join('')}</div>`).join('')}`;
 
         function csv() {
             const q = s => '"' + String(s ?? '').replace(/"/g, '""') + '"';

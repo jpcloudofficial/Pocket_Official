@@ -1381,6 +1381,11 @@
             background-repeat: no-repeat
         }
 
+        #ov input[type="date"]::-webkit-calendar-picker-indicator {
+            margin-left: auto;
+            cursor: pointer
+        }
+
         body.pocket-modal-open .fab,
         body.pocket-modal-open .pocket-fab-menu {
             display: none !important
