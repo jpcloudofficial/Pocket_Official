@@ -1787,6 +1787,7 @@ ${profileSettingsCard()}
         window.pocketApp = {
             getData: () => D,
             normalizeData: clean,
+            quickAdd,
             replaceFromCloud: data => {
                 D = data;
                 save();
