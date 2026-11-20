@@ -16,7 +16,9 @@
   };
   const dashboardTitle = () => {
     const name = window.pocketApp?.getData?.().name;
-    return typeof name === 'string' && name.trim() ? `Hi, ${name.trim()}` : 'My Finance';
+    const hour = new Date().getHours(),
+      greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
+    return typeof name === 'string' && name.trim() ? `${greeting}, ${name.trim()}!` : `${greeting}!`;
   };
   const isHidden = () => { try { return localStorage.getItem(PRIVACY_KEY) === '1'; } catch { return false; } };
 
