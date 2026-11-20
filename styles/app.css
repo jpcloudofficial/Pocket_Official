@@ -63,6 +63,48 @@
             font: 14px/1.45 'Plus Jakarta Sans', system-ui, sans-serif
         }
 
+        html:not([data-view="tx"]),
+        html:not([data-view="tx"]) body {
+            scrollbar-width: none;
+            -ms-overflow-style: none
+        }
+
+        html:not([data-view="tx"])::-webkit-scrollbar,
+        html:not([data-view="tx"]) body::-webkit-scrollbar {
+            display: none
+        }
+
+        html[data-view="tx"],
+        html[data-view="tx"] body {
+            scrollbar-color: var(--mu) var(--bg);
+            scrollbar-width: thin
+        }
+
+        html[data-view="tx"]::-webkit-scrollbar,
+        html[data-view="tx"] body::-webkit-scrollbar {
+            width: 12px;
+            height: 12px
+        }
+
+        html[data-view="tx"]::-webkit-scrollbar-track,
+        html[data-view="tx"] body::-webkit-scrollbar-track {
+            background: transparent
+        }
+
+        html[data-view="tx"]::-webkit-scrollbar-thumb,
+        html[data-view="tx"] body::-webkit-scrollbar-thumb {
+            border: 3px solid transparent;
+            border-radius: 999px;
+            background: var(--mu);
+            background-clip: content-box
+        }
+
+        html[data-view="tx"]::-webkit-scrollbar-thumb:hover,
+        html[data-view="tx"] body::-webkit-scrollbar-thumb:hover {
+            background: var(--tx);
+            background-clip: content-box
+        }
+
         .app {
             display: flex;
             min-height: 100vh;
@@ -557,6 +599,49 @@
             display: flex;
             flex-wrap: wrap;
             gap: 2px 6px
+        }
+
+        .transaction-date-group + .transaction-date-group {
+            margin-top: 16px
+        }
+
+        .transaction-date-heading {
+            margin: 0 0 4px;
+            color: var(--mu);
+            font-size: 14px;
+            font-weight: 700
+        }
+
+        .transaction-scroll-month {
+            position: fixed;
+            top: 50%;
+            right: 16px;
+            z-index: 21;
+            min-width: 112px;
+            padding: 9px 16px;
+            border: 1px solid var(--bd);
+            border-radius: 999px;
+            background: var(--cd);
+            box-shadow: 0 6px 20px #0005;
+            color: var(--tx);
+            font-size: 15px;
+            font-weight: 700;
+            text-align: center;
+            opacity: 0;
+            transform: translate(8px, -50%);
+            pointer-events: none;
+            transition: opacity .16s ease, transform .16s ease
+        }
+
+        .transaction-scroll-month.is-visible {
+            opacity: 1;
+            transform: translate(0, -50%)
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .transaction-scroll-month {
+                transition: none
+            }
         }
 
         .tx-end,
