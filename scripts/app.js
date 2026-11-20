@@ -948,7 +948,7 @@ function syncDateInput(input) {
                 amount = `${t.type === 'expense' ? '−' : t.type === 'income' ? '+' : ''}${peso(t.amount)}`;
             const cashback = t.type === 'expense' ? D.cashbacks.find(claim => claim.expenseId === t.id) : null;
             const actions = act ? `<div class="tx-actions">${t.type === 'expense' ? `<button class="ib" onclick="${cashback ? "go('cash')" : `cashbackForm('${t.id}')`}" aria-label="${cashback ? 'Manage cashback' : 'Track cashback'}" title="${cashback ? 'Manage cashback' : 'Track cashback'}">${ic('coins')}</button>` : ''}<button class="ib" onclick="editTx('${t.id}')" aria-label="Edit">${ic('pencil')}</button><button class="ib" onclick="delTx('${t.id}')" aria-label="Delete">${ic('trash-2')}</button></div>` : '';
-            return `<div class="tx tx-list-row${recentLink ? ' recent-link' : ''}"${recentLink ? ` role="link" tabindex="0" aria-label="Open ${esc(t.title)} in Transactions" onclick="openRecentTransaction('${t.id}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openRecentTransaction('${t.id}')}"` : ''}><span class="dot" style="background:var(--sq);color:var(--tx)">${ic(tr ? 'arrow-left-right' : c ? c.icon : 'tag')}</span><div class="gr tx-copy"><b>${esc(t.title)}</b><small class="tx-meta"><span>${details}</span><span>${date}</span></small></div><div class="tx-end"><b class="tx-amount" style="color:${col}">${amount}</b>${actions}</div></div>`
+            return `<div class="tx tx-list-row${recentLink ? ' recent-link' : ''}" data-date="${esc(t.date)}"${recentLink ? ` role="link" tabindex="0" aria-label="Open ${esc(t.title)} in Transactions" onclick="openRecentTransaction('${t.id}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openRecentTransaction('${t.id}')}"` : ''}><span class="dot" style="background:var(--sq);color:var(--tx)">${ic(tr ? 'arrow-left-right' : c ? c.icon : 'tag')}</span><div class="gr tx-copy"><b>${esc(t.title)}</b><small class="tx-meta"><span>${details}</span><span>${date}</span></small></div><div class="tx-end"><b class="tx-amount" style="color:${col}">${amount}</b>${actions}</div></div>`
         }
 
         function bars(S, L, C) {
@@ -1280,14 +1280,36 @@ function syncDateInput(input) {
 ${summaryWidget}${shortcutsWidget}${actionsWidget}${accountsWidget}${transactionsWidget}${reportsWidget}${emptyDashboard}`
         };
 
+        const transactionDateHeadingFormatter = new Intl.DateTimeFormat('en-US', {
+            month: 'long',
+            day: 'numeric',
+            year: 'numeric'
+        });
         function txList() {
-
             const q = U.q.toLowerCase(),
                 L = sorted().filter(t => (!q || t.title.toLowerCase().includes(q)) && (!U.c || t.cat === U.c) && (!U
                         .a || t.acc === U.a || t.to === U.a) && (!U.ty || t.type === U.ty) && (!U.tf || t.date >= U
                     .tf) && (!U.tt || t.date <= U.tt));
-            return L.length ? L.map(t => row(t, 1)).join('') :
-                '<div class="empty">No transactions match. Try clearing a filter or add one.</div>'
+            if (!L.length) return '<div class="empty">No transactions match. Try clearing a filter or add one.</div>';
+            const now = new Date(),
+                todayDate = iso(now),
+                yesterdayDate = iso(new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1)),
+                groups = [];
+            L.forEach(transaction => {
+                let group = groups[groups.length - 1];
+                if (!group || group.date !== transaction.date) {
+                    group = { date: transaction.date, transactions: [] };
+                    groups.push(group);
+                }
+                group.transactions.push(transaction);
+            });
+            return groups.map(group => {
+                const [year, month, day] = group.date.split('-').map(Number),
+                    dateLabel = group.date === todayDate ? 'Today' :
+                        group.date === yesterdayDate ? 'Yesterday' :
+                            transactionDateHeadingFormatter.format(new Date(year, month - 1, day));
+                return `<section class="transaction-date-group"><h3 class="transaction-date-heading" data-date="${esc(group.date)}">${esc(dateLabel)}</h3>${group.transactions.map(transaction => row(transaction, 1)).join('')}</section>`;
+            }).join('')
         }
 
         function fl() {
@@ -1315,8 +1337,53 @@ ${summaryWidget}${shortcutsWidget}${actionsWidget}${accountsWidget}${transaction
                 `<option value="${x.id}">${esc(x.name)}</option>`).join('');
             return `<div class="row sp pocket-privacy-header"><h2>Transactions</h2></div>
 <div class="f"><input placeholder="Search by name" value="${esc(U.q)}" oninput="U.q=this.value;fl()"><select aria-label="Filter by category" onchange="U.c=this.value;fl()">${o(D.cats,'All categories').replace(`value="${U.c}"`,`value="${U.c}" selected`)}</select><select aria-label="Filter by account" onchange="U.a=this.value;fl()">${o(D.acc,'All accounts').replace(`value="${U.a}"`,`value="${U.a}" selected`)}</select>
-<select aria-label="Filter by type" onchange="U.ty=this.value;fl()">${[['','All types'],['income','Income'],['expense','Expense'],['transfer','Transfer']].map(x=>`<option value="${x[0]}"${U.ty===x[0]?' selected':''}>${x[1]}</option>`).join('')}</select><span class="date-input-wrap date-filter${U.tf ? '' : ' is-empty'}"><input type="date" aria-label="From date" value="${esc(U.tf)}" onchange="U.tf=this.value;syncDateInput(this);fl()"><span class="date-input-value">${esc(fd(U.tf))}</span><span class="date-input-placeholder">From date</span></span><span class="date-input-wrap date-filter${U.tt ? '' : ' is-empty'}"><input type="date" aria-label="To date" value="${esc(U.tt)}" onchange="U.tt=this.value;syncDateInput(this);fl()"><span class="date-input-value">${esc(fd(U.tt))}</span><span class="date-input-placeholder">To date</span></span></div><div class="card" id="tl">${txList()}</div>`
+<select aria-label="Filter by type" onchange="U.ty=this.value;fl()">${[['','All types'],['income','Income'],['expense','Expense'],['transfer','Transfer']].map(x=>`<option value="${x[0]}"${x[0]===U.ty?' selected':''}>${x[1]}</option>`).join('')}</select><span class="date-input-wrap date-filter${U.tf ? '' : ' is-empty'}"><input type="date" aria-label="From date" value="${esc(U.tf)}" onchange="U.tf=this.value;syncDateInput(this);fl()"><span class="date-input-value">${esc(fd(U.tf))}</span><span class="date-input-placeholder">From date</span></span><span class="date-input-wrap date-filter${U.tt ? '' : ' is-empty'}"><input type="date" aria-label="To date" value="${esc(U.tt)}" onchange="U.tt=this.value;syncDateInput(this);fl()"><span class="date-input-value">${esc(fd(U.tt))}</span><span class="date-input-placeholder">To date</span></span></div><div class="card" id="tl">${txList()}</div><div class="transaction-scroll-month" id="transaction-scroll-month" aria-hidden="true"></div>`
         };
+        const transactionMonthFormatter = new Intl.DateTimeFormat(undefined, { month: 'short', year: 'numeric' });
+        let transactionScrollHideTimer = 0;
+        function updateTransactionMonthIndicator() {
+            const indicator = $('#transaction-scroll-month');
+            if (U.v !== 'tx' || !indicator) return;
+            const root = document.documentElement,
+                contentHeight = Math.max(root.scrollHeight, document.body.scrollHeight),
+                scrollRange = contentHeight - window.innerHeight;
+            if (scrollRange <= 0) {
+                indicator.classList.remove('is-visible');
+                return;
+            }
+            const list = $('#tl'),
+                filters = $('#m > .f'),
+                header = $('#m > .row:first-child'),
+                listBounds = list?.getBoundingClientRect(),
+                filtersBottom = filters?.getBoundingClientRect().bottom,
+                headerBottom = header?.getBoundingClientRect().bottom || 0;
+            if (!listBounds || (filtersBottom !== undefined && filtersBottom > headerBottom)) {
+                indicator.classList.remove('is-visible');
+                return;
+            }
+            const x = listBounds.left + 32,
+                y = Math.max(listBounds.top + 20, headerBottom + 2),
+                row = y < window.innerHeight
+                    ? document.elementFromPoint(x, y)?.closest('#tl [data-date]')
+                    : null,
+                dateMatch = row?.dataset.date?.match(/^(\d{4})-(\d{2})-/);
+            if (!dateMatch) {
+                indicator.classList.remove('is-visible');
+                return;
+            }
+            const year = Number(dateMatch[1]),
+                month = Number(dateMatch[2]),
+                dateLabel = transactionMonthFormatter.format(new Date(year, month - 1, 1)),
+                thumbHeight = Math.min(window.innerHeight, Math.max(40, window.innerHeight ** 2 / contentHeight)),
+                thumbTravel = window.innerHeight - thumbHeight,
+                thumbPosition = window.scrollY / scrollRange * thumbTravel + thumbHeight / 2;
+            indicator.textContent = dateLabel;
+            indicator.style.top = `${Math.max(24, Math.min(window.innerHeight - 24, thumbPosition))}px`;
+            indicator.classList.add('is-visible');
+            window.clearTimeout(transactionScrollHideTimer);
+            transactionScrollHideTimer = window.setTimeout(() => indicator.classList.remove('is-visible'), 700);
+        }
+        window.addEventListener('scroll', updateTransactionMonthIndicator, { passive: true });
         V.cash = () => cashbackSection();
         const trForm = () => txFormT();
 
@@ -1948,8 +2015,24 @@ ${summaryWidget}${shortcutsWidget}${actionsWidget}${accountsWidget}${transaction
             if (v === 'prof') window.scrollTo(0, 0);
             const from = NAV.findIndex(([id]) => id === previousView),
                 to = NAV.findIndex(([id]) => id === v);
+            const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+            if (previousView !== v && v === 'prof' && !reduceMotion) {
+                $('#m').querySelectorAll('.profile-layout > .card').forEach((card, index) => {
+                    if (typeof card.animate !== 'function') return;
+                    const animation = card.animate([
+                        { opacity: 0, transform: 'translateY(14px) scale(.985)' },
+                        { opacity: 1, transform: 'translateY(0) scale(1)' }
+                    ], {
+                        duration: 360,
+                        delay: index * 65,
+                        easing: 'cubic-bezier(.22,.68,0,1)',
+                        fill: 'both'
+                    });
+                    animation.onfinish = () => animation.cancel();
+                });
+            }
             if (from >= 0 && to >= 0 && from !== to &&
-                !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                !reduceMotion) {
                 const main = $('#m');
                 if (typeof main.animate === 'function') {
                     pageTransition?.cancel();
@@ -1993,6 +2076,7 @@ ${summaryWidget}${shortcutsWidget}${actionsWidget}${accountsWidget}${transaction
             persistCurrentView();
             closeTitleMenu();
             document.documentElement.dataset.theme = D.theme;
+            document.documentElement.dataset.view = U.v;
             document.querySelector('meta[name=theme-color]').content = D.theme === 'dark' ? '#000000' : '#f5f5f4';
             const nav = $('#nv');
             if (!nav.querySelector('button')) {
