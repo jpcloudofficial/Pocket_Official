@@ -2,28 +2,39 @@
             const main = document.querySelector('#m');
             const maskAmounts = () => {
                 const hidden = main.classList.contains('pocket-private');
-                main.querySelectorAll('.hb, .hn, .av, .tx-amount').forEach(amount => {
-                    if (hidden) {
-                        if (!Object.prototype.hasOwnProperty.call(amount.dataset, 'pocketAmount')) {
-                            amount.dataset.pocketAmount = amount.textContent;
-                        }
-                        if (amount.textContent !== '****') amount.textContent = '****';
-                    } else if (Object.prototype.hasOwnProperty.call(amount.dataset, 'pocketAmount')) {
-                        amount.textContent = amount.dataset.pocketAmount;
-                        delete amount.dataset.pocketAmount;
+                if (!hidden) {
+                    main.querySelectorAll('.pocket-private-amount').forEach(amount => {
+                        amount.replaceWith(document.createTextNode(amount.dataset.pocketAmount));
+                    });
+                    return;
+                }
+
+                const walker = document.createTreeWalker(main, NodeFilter.SHOW_TEXT);
+                const textNodes = [];
+                while (walker.nextNode()) {
+                    const node = walker.currentNode;
+                    if (!node.parentElement.closest('.pocket-private-amount, script, style') &&
+                        /[+−-]?₱[\d,.]+/.test(node.nodeValue)) {
+                        textNodes.push(node);
                     }
-                });
-                main.querySelectorAll('.pocket-summary-amounts').forEach(summary => {
-                    if (hidden) {
-                        if (!Object.prototype.hasOwnProperty.call(summary.dataset, 'pocketAmount')) {
-                            summary.dataset.pocketAmount = summary.textContent;
-                        }
-                        const masked = summary.dataset.pocketAmount.replace(/[−-]?₱[\d,.]+/g, '****');
-                        if (summary.textContent !== masked) summary.textContent = masked;
-                    } else if (Object.prototype.hasOwnProperty.call(summary.dataset, 'pocketAmount')) {
-                        summary.textContent = summary.dataset.pocketAmount;
-                        delete summary.dataset.pocketAmount;
+                }
+
+                textNodes.forEach(node => {
+                    const text = node.nodeValue;
+                    const pattern = /[+−-]?₱[\d,.]+/g;
+                    const fragment = document.createDocumentFragment();
+                    let match, lastIndex = 0;
+                    while ((match = pattern.exec(text)) !== null) {
+                        fragment.append(document.createTextNode(text.slice(lastIndex, match.index)));
+                        const amount = document.createElement('span');
+                        amount.className = 'pocket-private-amount';
+                        amount.dataset.pocketAmount = match[0];
+                        amount.textContent = '****';
+                        fragment.append(amount);
+                        lastIndex = pattern.lastIndex;
                     }
+                    fragment.append(document.createTextNode(text.slice(lastIndex)));
+                    node.replaceWith(fragment);
                 });
             };
             new MutationObserver(maskAmounts).observe(main, {
