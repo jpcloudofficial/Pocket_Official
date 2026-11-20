@@ -647,7 +647,11 @@
         }
 
         .hero {
+<<<<<<< HEAD
             min-width: 0;
+=======
+            position: relative;
+>>>>>>> b80c256 (move hide buttton inside Total balance card and hide all of the amount)
             background: var(--sq);
             border-radius: 22px;
             padding: 20px;
