@@ -1251,7 +1251,7 @@ function syncDateInput(input) {
                 `<div class="hero"><small>Total Balance</small><div class="hb">${peso(tot,1)}</div><div class="two"><div><small>Income</small><div class="hn" style="color:var(--in)">${peso(inc)}</div></div><div><small>Expenses</small><div class="hn" style="color:var(--ex)">${peso(exp)}</div></div></div><small class="pocket-summary-amounts">Available ${peso(av)}${cr<0?' · Card owed '+peso(-cr):''}</small></div>` :
                 '';
             const shortcutsWidget = widgets.shortcuts ?
-                `<section class="mo dashboard-shortcuts" aria-labelledby="dashboard-shortcuts-title"><h3 class="sec" id="dashboard-shortcuts-title">Quick Actions</h3><div class="quick-actions-grid"><button class="quick-action" onclick="go('bud')"><span class="quick-action-icon quick-action-budget" aria-hidden="true">${ic('gauge')}</span><span>Budgets</span></button><button class="quick-action" onclick="go('cash')"><span class="quick-action-icon quick-action-cashback" aria-hidden="true">${ic('coins')}</span><span>Cashback</span></button><button class="quick-action" onclick="go('rec')"><span class="quick-action-icon quick-action-recurring" aria-hidden="true">${ic('repeat')}</span><span>Recurring</span></button><button class="quick-action" onclick="go('goal')"><span class="quick-action-icon quick-action-savings" aria-hidden="true">${ic('target')}</span><span>Savings goals</span></button></div></section>` :
+                `<section class="dashboard-shortcuts" aria-labelledby="dashboard-shortcuts-title"><h3 class="sec" id="dashboard-shortcuts-title">Quick Actions</h3><div class="quick-actions-grid"><button class="quick-action" onclick="go('bud')"><span class="quick-action-icon quick-action-budget" aria-hidden="true">${ic('gauge')}</span><span>Budgets</span></button><button class="quick-action" onclick="go('cash')"><span class="quick-action-icon quick-action-cashback" aria-hidden="true">${ic('coins')}</span><span>Cashback</span></button><button class="quick-action" onclick="go('rec')"><span class="quick-action-icon quick-action-recurring" aria-hidden="true">${ic('repeat')}</span><span>Recurring</span></button><button class="quick-action" onclick="go('goal')"><span class="quick-action-icon quick-action-savings" aria-hidden="true">${ic('target')}</span><span>Savings goals</span></button></div></section>` :
                 '';
             const actionsWidget = widgets.actions ?
                 `<div class="row end" style="margin-top:18px"><button class="b2" onclick="quickAdd('expense')">${ic('plus')} Expense</button><button class="b2" onclick="quickAdd('income')">${ic('plus')} Income</button><button class="b2" onclick="quickAdd('transfer')">${ic('arrow-left-right')} Transfer</button></div>` :
@@ -1677,7 +1677,7 @@ ${summaryWidget}${shortcutsWidget}${actionsWidget}${accountsWidget}${transaction
   <div id="cloud-conflict" class="cloud-conflict" hidden><p>Cloud data changed while this device also has local changes. Choose which copy to keep.</p><div class="settings-actions"><button class="b1" type="button" data-cloud-action="use-cloud">Use cloud copy</button><button class="b2" type="button" data-cloud-action="keep-local">Keep this device</button></div></div>
 </div>`;
         V.prof = () =>
-            `<div class="row sp"><h2>Profile</h2></div><div class="g g2">${cloudSyncCard()}${profileSettingsCard()}</div>`;
+            `<div class="row sp"><h2>Profile</h2></div><div class="g g2">${profileSettingsCard()}${cloudSyncCard()}</div>`;
         V.set = () =>
             `<div class="row sp"><h2>Settings</h2></div><div class="g g2">
 <div class="card settings-preferences"><h3>Preferences</h3><div class="settings-preference-list"><div class="settings-preference-row"><span>Currency</span><b>Philippine Peso (₱)</b></div><div class="settings-preference-row"><span>Date format</span><select aria-label="Date format" onchange="D.dateFormat=this.value;save();render()">${DATE_FORMATS.map(format=>`<option value="${format}"${currentDateFormat()===format?' selected':''}>${format}</option>`).join('')}</select></div><div class="settings-preference-row"><span>Theme</span><button class="b2" onclick="D.theme=D.theme==='dark'?'light':'dark';save();render()">${ic(D.theme==='dark'?'sun':'moon')} ${D.theme==='dark'?'Light':'Dark'} mode</button></div></div><div class="settings-preference-dashboard"><small>Dashboard</small><button class="b2 dashboard-layout-setting" onclick="dashboardSettingsForm()">${ic('bar-chart-3')} Customize Dashboard</button></div></div>
@@ -1728,15 +1728,19 @@ ${summaryWidget}${shortcutsWidget}${actionsWidget}${accountsWidget}${transaction
                 ['set', 'Settings']
             ]]
         ];
-        let titleMenu, titleMenuTrigger, pageTransition, titleMenuCloseTimer, titleMenuOpenTimer;
+        let titleMenu, titleMenuBackdrop, titleMenuTrigger, pageTransition, titleMenuCloseTimer, titleMenuOpenTimer;
 
         function closeTitleMenu() {
             if (!titleMenu || titleMenu.hidden || titleMenu.classList.contains('is-closing')) return;
             window.clearTimeout(titleMenuOpenTimer);
-            titleMenu.classList.remove('is-opening');
+            titleMenu.classList.remove('is-opening', 'is-open');
             titleMenu.classList.add('is-closing');
             titleMenu.setAttribute('aria-hidden', 'true');
             titleMenu.inert = true;
+            titleMenuBackdrop.classList.remove('is-opening', 'is-open');
+            titleMenuBackdrop.classList.add('is-closing');
+            titleMenuBackdrop.setAttribute('aria-hidden', 'true');
+            titleMenuBackdrop.inert = true;
             titleMenuTrigger?.setAttribute('aria-expanded', 'false');
             if (titleMenuTrigger?.classList.contains('page-menu-toggle')) {
                 titleMenuTrigger.setAttribute('aria-label', 'Open pages menu');
@@ -1746,71 +1750,107 @@ ${summaryWidget}${shortcutsWidget}${actionsWidget}${accountsWidget}${transaction
             window.clearTimeout(titleMenuCloseTimer);
             titleMenuCloseTimer = window.setTimeout(() => {
                 titleMenu.hidden = true;
-                titleMenu.classList.remove('is-closing');
+                titleMenuBackdrop.hidden = true;
+                titleMenu.classList.remove('is-closing', 'is-opening', 'is-open');
+                titleMenuBackdrop.classList.remove('is-closing', 'is-opening', 'is-open');
+                document.body.classList.remove('page-menu-open');
                 titleMenuCloseTimer = 0
-            }, window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 140)
+            }, window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 240)
         }
 
         function openTitleMenu(trigger) {
             closeTitleMenu();
             window.clearTimeout(titleMenuCloseTimer);
             window.clearTimeout(titleMenuOpenTimer);
-            titleMenu.classList.remove('is-closing', 'is-opening');
+            titleMenu.classList.remove('is-closing', 'is-opening', 'is-open');
+            titleMenuBackdrop.classList.remove('is-closing', 'is-opening', 'is-open');
+            titleMenuBackdrop.hidden = false;
+            titleMenuBackdrop.inert = false;
+            titleMenuBackdrop.setAttribute('aria-hidden', 'false');
             titleMenu.hidden = false;
             titleMenu.inert = false;
             titleMenu.setAttribute('aria-hidden', 'false');
+            document.body.classList.add('page-menu-open');
             titleMenuTrigger = trigger;
             trigger.setAttribute('aria-expanded', 'true');
             trigger.setAttribute('aria-label', 'Close pages menu');
             trigger.title = 'Close pages menu';
-            const rect = trigger.getBoundingClientRect(),
-                menu = titleMenu.getBoundingClientRect(),
-                left = Math.max(8, Math.min(rect.left, innerWidth - menu.width - 8)),
-                below = rect.bottom + 6,
-                top = below + menu.height <= innerHeight - 8 ? below : Math.max(8, rect.top - menu.height - 6);
-            titleMenu.style.left = `${left}px`;
-            titleMenu.style.top = `${top}px`;
             void titleMenu.offsetWidth;
+            titleMenuBackdrop.classList.add('is-opening');
             titleMenu.classList.add('is-opening');
+            titleMenu.querySelector('button[data-page]')?.focus();
             titleMenuOpenTimer = window.setTimeout(() => {
                 titleMenu.classList.remove('is-opening');
+                titleMenu.classList.add('is-open');
+                titleMenuBackdrop.classList.remove('is-opening');
+                titleMenuBackdrop.classList.add('is-open');
                 titleMenuOpenTimer = 0
-            }, window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 180)
+            }, window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 240)
         }
 
         function setupTitleMenu() {
+            if (!titleMenuBackdrop) {
+                titleMenuBackdrop = document.createElement('div');
+                titleMenuBackdrop.className = 'page-title-menu-backdrop';
+                titleMenuBackdrop.setAttribute('aria-hidden', 'true');
+                titleMenuBackdrop.hidden = true;
+                titleMenuBackdrop.inert = true;
+                document.body.append(titleMenuBackdrop);
+                titleMenuBackdrop.addEventListener('click', () => {
+                    const trigger = titleMenuTrigger;
+                    closeTitleMenu();
+                    trigger?.focus();
+                });
+            }
             if (!titleMenu) {
                 titleMenu = document.createElement('div');
                 titleMenu.className = 'page-title-menu';
                 titleMenu.id = 'page-title-menu';
-                titleMenu.setAttribute('role', 'menu');
+                titleMenu.setAttribute('role', 'dialog');
+                titleMenu.setAttribute('aria-modal', 'true');
+                titleMenu.setAttribute('aria-labelledby', 'page-title-menu-heading');
                 titleMenu.setAttribute('aria-hidden', 'true');
                 titleMenu.hidden = true;
                 titleMenu.inert = true;
                 document.body.append(titleMenu);
                 titleMenu.addEventListener('click', event => {
+                    if (event.target.closest('.page-title-menu-close')) {
+                        const trigger = titleMenuTrigger;
+                        closeTitleMenu();
+                        trigger?.focus();
+                        return;
+                    }
                     const item = event.target.closest('button[data-page]');
                     if (item) go(item.dataset.page)
-                });
-                document.addEventListener('click', event => {
-                    if (!titleMenu.hidden && !titleMenu.contains(event.target) &&
-                        !event.target.closest('.page-menu-toggle')) closeTitleMenu()
                 });
                 document.addEventListener('keydown', event => {
                     if (event.key === 'Escape' && !titleMenu.hidden) {
                         const trigger = titleMenuTrigger;
                         closeTitleMenu();
-                        trigger?.focus()
+                        trigger?.focus();
+                        return;
+                    }
+                    if (event.key === 'Tab' && !titleMenu.hidden) {
+                        const focusable = Array.from(titleMenu.querySelectorAll('button:not(:disabled)')),
+                            first = focusable[0],
+                            last = focusable[focusable.length - 1];
+                        if (!first || !last) return;
+                        if (event.shiftKey && (document.activeElement === first || !titleMenu.contains(document.activeElement))) {
+                            event.preventDefault();
+                            last.focus();
+                        } else if (!event.shiftKey && (document.activeElement === last || !titleMenu.contains(document.activeElement))) {
+                            event.preventDefault();
+                            first.focus();
+                        }
                     }
                 });
                 window.addEventListener('resize', closeTitleMenu);
-                window.addEventListener('scroll', closeTitleMenu, true)
             }
-            titleMenu.innerHTML = TITLE_MENU_GROUPS.map(([group, items]) =>
+            titleMenu.innerHTML = `<div class="page-title-menu-header"><strong id="page-title-menu-heading">Pages</strong><button type="button" class="page-title-menu-close" aria-label="Close pages menu"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>${TITLE_MENU_GROUPS.map(([group, items]) =>
                 `<div class="page-title-menu-group"><div class="page-title-menu-label">${group}</div>${items.map(([id, label]) =>
-                    `<button type="button" role="menuitem" data-page="${id}"${U.v===id?' aria-current="page"':''}>${label}</button>`
+                    `<button type="button" data-page="${id}"${U.v===id?' aria-current="page"':''}>${label}</button>`
                 ).join('')}</div>`
-            ).join('');
+            ).join('')}`;
             const heading = $('#m').querySelector('h2');
             if (!heading) return;
             heading.classList.add('page-menu-title');
@@ -1824,7 +1864,7 @@ ${summaryWidget}${shortcutsWidget}${actionsWidget}${accountsWidget}${transaction
                 toggle.className = 'page-menu-toggle';
                 toggle.setAttribute('aria-label', 'Open pages menu');
                 toggle.setAttribute('aria-expanded', 'false');
-                toggle.setAttribute('aria-haspopup', 'menu');
+                toggle.setAttribute('aria-haspopup', 'dialog');
                 toggle.setAttribute('aria-controls', 'page-title-menu');
                 toggle.innerHTML = '<span></span><span></span><span></span>';
                 toggle.addEventListener('click', event => {
@@ -1836,7 +1876,7 @@ ${summaryWidget}${shortcutsWidget}${actionsWidget}${accountsWidget}${transaction
                     if (event.key === 'ArrowDown') {
                         event.preventDefault();
                         openTitleMenu(toggle);
-                        titleMenu.querySelector('button')?.focus();
+                        titleMenu.querySelector('button[data-page]')?.focus();
                     }
                 });
             }

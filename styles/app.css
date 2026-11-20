@@ -81,6 +81,16 @@
             border-right: 1px solid var(--bd)
         }
 
+        @media (min-width: 761px) {
+            .app {
+                justify-content: center
+            }
+
+            .app > aside {
+                display: none
+            }
+        }
+
         .logo {
             font-weight: 700;
             font-size: 20px;
@@ -174,39 +184,107 @@
             width: 100%
         }
 
+        body.page-menu-open {
+            overflow: hidden
+        }
+
+        .page-title-menu-backdrop {
+            position: fixed;
+            inset: 0;
+            z-index: 39;
+            background: #0008;
+            opacity: 0;
+            transition: opacity .24s ease
+        }
+
+        .page-title-menu-backdrop[hidden] {
+            display: none
+        }
+
+        .page-title-menu-backdrop.is-opening,
+        .page-title-menu-backdrop.is-open {
+            opacity: 1
+        }
+
+        .page-title-menu-backdrop.is-closing {
+            opacity: 0;
+            pointer-events: none
+        }
+
         .page-title-menu {
             position: fixed;
+            inset: 0 auto 0 0;
             z-index: 40;
-            width: min(240px, calc(100vw - 16px));
-            max-height: 70vh;
+            width: min(320px, 85vw);
+            max-height: 100vh;
             overflow-y: auto;
-            padding: 6px;
-            border: 1px solid var(--bd);
-            border-radius: 12px;
+            overscroll-behavior: contain;
+            padding: calc(16px + env(safe-area-inset-top, 0px)) 12px calc(16px + env(safe-area-inset-bottom, 0px));
+            border-right: 1px solid var(--bd);
+            border-radius: 0 16px 16px 0;
             background: var(--cd);
-            box-shadow: 0 12px 30px #0004;
-            transform-origin: top left
+            box-shadow: 12px 0 30px #0004;
+            transform: translateX(-100%);
+            transition: transform .24s cubic-bezier(.22, .61, .36, 1)
         }
 
         .page-title-menu[hidden] {
             display: none
         }
 
-        .page-title-menu.is-opening {
-            animation: pocket-dropdown-in .16s ease-out both
+        .page-title-menu.is-opening,
+        .page-title-menu.is-open {
+            transform: translateX(0)
         }
 
         .page-title-menu.is-closing {
             pointer-events: none;
-            animation: pocket-dropdown-out .12s ease-in both
+            transform: translateX(-100%)
+        }
+
+        .page-title-menu-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            padding: 4px 4px 10px;
+            border-bottom: 1px solid var(--bd)
+        }
+
+        .page-title-menu-header strong {
+            font-size: 18px
+        }
+
+        .page-title-menu-close {
+            display: grid;
+            width: 36px;
+            height: 36px;
+            flex: none;
+            place-items: center;
+            padding: 0;
+            border: 0;
+            border-radius: 10px;
+            background: transparent;
+            color: var(--mu);
+            cursor: pointer
+        }
+
+        .page-title-menu-close svg {
+            width: 20px;
+            height: 20px;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 2;
+            stroke-linecap: round
         }
 
         .page-title-menu-group {
-            padding: 4px 0
+            padding: 8px 0;
+            border-bottom: 1px solid var(--bd)
         }
 
         .page-title-menu-label {
-            padding: 6px 12px 4px;
+            padding: 8px 8px 4px;
             color: var(--mu);
             font-size: 11px;
             font-weight: 700;
@@ -214,10 +292,11 @@
             text-transform: uppercase
         }
 
-        .page-title-menu button {
+        .page-title-menu-group button {
             display: block;
             width: 100%;
-            padding: 10px 12px;
+            min-height: 44px;
+            padding: 10px 8px;
             border: 0;
             border-radius: 8px;
             background: transparent;
@@ -226,8 +305,12 @@
             cursor: pointer
         }
 
-        .page-title-menu button:hover,
-        .page-title-menu button[aria-current="page"] {
+        .page-title-menu-group button:hover,
+        .page-title-menu-group button[aria-current="page"] {
+            background: var(--sq)
+        }
+
+        .page-title-menu-close:hover {
             background: var(--sq)
         }
 
@@ -813,6 +896,7 @@
         }
 
         .dashboard-shortcuts {
+            display: flex;
             flex-direction: column;
             align-items: stretch;
             gap: 10px;
@@ -876,6 +960,55 @@
 
         .quick-action-savings {
             color: #ea8c00
+        }
+
+        @media (min-width: 761px) {
+            .dashboard-shortcuts {
+                max-width: 720px;
+                margin-top: 18px
+            }
+
+            .dashboard-shortcuts .quick-actions-grid {
+                gap: 10px
+            }
+
+            .dashboard-shortcuts .quick-action {
+                min-height: 56px;
+                flex-direction: row;
+                justify-content: flex-start;
+                gap: 10px;
+                padding: 10px 12px;
+                border: 1px solid var(--bd);
+                border-radius: 12px;
+                background: var(--cd);
+                color: var(--tx);
+                font-weight: 600;
+                text-align: left;
+                transition: background-color .18s ease, border-color .18s ease
+            }
+
+            .dashboard-shortcuts .quick-action:hover {
+                background: var(--sq)
+            }
+
+            .dashboard-shortcuts .quick-action:focus-visible {
+                outline: 2px solid var(--tx);
+                outline-offset: 2px
+            }
+
+            .dashboard-shortcuts .quick-action-icon {
+                width: 32px;
+                flex: none;
+                border: 0;
+                border-radius: 0;
+                background: transparent;
+                box-shadow: none
+            }
+
+            .dashboard-shortcuts .quick-action-icon .ic {
+                width: 20px;
+                height: 20px
+            }
         }
 
         .account-carousel {
@@ -1708,12 +1841,15 @@
         }
 
         @media(prefers-reduced-motion:reduce) {
-            .page-title-menu.is-opening,
+            .page-title-menu-backdrop,
+            .page-title-menu {
+                transition: none
+            }
+
             .pocket-select-menu {
                 animation-duration: .01ms
             }
 
-            .page-title-menu.is-closing,
             .pocket-select-menu.is-closing {
                 animation-duration: .01ms
             }
