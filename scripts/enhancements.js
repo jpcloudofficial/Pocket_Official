@@ -62,15 +62,9 @@
       .pocket-category-hint{display:block;color:var(--mu);font-size:12px;margin:6px 2px 0;min-height:17px}
       .pocket-category-hint[hidden]{display:none}
       .pocket-category-hint[data-active="true"]{color:var(--in)}
-<<<<<<< HEAD
-      #m.pocket-private .hb,#m.pocket-private .hn,#m.pocket-private .av,#m.pocket-private .tx-amount{user-select:none}
-      @media(max-width:760px){.pocket-fab-menu{right:14px;bottom:calc(84px + env(safe-area-inset-bottom,0px))}.pocket-account-transfer{right:14px;bottom:calc(142px + env(safe-area-inset-bottom,0px))}}
-      @media(prefers-reduced-motion:reduce){.pocket-carousel-track,.pocket-fab-menu,.pocket-account-transfer,.fab{transition:none!important}.pocket-fab-menu.pocket-fab-opening,.pocket-fab-menu.pocket-fab-closing,.pocket-fab-menu.pocket-fab-opening button{animation-duration:.01ms!important}}
-=======
       #m.pocket-private .pocket-private-amount{user-select:none}
       @media(max-width:760px){.pocket-fab-menu{right:52px;bottom:calc(94px + env(safe-area-inset-bottom,0px))}.pocket-account-transfer{right:52px;bottom:calc(152px + env(safe-area-inset-bottom,0px))}}
       @media(prefers-reduced-motion:reduce){.pocket-carousel-track,.pocket-fab-menu,.pocket-account-transfer,.fab{transition:none!important}}
->>>>>>> b80c256 (move hide buttton inside Total balance card and hide all of the amount)
     `;
     document.head.append(style);
   };
