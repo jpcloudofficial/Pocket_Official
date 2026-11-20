@@ -8,6 +8,7 @@
                 goal: 'Savings goals',
                 rep: 'Reports',
                 cat: 'Categories',
+                prof: 'Profile',
                 set: 'Settings'
             };
             const main = document.querySelector('#m');

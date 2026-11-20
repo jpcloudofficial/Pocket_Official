@@ -167,13 +167,7 @@
             align-items: center;
             gap: 7px;
             width: fit-content;
-            cursor: pointer
-        }
-
-        h2.page-menu-title::after {
-            content: '\25BE';
-            color: var(--mu);
-            font-size: .65em
+            cursor: default
         }
 
         #m > h2.page-menu-title:first-child {
@@ -1012,9 +1006,32 @@
         .account-stack-controls {
             display: flex;
             align-items: center;
-            justify-content: flex-end;
-            gap: 6px;
+            justify-content: space-between;
+            gap: 12px;
             margin: 8px 0 6px
+        }
+
+        .account-stack-controls-info {
+            flex: 1 1 auto;
+            min-width: 0
+        }
+
+        .account-stack-controls-info .account-stack-summary-count {
+            display: block;
+            margin-bottom: 2px
+        }
+
+        .account-stack-summary-balances {
+            display: grid;
+            gap: 2px
+        }
+
+        .account-stack-control-actions {
+            display: flex;
+            flex: none;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 6px
         }
 
         .account-stack-card-heading,
@@ -1100,6 +1117,18 @@
             display: flex;
             align-items: center;
             gap: 6px
+        }
+
+        @media (max-width: 400px) {
+            .account-stack-controls {
+                align-items: stretch;
+                flex-direction: column;
+                gap: 8px
+            }
+
+            .account-stack-control-actions {
+                align-self: flex-end
+            }
         }
 
         .account-stack-footer {

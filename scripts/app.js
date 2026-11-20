@@ -1019,9 +1019,12 @@ function syncDateInput(input) {
                 }
             })
         }
-        const alerts = () => bstat().filter(x => x.msg).map(x =>
+        const alerts = () => bstat().filter(x => x.msg).sort((first, second) =>
+            (C(first.id)?.name || '').localeCompare(C(second.id)?.name || '', undefined, { sensitivity: 'base' }) ||
+            first.id.localeCompare(second.id)
+        ).map(x =>
             `<div class="warn">${ic('alert-triangle')} ${esc(C(x.id)?.name)} ${x.msg} (${Math.round(x.p)}% of ${peso(x.b)})</div>`
-            ).join('');
+        ).join('');
         const V = {};
         function accountPageChanged(carousel) {
             const indicator = $('#account-page-indicator'),
@@ -1394,7 +1397,9 @@ ${summaryWidget}${shortcutsWidget}${actionsWidget}${accountsWidget}${transaction
             const collapsedHeight = accounts.length ? Math.min(206 + (accounts.length - 1) * 28, 430) : 0,
                 stackGap = accounts.length > 1 ? accountStackExpanded ? 68 : (collapsedHeight - 206) / (accounts.length - 1) : 0,
                 stackHeight = accounts.length ? 206 + (accounts.length - 1) * stackGap : 0,
-                stackClass = accountStackExpanded ? 'account-stack is-expanded' : 'account-stack';
+                stackClass = accountStackExpanded ? 'account-stack is-expanded' : 'account-stack',
+                totalBalance = D.acc.filter(account => !isSav(account)).reduce((total, account) => total + bal(account), 0),
+                savingsBalance = D.acc.filter(isSav).reduce((total, account) => total + bal(account), 0);
             const visibleAccounts = accounts;
             const cards = visibleAccounts.map((account, index) => {
                 const balance = bal(account);
@@ -1407,7 +1412,9 @@ ${summaryWidget}${shortcutsWidget}${actionsWidget}${accountsWidget}${transaction
                     '';
                 return `<article class="account-stack-card${isFront ? ' is-front' : ''}${isNext ? ' is-next' : ''}" data-account-id="${esc(account.id)}" aria-hidden="${!isFront && !accountStackExpanded}" style="--account-accent:${esc(account.color)};--stack-offset:${index * stackGap}px;z-index:${index}"><div class="account-stack-card-heading"><div class="account-stack-name"><span class="account-stack-icon">${ic(account.icon || 'wallet')}</span><span class="account-stack-name-copy"><b>${esc(account.name)}</b><small>${esc(account.type)} · since ${fd(account.created)}</small></span></div><b class="account-stack-balance" style="color:${balance < 0 ? 'var(--ex)' : 'var(--tx)'}">${peso(balance)}</b></div><div class="account-stack-card-footer"><small>${balanceNote}</small>${actions}</div></article>`
             }).join('');
-            return `<div class="row sp account-stack-summary"><div class="account-stack-summary-copy"><h2>Accounts</h2><small class="account-stack-summary-line"><span>Total Balance</span><b>${peso(D.acc.filter(account => !isSav(account)).reduce((total, account) => total + bal(account), 0))}</b></small><small class="account-stack-summary-line"><span>Savings</span><b>${peso(D.acc.filter(isSav).reduce((total, account) => total + bal(account), 0))}</b></small></div><small class="account-stack-summary-count">${accounts.length} accounts</small></div>${accounts.length ? `<div class="account-stack-wrap"><div class="account-stack-controls"><button type="button" class="chip" aria-label="Show next account" ${accounts.length < 2 ? 'disabled' : ''} onclick="sendAccountCardToBack()">Next card</button><button type="button" class="chip" aria-label="${accountStackExpanded ? 'Collapse account cards' : 'Show all account balances'}" aria-expanded="${accountStackExpanded}" ${accounts.length < 2 ? 'disabled' : ''} onclick="toggleAccountStackExpanded()">${accountStackExpanded ? 'Collapse cards' : 'Show balances'}</button></div><small class="account-stack-hint">${accountStackExpanded ? 'Swipe up to return to the card stack.' : 'Swipe down to see each account name and balance.'}</small><div class="${stackClass}" role="region" aria-expanded="${accountStackExpanded}" aria-label="Account cards. Swipe down to show all account names and balances, or swipe up to collapse." tabindex="0" style="height:${stackHeight}px">${cards}</div><div class="account-stack-footer"><small>${accountStackExpanded ? 'Swipe up to collapse the cards.' : 'Down for balances · sideways to switch'}</small></div></div>` : '<div class="empty">No accounts yet.</div>'}`
+            const accountCount = `<small class="account-stack-summary-count">${accounts.length} accounts</small>`;
+            const accountBalances = `<div class="account-stack-summary-balances"><small class="account-stack-summary-line"><span>Total Balance</span><b>${peso(totalBalance)}</b></small><small class="account-stack-summary-line"><span>Savings</span><b>${peso(savingsBalance)}</b></small></div>`;
+            return `<div class="row sp account-stack-summary"><div class="account-stack-summary-copy"><h2>Accounts</h2>${accounts.length ? '' : accountBalances}</div>${accounts.length ? '' : accountCount}</div>${accounts.length ? `<div class="account-stack-wrap"><div class="account-stack-controls"><div class="account-stack-controls-info">${accountCount}${accountBalances}</div><div class="account-stack-control-actions"><button type="button" class="chip" aria-label="Show next account" ${accounts.length < 2 ? 'disabled' : ''} onclick="sendAccountCardToBack()">Next card</button><button type="button" class="chip" aria-label="${accountStackExpanded ? 'Collapse account cards' : 'Show all account balances'}" aria-expanded="${accountStackExpanded}" ${accounts.length < 2 ? 'disabled' : ''} onclick="toggleAccountStackExpanded()">${accountStackExpanded ? 'Collapse cards' : 'Show balances'}</button></div></div><small class="account-stack-hint">${accountStackExpanded ? 'Swipe up to return to the card stack.' : 'Swipe down to see each account name and balance.'}</small><div class="${stackClass}" role="region" aria-expanded="${accountStackExpanded}" aria-label="Account cards. Swipe down to show all account names and balances, or swipe up to collapse." tabindex="0" style="height:${stackHeight}px">${cards}</div><div class="account-stack-footer"><small>${accountStackExpanded ? 'Swipe up to collapse the cards.' : 'Down for balances · sideways to switch'}</small></div></div>` : '<div class="empty">No accounts yet.</div>'}`
         };
 
         function budForm(id) {
@@ -1658,19 +1665,21 @@ ${summaryWidget}${shortcutsWidget}${actionsWidget}${accountsWidget}${transaction
             const colors = PROFILE_COLORS.map(([name, color]) =>
                 `<button type="button" class="profile-color-swatch" style="--profile-swatch:${color}" aria-label="${name} profile color" aria-pressed="${D.profileAccent===color}" onclick="D.profileAccent='${color}';save();render()"></button>`
             ).join('');
-            return `<div class="card profile-card" style="--profile-accent:${D.profileAccent}"><h3>Profile</h3><div class="profile-summary"><div class="profile-avatar" id="profile-avatar" aria-hidden="true"><span>${esc(initial)}</span></div><div class="profile-identity"><strong id="profile-name-preview">${esc(D.name||'Your profile')}</strong><small>Personalize your Pocket profile</small></div></div><label class="profile-name-field">Display name<input id="profile-name" type="text" maxlength="32" autocomplete="name" aria-label="Profile display name" placeholder="Your name" value="${esc(D.name)}" onchange="D.name=this.value.trim().slice(0,32);save();render()"></label><div class="profile-email-row"><span>Account email</span><strong id="profile-email">Sign in to see your account email.</strong></div><div class="profile-color-setting"><span>Profile color</span><div class="profile-color-options" role="group" aria-label="Profile color">${colors}</div></div><small class="settings-note">Your display name and profile color sync to your signed-in devices.</small></div>`;
+            return `<div class="card profile-card" id="profile-settings" style="--profile-accent:${D.profileAccent}"><h3>Profile</h3><div class="profile-summary"><div class="profile-avatar" id="profile-avatar" aria-hidden="true"><span>${esc(initial)}</span></div><div class="profile-identity"><strong id="profile-name-preview">${esc(D.name||'Your profile')}</strong><small>Personalize your Pocket profile</small></div></div><label class="profile-name-field">Display name<input id="profile-name" type="text" maxlength="32" autocomplete="name" aria-label="Profile display name" placeholder="Your name" value="${esc(D.name)}" onchange="D.name=this.value.trim().slice(0,32);save();render()"></label><div class="profile-email-row"><span>Account email</span><strong id="profile-email">Sign in to see your account email.</strong></div><div class="profile-color-setting"><span>Profile color</span><div class="profile-color-options" role="group" aria-label="Profile color">${colors}</div></div><small class="settings-note">Your display name and profile color sync to your signed-in devices.</small></div>`;
         }
-        V.set = () =>
-            `<h2>Settings</h2><div class="g g2">
-<div class="card cloud-sync-card" id="cloud-sync-card">
+        const cloudSyncCard = () =>
+            `<div class="card cloud-sync-card" id="cloud-sync-card">
   <div class="cloud-sync-intro"><h3>Cloud sync</h3><p class="settings-note">Sync your data across devices.</p></div>
   <p id="cloud-sync-status" class="cloud-sync-status" role="status">Connecting to Firebase…</p>
   <p class="cloud-sync-error" id="cloud-sync-error" role="alert" hidden></p>
   <div id="cloud-login-options"><button class="b2 cloud-google-button" type="button" data-cloud-action="google-sign-in">Continue with Google</button><details class="cloud-email-options"><summary>Use email instead</summary><form id="cloud-auth-form"><label>Email<input id="cloud-email" type="email" autocomplete="email" required></label><label>Password<input id="cloud-password" type="password" autocomplete="current-password" minlength="6" required></label><div class="settings-actions"><button class="b1" type="submit" data-cloud-action="sign-in">Sign in</button><button class="b2" type="button" data-cloud-action="signup">Create account</button><button class="b2" type="button" data-cloud-action="password-reset">Forgot password?</button></div></form></details></div>
   <div id="cloud-user-controls" hidden><div class="cloud-account-row"><div class="cloud-account-copy"><small>Signed in as</small><strong id="cloud-sync-email"></strong></div><button class="b2" type="button" data-cloud-action="sign-out">Sign out</button></div></div>
   <div id="cloud-conflict" class="cloud-conflict" hidden><p>Cloud data changed while this device also has local changes. Choose which copy to keep.</p><div class="settings-actions"><button class="b1" type="button" data-cloud-action="use-cloud">Use cloud copy</button><button class="b2" type="button" data-cloud-action="keep-local">Keep this device</button></div></div>
-</div>
-${profileSettingsCard()}
+</div>`;
+        V.prof = () =>
+            `<div class="row sp"><h2>Profile</h2></div><div class="g g2">${cloudSyncCard()}${profileSettingsCard()}</div>`;
+        V.set = () =>
+            `<div class="row sp"><h2>Settings</h2></div><div class="g g2">
 <div class="card settings-preferences"><h3>Preferences</h3><div class="settings-preference-list"><div class="settings-preference-row"><span>Currency</span><b>Philippine Peso (₱)</b></div><div class="settings-preference-row"><span>Date format</span><select aria-label="Date format" onchange="D.dateFormat=this.value;save();render()">${DATE_FORMATS.map(format=>`<option value="${format}"${currentDateFormat()===format?' selected':''}>${format}</option>`).join('')}</select></div><div class="settings-preference-row"><span>Theme</span><button class="b2" onclick="D.theme=D.theme==='dark'?'light':'dark';save();render()">${ic(D.theme==='dark'?'sun':'moon')} ${D.theme==='dark'?'Light':'Dark'} mode</button></div></div><div class="settings-preference-dashboard"><small>Dashboard</small><button class="b2 dashboard-layout-setting" onclick="dashboardSettingsForm()">${ic('bar-chart-3')} Customize Dashboard</button></div></div>
 <div class="card"><h3>Manage</h3><div class="settings-actions"><button class="b2" onclick="go('acc')">${ic('wallet')} Accounts</button><button class="b2" onclick="go('cat')">${ic('tag')} Categories</button><button class="b2" onclick="go('bud')">${ic('gauge')} Budgets</button><button class="b2" onclick="go('goal')">${ic('target')} Savings goals</button><button class="b2" onclick="go('rec')">${ic('repeat')} Recurring transactions</button><button class="b2" onclick="go('cash')">${ic('coins')} Cashback</button></div></div>
 <div class="card"><h3>Export</h3><div class="settings-actions"><button class="b2" onclick="showText('Transactions (CSV)',csv())">${ic('file-text')} Transactions CSV</button><button class="b2" onclick="showText('Monthly report (CSV)',repCsv())">${ic('bar-chart-3')} Report CSV</button><button class="b2" onclick="exportAllData()">${ic('download')} Export all data (JSON)</button></div></div>
@@ -1712,6 +1721,9 @@ ${profileSettingsCard()}
                 ['cat', 'Categories'],
                 ['cash', 'Cashback']
             ]],
+            ['Account', [
+                ['prof', 'Profile']
+            ]],
             ['Preferences', [
                 ['set', 'Settings']
             ]]
@@ -1726,6 +1738,10 @@ ${profileSettingsCard()}
             titleMenu.setAttribute('aria-hidden', 'true');
             titleMenu.inert = true;
             titleMenuTrigger?.setAttribute('aria-expanded', 'false');
+            if (titleMenuTrigger?.classList.contains('page-menu-toggle')) {
+                titleMenuTrigger.setAttribute('aria-label', 'Open pages menu');
+                titleMenuTrigger.title = 'Open pages menu';
+            }
             titleMenuTrigger = null;
             window.clearTimeout(titleMenuCloseTimer);
             titleMenuCloseTimer = window.setTimeout(() => {
@@ -1745,6 +1761,8 @@ ${profileSettingsCard()}
             titleMenu.setAttribute('aria-hidden', 'false');
             titleMenuTrigger = trigger;
             trigger.setAttribute('aria-expanded', 'true');
+            trigger.setAttribute('aria-label', 'Close pages menu');
+            trigger.title = 'Close pages menu';
             const rect = trigger.getBoundingClientRect(),
                 menu = titleMenu.getBoundingClientRect(),
                 left = Math.max(8, Math.min(rect.left, innerWidth - menu.width - 8)),
@@ -1764,6 +1782,7 @@ ${profileSettingsCard()}
             if (!titleMenu) {
                 titleMenu = document.createElement('div');
                 titleMenu.className = 'page-title-menu';
+                titleMenu.id = 'page-title-menu';
                 titleMenu.setAttribute('role', 'menu');
                 titleMenu.setAttribute('aria-hidden', 'true');
                 titleMenu.hidden = true;
@@ -1775,7 +1794,7 @@ ${profileSettingsCard()}
                 });
                 document.addEventListener('click', event => {
                     if (!titleMenu.hidden && !titleMenu.contains(event.target) &&
-                        !event.target.closest('.page-menu-title')) closeTitleMenu()
+                        !event.target.closest('.page-menu-toggle')) closeTitleMenu()
                 });
                 document.addEventListener('keydown', event => {
                     if (event.key === 'Escape' && !titleMenu.hidden) {
@@ -1795,19 +1814,34 @@ ${profileSettingsCard()}
             const heading = $('#m').querySelector('h2');
             if (!heading) return;
             heading.classList.add('page-menu-title');
-            heading.tabIndex = 0;
-            heading.setAttribute('aria-haspopup', 'menu');
-            heading.setAttribute('aria-expanded', 'false');
-            heading.onclick = () => {
-                if (!titleMenu.hidden && titleMenuTrigger === heading) closeTitleMenu();
-                else openTitleMenu(heading)
-            };
-            heading.onkeydown = event => {
-                if (['Enter', ' ', 'ArrowDown'].includes(event.key)) {
-                    event.preventDefault();
-                    openTitleMenu(heading);
-                    titleMenu.querySelector('button')?.focus()
-                }
+            const header = heading.closest('.row, .cashback-header');
+            if (!header) return;
+            const headingGroup = heading.parentElement === header ? heading : heading.parentElement;
+            let toggle = header.querySelector(':scope > .page-menu-toggle');
+            if (!toggle) {
+                toggle = document.createElement('button');
+                toggle.type = 'button';
+                toggle.className = 'page-menu-toggle';
+                toggle.setAttribute('aria-label', 'Open pages menu');
+                toggle.setAttribute('aria-expanded', 'false');
+                toggle.setAttribute('aria-haspopup', 'menu');
+                toggle.setAttribute('aria-controls', 'page-title-menu');
+                toggle.innerHTML = '<span></span><span></span><span></span>';
+                toggle.addEventListener('click', event => {
+                    event.stopPropagation();
+                    if (!titleMenu.hidden && titleMenuTrigger === toggle) closeTitleMenu();
+                    else openTitleMenu(toggle);
+                });
+                toggle.addEventListener('keydown', event => {
+                    if (event.key === 'ArrowDown') {
+                        event.preventDefault();
+                        openTitleMenu(toggle);
+                        titleMenu.querySelector('button')?.focus();
+                    }
+                });
+            }
+            if (toggle.parentElement !== header || toggle.nextElementSibling !== headingGroup) {
+                header.insertBefore(toggle, headingGroup);
             }
         }
 
