@@ -35,29 +35,45 @@ function updateProfileCard() {
   const avatar = document.querySelector('#profile-avatar');
   const preview = document.querySelector('#profile-name-preview');
   const email = document.querySelector('#profile-email');
-  if (!avatar && !preview && !email) return;
+  const profileButton = document.querySelector('.pocket-profile-button');
+  if (!avatar && !preview && !email && !profileButton) return;
 
-  const profileName = window.pocketApp?.getData().name || user?.displayName || '';
+  const profileData = window.pocketApp?.getData?.();
+  const profileName = profileData?.name || user?.displayName || '';
   if (preview) preview.textContent = profileName || 'Your profile';
   if (email) email.textContent = user?.email || 'Sign in to see your account email.';
-  if (!avatar) return;
-
-  const photoUrl = user?.photoURL?.startsWith('https://') ? user.photoURL : '';
-  if (photoUrl && avatar.querySelector('img')?.src === photoUrl) return;
-
-  avatar.replaceChildren();
+  const customPhoto = profileData?.profilePhoto;
+  const photoUrl = typeof customPhoto === 'string' && customPhoto.startsWith('data:image/jpeg;base64,')
+    ? customPhoto
+    : user?.photoURL?.startsWith('https://') ? user.photoURL : '';
   const initials = profileName.trim().split(/\s+/).slice(0, 2).map(part => part.charAt(0)).join('').toUpperCase() || 'P';
-  const fallback = document.createElement('span');
-  fallback.textContent = initials;
-  avatar.append(fallback);
-  if (!photoUrl) return;
+  [avatar, profileButton].forEach(element => {
+    if (!element) return;
+    let fallback = element.querySelector('.profile-avatar-fallback');
+    if (!fallback) {
+      fallback = document.createElement('span');
+      fallback.className = 'profile-avatar-fallback';
+      element.prepend(fallback);
+    }
+    if (fallback.textContent !== initials) fallback.textContent = initials;
 
-  const image = document.createElement('img');
-  image.alt = '';
-  image.referrerPolicy = 'no-referrer';
-  image.addEventListener('error', () => image.remove(), { once: true });
-  image.src = photoUrl;
-  avatar.append(image);
+    const currentImage = element.querySelector('img');
+    if (!photoUrl) {
+      currentImage?.remove();
+      return;
+    }
+    if (currentImage?.dataset.photoUrl === photoUrl) return;
+    currentImage?.remove();
+
+    const image = document.createElement('img');
+    image.alt = '';
+    image.dataset.photoUrl = photoUrl;
+    image.referrerPolicy = 'no-referrer';
+    image.addEventListener('load', () => image.classList.add('is-loaded'), { once: true });
+    image.addEventListener('error', () => image.remove(), { once: true });
+    element.append(image);
+    image.src = photoUrl;
+  });
 }
 
 function updatePanel() {
@@ -410,7 +426,7 @@ document.addEventListener('click', event => {
 });
 
 new MutationObserver(updatePanel).observe(main, { childList: true });
-window.pocketCloud = { queueSave };
+window.pocketCloud = { queueSave, refreshProfile: updateProfileCard };
 updatePanel();
 
 window.addEventListener('online', () => {

@@ -34,7 +34,9 @@
       .pocket-privacy-button svg{display:block}
       .pocket-privacy-header{margin-bottom:10px}
       .pocket-privacy-header>.pocket-privacy-button{position:static;flex:0 0 40px;margin-left:auto}
-      .pocket-profile-button{display:grid;place-items:center;flex:none;width:38px;height:38px;padding:0;border:0;border-radius:50%;background:var(--profile-accent);color:#fff;font:inherit;font-weight:700;cursor:pointer}
+      .pocket-profile-button{position:relative;display:grid;place-items:center;flex:none;width:38px;height:38px;overflow:hidden;padding:0;border:0;border-radius:50%;background:var(--profile-accent);color:#fff;font:inherit;font-weight:700;cursor:pointer}
+      .pocket-profile-button img{position:absolute;inset:0;width:100%;height:100%;border-radius:inherit;object-fit:cover;opacity:0;transition:opacity .15s ease}
+      .pocket-profile-button img.is-loaded{opacity:1}
       .pocket-profile-button:focus-visible{outline:2px solid var(--tx);outline-offset:2px}
       .page-menu-toggle{display:flex;flex:none;width:32px;height:32px;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:0;border:0;border-radius:9px;background:transparent;color:var(--mu);cursor:pointer;transition:color .18s ease}
       .page-menu-toggle span{display:block;width:16px;height:2px;border-radius:2px;background:currentColor;transition:transform .2s ease,opacity .16s ease}
@@ -250,7 +252,6 @@
       button.addEventListener('click', () => {
         if (typeof window.go !== 'function') return;
         window.go('prof');
-        requestAnimationFrame(() => main.querySelector('#profile-settings')?.scrollIntoView({ block: 'start' }));
       });
     }
     if (button.parentElement !== header) header.append(button);
@@ -258,10 +259,17 @@
     const name = typeof data?.name === 'string' ? data.name.trim() : '';
     const accent = data?.profileAccent || '#2563eb';
     const initial = name.charAt(0).toUpperCase() || 'P';
-    if (button.textContent !== initial) button.textContent = initial;
+    let initials = button.querySelector('.profile-avatar-fallback');
+    if (!initials) {
+      initials = document.createElement('span');
+      initials.className = 'profile-avatar-fallback';
+      button.prepend(initials);
+    }
+    if (initials.textContent !== initial) initials.textContent = initial;
     if (button.style.getPropertyValue('--profile-accent') !== accent) button.style.setProperty('--profile-accent', accent);
     button.setAttribute('aria-label', name ? `Open ${name}'s profile` : 'Open profile');
     button.title = name ? `Profile: ${name}` : 'Profile';
+    window.pocketCloud?.refreshProfile?.();
   };
 
   const PAGE_TABS = ['dash', 'tx', 'acc', 'rep', 'set'];
