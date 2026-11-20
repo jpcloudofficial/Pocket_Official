@@ -34,7 +34,18 @@
       .pocket-privacy-button svg{display:block}
       .pocket-privacy-header{margin-bottom:10px}
       .pocket-privacy-header>.pocket-privacy-button{position:static;flex:0 0 40px;margin-left:auto}
-      .pocket-fab-menu{position:fixed;right:20px;bottom:calc(82px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:8px;z-index:30;transform-origin:bottom right}
+      .pocket-profile-button{display:grid;place-items:center;flex:none;width:38px;height:38px;padding:0;border:0;border-radius:50%;background:var(--profile-accent);color:#fff;font:inherit;font-weight:700;cursor:pointer}
+      .pocket-profile-button:focus-visible{outline:2px solid var(--tx);outline-offset:2px}
+      .page-menu-toggle{display:flex;flex:none;width:32px;height:32px;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:0;border:0;border-radius:9px;background:transparent;color:var(--mu);cursor:pointer;transition:color .18s ease}
+      .page-menu-toggle span{display:block;width:16px;height:2px;border-radius:2px;background:currentColor;transition:transform .2s ease,opacity .16s ease}
+      .page-menu-toggle[aria-expanded="true"] span:first-child{transform:translateY(6px) rotate(45deg)}
+      .page-menu-toggle[aria-expanded="true"] span:nth-child(2){opacity:0}
+      .page-menu-toggle[aria-expanded="true"] span:last-child{transform:translateY(-6px) rotate(-45deg)}
+      .page-menu-toggle:focus-visible{outline:2px solid var(--tx);outline-offset:2px}
+      .pocket-page-header{flex-wrap:nowrap}
+      .pocket-page-heading{flex:1 1 auto;min-width:0}
+      h2.pocket-page-title{position:relative;display:block;width:100%;max-width:100%;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+      .pocket-fab-menu{position:fixed;right:22px;bottom:calc(82px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:8px;z-index:30;transform-origin:bottom right}
       .pocket-fab-menu button{border:0;border-radius:12px;padding:10px 14px;min-width:156px;min-height:48px;background:var(--cd);color:var(--tx);box-shadow:0 8px 22px #0004;display:flex;align-items:center;gap:10px;font-weight:700;cursor:pointer}
       .pocket-fab-menu button .mini{display:grid;place-items:center;width:26px;height:26px;border-radius:8px;background:var(--sq)}
       .pocket-fab-menu button[data-kind="expense"] .mini{color:var(--ex)}
@@ -54,8 +65,6 @@
       .pocket-fab-menu.pocket-fab-opening{animation:pocket-fab-menu-in .2s cubic-bezier(.2,.8,.2,1) both}
       .pocket-fab-menu.pocket-fab-closing{pointer-events:none;animation:pocket-fab-menu-out .18s ease-in both}
       .pocket-fab-menu.pocket-fab-opening button{animation:pocket-fab-action-in .2s cubic-bezier(.2,.8,.2,1) both}
-      .pocket-fab-menu.pocket-fab-opening button:nth-child(1){animation-delay:.08s}
-      .pocket-fab-menu.pocket-fab-opening button:nth-child(2){animation-delay:.04s}
       @keyframes pocket-fab-menu-in{from{opacity:0;transform:scale(.7) translateY(8px)}to{opacity:1;transform:scale(1) translateY(0)}}
       @keyframes pocket-fab-menu-out{from{opacity:1;transform:scale(1) translateY(0)}to{opacity:0;transform:scale(.7) translateY(8px)}}
       @keyframes pocket-fab-action-in{from{opacity:0;transform:translateY(8px) scale(.94)}to{opacity:1;transform:translateY(0) scale(1)}}
@@ -63,8 +72,8 @@
       .pocket-category-hint[hidden]{display:none}
       .pocket-category-hint[data-active="true"]{color:var(--in)}
       #m.pocket-private .pocket-private-amount{user-select:none}
-      @media(max-width:760px){.pocket-fab-menu{right:52px;bottom:calc(94px + env(safe-area-inset-bottom,0px))}.pocket-account-transfer{right:52px;bottom:calc(152px + env(safe-area-inset-bottom,0px))}}
-      @media(prefers-reduced-motion:reduce){.pocket-carousel-track,.pocket-fab-menu,.pocket-account-transfer,.fab{transition:none!important}}
+      @media(max-width:760px){.pocket-fab-menu{right:14px;bottom:calc(82px + env(safe-area-inset-bottom,0px))}.pocket-account-transfer{right:14px;bottom:calc(142px + env(safe-area-inset-bottom,0px))}}
+      @media(prefers-reduced-motion:reduce){.pocket-carousel-track,.pocket-fab-menu,.pocket-account-transfer,.fab,.page-menu-toggle,.page-menu-toggle span{transition:none!important}}
     `;
     document.head.append(style);
   };
@@ -219,6 +228,40 @@
     let button = main.querySelector('.pocket-privacy-button');
     if (!button) button = makePrivacyButton();
     if (button.parentElement !== target) target.append(button);
+  };
+  const pageHeader = () => {
+    const heading = main.querySelector(':scope > h2, :scope > .row h2, :scope > .cashback-header h2');
+    return heading?.closest('.row, .cashback-header') || null;
+  };
+  const addProfileButton = () => {
+    const header = pageHeader();
+    if (!header) return;
+    header.classList.add('pocket-page-header');
+    const heading = header.querySelector('h2');
+    if (heading) {
+      heading.classList.add('pocket-page-title');
+      (heading.parentElement === header ? heading : heading.parentElement).classList.add('pocket-page-heading');
+    }
+    let button = main.querySelector('.pocket-profile-button');
+    if (!button) {
+      button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'pocket-profile-button';
+      button.addEventListener('click', () => {
+        if (typeof window.go !== 'function') return;
+        window.go('prof');
+        requestAnimationFrame(() => main.querySelector('#profile-settings')?.scrollIntoView({ block: 'start' }));
+      });
+    }
+    if (button.parentElement !== header) header.append(button);
+    const data = window.pocketApp?.getData?.();
+    const name = typeof data?.name === 'string' ? data.name.trim() : '';
+    const accent = data?.profileAccent || '#2563eb';
+    const initial = name.charAt(0).toUpperCase() || 'P';
+    if (button.textContent !== initial) button.textContent = initial;
+    if (button.style.getPropertyValue('--profile-accent') !== accent) button.style.setProperty('--profile-accent', accent);
+    button.setAttribute('aria-label', name ? `Open ${name}'s profile` : 'Open profile');
+    button.title = name ? `Profile: ${name}` : 'Profile';
   };
 
   const PAGE_TABS = ['dash', 'tx', 'acc', 'rep', 'set'];
@@ -376,7 +419,7 @@
     const categoryPage = main.dataset.view === 'cat';
     const goalPage = main.dataset.view === 'goal';
     const budgetPage = main.dataset.view === 'bud';
-    const hideFab = main.dataset.view === 'set' || main.dataset.view === 'rep';
+    const hideFab = main.dataset.view === 'set' || main.dataset.view === 'rep' || main.dataset.view === 'prof';
     const fabLabel = accountPage ? 'Add account' : recurringPage ? 'Add schedule' : categoryPage ? 'New category' : goalPage ? 'New goal' : budgetPage ? 'Add budget' : 'Add transaction';
     fab.classList.toggle('pocket-fab-labeled', accountPage || recurringPage || categoryPage || goalPage || budgetPage);
     fab.classList.toggle('pocket-hidden', hideFab);
@@ -410,6 +453,7 @@
       addPagePrivacyButton();
       removeLegacyDashboardControls();
     }
+    addProfileButton();
     wireQuickAdd();
     wirePageSwipe();
     updatePrivacy();
