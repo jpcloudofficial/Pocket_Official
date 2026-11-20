@@ -57,6 +57,7 @@ function syncDateInput(input) {
             ['Orange', '#ea580c'],
             ['Teal', '#0f766e']
         ];
+        const MAX_PROFILE_PHOTO_DATA_URL_LENGTH = 180000;
         const FORM_COLORS = [
             '#2563eb', '#6366f1', '#7c3aed', '#a855f7', '#db2777', '#e11d48',
             '#dc2626', '#ea580c', '#d97706', '#16a34a', '#0f766e', '#0891b2'
@@ -197,6 +198,7 @@ function syncDateInput(input) {
             return {
                 name: '',
                 profileAccent: PROFILE_COLORS[0][1],
+                profilePhoto: '',
                 theme: matchMedia('(prefers-color-scheme:dark)').matches ? 'dark' : 'light',
                 dateFormat: DATE_FORMATS[0],
                 acc,
@@ -1665,7 +1667,60 @@ ${summaryWidget}${shortcutsWidget}${actionsWidget}${accountsWidget}${transaction
             const colors = PROFILE_COLORS.map(([name, color]) =>
                 `<button type="button" class="profile-color-swatch" style="--profile-swatch:${color}" aria-label="${name} profile color" aria-pressed="${D.profileAccent===color}" onclick="D.profileAccent='${color}';save();render()"></button>`
             ).join('');
-            return `<div class="card profile-card" id="profile-settings" style="--profile-accent:${D.profileAccent}"><h3>Profile</h3><div class="profile-summary"><div class="profile-avatar" id="profile-avatar" aria-hidden="true"><span>${esc(initial)}</span></div><div class="profile-identity"><strong id="profile-name-preview">${esc(D.name||'Your profile')}</strong><small>Personalize your Pocket profile</small></div></div><label class="profile-name-field">Display name<input id="profile-name" type="text" maxlength="32" autocomplete="name" aria-label="Profile display name" placeholder="Your name" value="${esc(D.name)}" onchange="D.name=this.value.trim().slice(0,32);save();render()"></label><div class="profile-email-row"><span>Account email</span><strong id="profile-email">Sign in to see your account email.</strong></div><div class="profile-color-setting"><span>Profile color</span><div class="profile-color-options" role="group" aria-label="Profile color">${colors}</div></div><small class="settings-note">Your display name and profile color sync to your signed-in devices.</small></div>`;
+            const photoActions = `<div class="profile-photo-actions"><button type="button" class="b2" onclick="document.getElementById('profile-photo-input').click()">${D.profilePhoto?'Change photo':'Upload photo'}</button>${D.profilePhoto?'<button type="button" class="b2" onclick="pocketApp.removeProfilePhoto()">Remove photo</button>':''}</div><input class="profile-photo-input" type="file" id="profile-photo-input" accept="image/*" aria-label="Choose a profile picture" onchange="pocketApp.uploadProfilePhoto(this)"><small class="profile-photo-note">Choose a photo from your device.</small>`;
+            return `<div class="card profile-card" id="profile-settings" style="--profile-accent:${D.profileAccent}"><h3>Profile</h3><div class="profile-summary"><div class="profile-avatar" id="profile-avatar" aria-hidden="true"><span class="profile-avatar-fallback">${esc(initial)}</span>${D.profilePhoto?`<img src="${esc(D.profilePhoto)}" data-photo-url="${esc(D.profilePhoto)}" alt="">`:''}</div><div class="profile-identity"><strong id="profile-name-preview">${esc(D.name||'Your profile')}</strong><small>Personalize your Pocket profile</small>${photoActions}</div></div><label class="profile-name-field">Display name<input id="profile-name" type="text" maxlength="32" autocomplete="name" aria-label="Profile display name" placeholder="Your name" value="${esc(D.name)}" onchange="D.name=this.value.trim().slice(0,32);save();render()"></label><div class="profile-email-row"><span>Account email</span><strong id="profile-email">Sign in to see your account email.</strong></div><div class="profile-color-setting"><span>Profile color</span><div class="profile-color-options" role="group" aria-label="Profile color">${colors}</div></div><small class="settings-note">Your display name and profile color sync to your signed-in devices.</small></div>`;
+        }
+        async function uploadProfilePhoto(input) {
+            const file = input.files?.[0];
+            input.value = '';
+            if (!file) return;
+            if (file.type && !file.type.startsWith('image/')) return info('Choose an image file for your profile photo.');
+            if (file.size > 10 * 1024 * 1024) return info('Choose a photo smaller than 10 MB.');
+            let objectUrl = '';
+            try {
+                objectUrl = URL.createObjectURL(file);
+                const image = new Image(),
+                    loaded = new Promise((resolve, reject) => {
+                        image.onload = resolve;
+                        image.onerror = () => reject(new Error('This file could not be opened as an image.'));
+                    });
+                image.src = objectUrl;
+                await loaded;
+                if (!image.naturalWidth || !image.naturalHeight || image.naturalWidth > 12000 || image.naturalHeight > 12000) {
+                    throw new Error('Choose an image with valid dimensions up to 12,000 pixels.');
+                }
+                const scale = Math.min(1, 512 / Math.max(image.naturalWidth, image.naturalHeight)),
+                    canvas = document.createElement('canvas');
+                canvas.width = Math.max(1, Math.round(image.naturalWidth * scale));
+                canvas.height = Math.max(1, Math.round(image.naturalHeight * scale));
+                const context = canvas.getContext('2d');
+                if (!context) throw new Error('This browser could not process the selected photo.');
+                context.fillStyle = '#fff';
+                context.fillRect(0, 0, canvas.width, canvas.height);
+                context.drawImage(image, 0, 0, canvas.width, canvas.height);
+                let photo = '';
+                for (const quality of [.82, .72, .62, .52, .42]) {
+                    photo = canvas.toDataURL('image/jpeg', quality);
+                    if (photo.length <= MAX_PROFILE_PHOTO_DATA_URL_LENGTH) break;
+                }
+                if (photo.length > MAX_PROFILE_PHOTO_DATA_URL_LENGTH) {
+                    throw new Error('This photo could not be compressed enough. Choose a simpler image.');
+                }
+                D.profilePhoto = photo;
+                save();
+                render();
+            } catch (error) {
+                console.warn('Unable to process profile photo', error);
+                info(error instanceof Error ? error.message : 'Could not process this photo. Try a different image.');
+            } finally {
+                if (objectUrl) URL.revokeObjectURL(objectUrl);
+            }
+        }
+        function removeProfilePhoto() {
+            if (!D.profilePhoto) return;
+            D.profilePhoto = '';
+            save();
+            render();
         }
         const cloudSyncCard = () =>
             `<div class="card cloud-sync-card" id="cloud-sync-card">
@@ -1677,7 +1732,7 @@ ${summaryWidget}${shortcutsWidget}${actionsWidget}${accountsWidget}${transaction
   <div id="cloud-conflict" class="cloud-conflict" hidden><p>Cloud data changed while this device also has local changes. Choose which copy to keep.</p><div class="settings-actions"><button class="b1" type="button" data-cloud-action="use-cloud">Use cloud copy</button><button class="b2" type="button" data-cloud-action="keep-local">Keep this device</button></div></div>
 </div>`;
         V.prof = () =>
-            `<div class="row sp"><h2>Profile</h2></div><div class="g g2">${profileSettingsCard()}${cloudSyncCard()}</div>`;
+            `<div class="row sp"><h2>Profile</h2></div><div class="g g2 profile-layout">${profileSettingsCard()}${cloudSyncCard()}</div>`;
         V.set = () =>
             `<div class="row sp"><h2>Settings</h2></div><div class="g g2">
 <div class="card settings-preferences"><h3>Preferences</h3><div class="settings-preference-list"><div class="settings-preference-row"><span>Currency</span><b>Philippine Peso (₱)</b></div><div class="settings-preference-row"><span>Date format</span><select aria-label="Date format" onchange="D.dateFormat=this.value;save();render()">${DATE_FORMATS.map(format=>`<option value="${format}"${currentDateFormat()===format?' selected':''}>${format}</option>`).join('')}</select></div><div class="settings-preference-row"><span>Theme</span><button class="b2" onclick="D.theme=D.theme==='dark'?'light':'dark';save();render()">${ic(D.theme==='dark'?'sun':'moon')} ${D.theme==='dark'?'Light':'Dark'} mode</button></div></div><div class="settings-preference-dashboard"><small>Dashboard</small><button class="b2 dashboard-layout-setting" onclick="dashboardSettingsForm()">${ic('bar-chart-3')} Customize Dashboard</button></div></div>
@@ -1890,6 +1945,7 @@ ${summaryWidget}${shortcutsWidget}${actionsWidget}${accountsWidget}${transaction
             closeTitleMenu();
             U.v = v;
             render();
+            if (v === 'prof') window.scrollTo(0, 0);
             const from = NAV.findIndex(([id]) => id === previousView),
                 to = NAV.findIndex(([id]) => id === v);
             if (from >= 0 && to >= 0 && from !== to &&
@@ -1978,6 +2034,9 @@ ${summaryWidget}${shortcutsWidget}${actionsWidget}${accountsWidget}${transaction
             return {
                 name: sx(d.name, 32).trim(),
                 profileAccent: PROFILE_COLORS.some(([, color]) => color === d.profileAccent) ? d.profileAccent : PROFILE_COLORS[0][1],
+                profilePhoto: typeof d.profilePhoto === 'string' &&
+                    d.profilePhoto.length <= MAX_PROFILE_PHOTO_DATA_URL_LENGTH &&
+                    /^data:image\/jpeg;base64,[A-Za-z0-9+/]+={0,2}$/.test(d.profilePhoto) ? d.profilePhoto : '',
                 theme: d.theme === 'light' ? 'light' : 'dark',
                 dateFormat: DATE_FORMATS.includes(d.dateFormat) ? d.dateFormat : DATE_FORMATS[0],
                 dashboardWidgets: Object.fromEntries(DASHBOARD_WIDGETS.map(([id, , enabled]) => [
@@ -2071,6 +2130,8 @@ ${summaryWidget}${shortcutsWidget}${actionsWidget}${accountsWidget}${transaction
         window.pocketApp = {
             getData: () => D,
             normalizeData: clean,
+            uploadProfilePhoto,
+            removeProfilePhoto,
             replaceFromCloud: data => {
                 D = data;
                 save();
