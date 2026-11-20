@@ -90,7 +90,7 @@
   };
 
   const CATEGORY_RULES = [
-    { category: 'Transportation', words: ['jeepney','jeep','bus','taxi','grab','uber','train','mrt','lrt','commute','fare','parking','toll','gasoline','fuel'] },
+    { category: 'Transportation', words: ['jeepney','jeep','bus','taxi','grab','uber','train','mrt','lrt','commute','fare','parking','toll','gasoline','fuel', 'tryc','sidecar'] },
     { category: 'Food & Drinks', words: ['jollibee','mcdonald','mcdo','restaurant','lunch','dinner','breakfast','coffee','cafe','food','meal','eatery','pizza','kfc','chowking'] },
     { category: 'Groceries', words: ['grocery','groceries','supermarket','palengke','vegetable','vegetables','rice','meat','market'] },
     { category: 'Snacks', words: ['snack','milk tea','milktea','boba','donut','doughnut','bakery','pastry','dessert','cookie','chips'] },
