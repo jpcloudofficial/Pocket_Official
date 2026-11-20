@@ -932,6 +932,7 @@ function syncDateInput(input) {
         function openRecentTransaction(id) {
             const transaction = D.tx.find(item => item.id === id);
             if (!transaction) return;
+            txPageLimit = TRANSACTION_PAGE_SIZE;
             U.v = 'tx';
             U.q = '';
             U.c = U.a = U.ty = U.tf = U.tt = '';
@@ -1120,8 +1121,10 @@ function syncDateInput(input) {
             let pointerStart = null, touchStart = null, draggedCard = null, cyclingCard = false;
             stack.addEventListener('pointerdown', event => {
                 if (cyclingCard || event.button !== 0 || event.target.closest('button,a,input,select,textarea')) return;
+                const targetCard = event.target.closest('.account-stack-card');
+                if (!targetCard) return;
                 pointerStart = { x: event.clientX, y: event.clientY };
-                draggedCard = event.target.closest('.account-stack-card.is-front');
+                draggedCard = stack.querySelector('.account-stack-card.is-front');
                 stack.setPointerCapture(event.pointerId);
             });
             stack.addEventListener('pointermove', event => {
@@ -1275,7 +1278,9 @@ function syncDateInput(input) {
             const reportsWidget = reportCards.length ? `<div class="g g2">${reportCards.join('')}</div>` : '';
             const emptyDashboard = DASHBOARD_WIDGETS.some(([id]) => widgets[id]) ? '' :
                 '<div class="empty card">No dashboard sections are visible. Go to Settings and select Customize Dashboard to add sections.</div>';
-            const dashboardTitle = D.name ? `Hi, ${esc(D.name)}` : 'My Finance';
+            const hour = new Date().getHours(),
+                greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening',
+                dashboardTitle = D.name ? `${greeting}, ${esc(D.name)}!` : `${greeting}!`;
             return `<div class="row sp pocket-privacy-header"><h2 style="font-size:26px">${dashboardTitle}</h2></div>${widgets.alerts?alerts():''}
 ${summaryWidget}${shortcutsWidget}${actionsWidget}${accountsWidget}${transactionsWidget}${reportsWidget}${emptyDashboard}`
         };
@@ -1285,17 +1290,20 @@ ${summaryWidget}${shortcutsWidget}${actionsWidget}${accountsWidget}${transaction
             day: 'numeric',
             year: 'numeric'
         });
+        const TRANSACTION_PAGE_SIZE = 50;
+        let txPageLimit = TRANSACTION_PAGE_SIZE;
         function txList() {
             const q = U.q.toLowerCase(),
                 L = sorted().filter(t => (!q || t.title.toLowerCase().includes(q)) && (!U.c || t.cat === U.c) && (!U
                         .a || t.acc === U.a || t.to === U.a) && (!U.ty || t.type === U.ty) && (!U.tf || t.date >= U
                     .tf) && (!U.tt || t.date <= U.tt));
             if (!L.length) return '<div class="empty">No transactions match. Try clearing a filter or add one.</div>';
+            const transactions = L.slice(0, txPageLimit);
             const now = new Date(),
                 todayDate = iso(now),
                 yesterdayDate = iso(new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1)),
                 groups = [];
-            L.forEach(transaction => {
+            transactions.forEach(transaction => {
                 let group = groups[groups.length - 1];
                 if (!group || group.date !== transaction.date) {
                     group = { date: transaction.date, transactions: [] };
@@ -1309,10 +1317,11 @@ ${summaryWidget}${shortcutsWidget}${actionsWidget}${accountsWidget}${transaction
                         group.date === yesterdayDate ? 'Yesterday' :
                             transactionDateHeadingFormatter.format(new Date(year, month - 1, day));
                 return `<section class="transaction-date-group"><h3 class="transaction-date-heading" data-date="${esc(group.date)}">${esc(dateLabel)}</h3>${group.transactions.map(transaction => row(transaction, 1)).join('')}</section>`;
-            }).join('')
+            }).join('') + (L.length > transactions.length ? '<div class="tx-load-more" id="tx-load-more" aria-hidden="true"></div>' : '')
         }
 
         function fl() {
+            txPageLimit = TRANSACTION_PAGE_SIZE;
             $('#tl').innerHTML = txList();
             lu()
         }
@@ -1383,7 +1392,20 @@ ${summaryWidget}${shortcutsWidget}${actionsWidget}${accountsWidget}${transaction
             window.clearTimeout(transactionScrollHideTimer);
             transactionScrollHideTimer = window.setTimeout(() => indicator.classList.remove('is-visible'), 700);
         }
-        window.addEventListener('scroll', updateTransactionMonthIndicator, { passive: true });
+        function loadMoreTransactionsAtBottom() {
+            if (U.v !== 'tx' || !$('#tx-load-more')) return;
+            const contentHeight = Math.max(document.documentElement.scrollHeight, document.body.scrollHeight);
+            if (window.scrollY + window.innerHeight < contentHeight - 100) return;
+            const list = $('#tl');
+            if (!list) return;
+            txPageLimit += TRANSACTION_PAGE_SIZE;
+            list.innerHTML = txList();
+            lu()
+        }
+        window.addEventListener('scroll', () => {
+            loadMoreTransactionsAtBottom();
+            updateTransactionMonthIndicator()
+        }, { passive: true });
         V.cash = () => cashbackSection();
         const trForm = () => txFormT();
 
@@ -2010,6 +2032,7 @@ ${summaryWidget}${shortcutsWidget}${actionsWidget}${accountsWidget}${transaction
         function go(v) {
             const previousView = U.v;
             closeTitleMenu();
+            if (v === 'tx' && previousView !== 'tx') txPageLimit = TRANSACTION_PAGE_SIZE;
             U.v = v;
             render();
             if (v === 'prof') window.scrollTo(0, 0);
