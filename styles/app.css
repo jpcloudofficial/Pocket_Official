@@ -724,6 +724,164 @@
             font-size: 11px
         }
 
+        .report-filters {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            align-items: end;
+            gap: 10px;
+            margin-top: 12px
+        }
+
+        .report-filters label {
+            display: grid;
+            gap: 5px;
+            color: var(--mu);
+            font-size: 12px
+        }
+
+        .report-filters select,
+        .report-filters input {
+            width: 100%;
+            min-width: 0;
+            padding: 9px 10px;
+            border: 1px solid var(--bd);
+            border-radius: 9px;
+            background: var(--bg)
+        }
+
+        .report-period-label {
+            grid-column: 1 / -1
+        }
+
+        .report-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr))
+        }
+
+        .report-card {
+            min-width: 0;
+            overflow: hidden
+        }
+
+        .report-chart {
+            display: block;
+            overflow: visible
+        }
+
+        .report-gridline {
+            stroke: var(--bd);
+            stroke-width: 1
+        }
+
+        .report-mark {
+            cursor: pointer
+        }
+
+        .report-mark:focus {
+            outline: none
+        }
+
+        .report-mark:focus-visible circle,
+        .report-mark:focus-visible rect {
+            stroke: var(--tx);
+            stroke-width: 2
+        }
+
+        .report-legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px 14px;
+            margin-top: 8px;
+            color: var(--mu);
+            font-size: 12px
+        }
+
+        .report-legend span,
+        .report-category span {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            min-width: 0
+        }
+
+        .report-legend i,
+        .report-category i {
+            flex: none;
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            background: var(--report-color)
+        }
+
+        .report-empty {
+            padding: 26px 8px
+        }
+
+        .report-donut-wrap {
+            display: grid;
+            grid-template-columns: minmax(150px, .8fr) minmax(0, 1.2fr);
+            align-items: center;
+            gap: 10px
+        }
+
+        .report-donut {
+            width: 100%;
+            max-height: 200px
+        }
+
+        .report-donut circle {
+            cursor: pointer
+        }
+
+        .report-donut text {
+            fill: var(--tx);
+            font-size: 9px;
+            font-weight: 700
+        }
+
+        .report-donut .report-donut-caption {
+            fill: var(--mu);
+            font-size: 7px;
+            font-weight: 400
+        }
+
+        .report-category-list {
+            display: grid;
+            gap: 2px
+        }
+
+        .report-category {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+            width: 100%;
+            padding: 6px 4px;
+            border: 0;
+            border-radius: 7px;
+            background: transparent;
+            color: var(--tx);
+            text-align: left;
+            cursor: pointer
+        }
+
+        .report-category:hover,
+        .report-category:focus-visible {
+            background: var(--sq)
+        }
+
+        .report-category b {
+            white-space: nowrap
+        }
+
+        .report-category small {
+            color: var(--mu)
+        }
+
+        .report-account-chart text {
+            fill: var(--mu);
+            font-size: 11px
+        }
+
         .bar {
             height: 8px;
             border-radius: 9px;
@@ -2129,6 +2287,14 @@
 
         @media(max-width:760px) {
 
+            .report-grid {
+                grid-template-columns: minmax(0, 1fr)
+            }
+
+            .report-donut-wrap {
+                grid-template-columns: minmax(130px, .8fr) minmax(0, 1.2fr)
+            }
+
             .profile-layout {
                 grid-template-columns: 1fr
             }
@@ -2307,8 +2473,7 @@
         @media (prefers-reduced-motion: reduce) {
             nav button,
             nav i,
-            nav svg,
-            #nv .nav-indicator {
+            nav svg {
                 transition: none !important
             }
 

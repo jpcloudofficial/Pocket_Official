@@ -65,9 +65,11 @@ function syncDateInput(input) {
         const defaultDashboardWidgets = () => Object.fromEntries(DASHBOARD_WIDGETS.map(([id, , enabled]) => [id, enabled]));
         let D, accountStackOrder = [], accountStackSignature = '', accountStackExpanded = false, U = {
             v: 'dash',
-            ry: new Date().getFullYear(),
             ra: '',
             rc: '',
+            reportRange: 'yearly',
+            reportFrom: '',
+            reportTo: '',
             q: '',
             c: '',
             a: '',
@@ -1295,7 +1297,7 @@ ${summaryWidget}${shortcutsWidget}${actionsWidget}${accountsWidget}${transaction
         function txList() {
             const q = U.q.toLowerCase(),
                 L = sorted().filter(t => (!q || t.title.toLowerCase().includes(q)) && (!U.c || t.cat === U.c) && (!U
-                        .a || t.acc === U.a || t.to === U.a) && (!U.ty || t.type === U.ty) && (!U.tf || t.date >= U
+                        .a || t.acc === U.a || t.to === U.a) && (!U.ty || (U.ty === 'flow' ? t.type !== 'transfer' : t.type === U.ty)) && (!U.tf || t.date >= U
                     .tf) && (!U.tt || t.date <= U.tt));
             if (!L.length) return '<div class="empty">No transactions match. Try clearing a filter or add one.</div>';
             const transactions = L.slice(0, txPageLimit);
@@ -1346,7 +1348,7 @@ ${summaryWidget}${shortcutsWidget}${actionsWidget}${accountsWidget}${transaction
                 `<option value="${x.id}">${esc(x.name)}</option>`).join('');
             return `<div class="row sp pocket-privacy-header"><h2>Transactions</h2></div>
 <div class="f"><input placeholder="Search by name" value="${esc(U.q)}" oninput="U.q=this.value;fl()"><select aria-label="Filter by category" onchange="U.c=this.value;fl()">${o(D.cats,'All categories').replace(`value="${U.c}"`,`value="${U.c}" selected`)}</select><select aria-label="Filter by account" onchange="U.a=this.value;fl()">${o(D.acc,'All accounts').replace(`value="${U.a}"`,`value="${U.a}" selected`)}</select>
-<select aria-label="Filter by type" onchange="U.ty=this.value;fl()">${[['','All types'],['income','Income'],['expense','Expense'],['transfer','Transfer']].map(x=>`<option value="${x[0]}"${x[0]===U.ty?' selected':''}>${x[1]}</option>`).join('')}</select><span class="date-input-wrap date-filter${U.tf ? '' : ' is-empty'}"><input type="date" aria-label="From date" value="${esc(U.tf)}" onchange="U.tf=this.value;syncDateInput(this);fl()"><span class="date-input-value">${esc(fd(U.tf))}</span><span class="date-input-placeholder">From date</span></span><span class="date-input-wrap date-filter${U.tt ? '' : ' is-empty'}"><input type="date" aria-label="To date" value="${esc(U.tt)}" onchange="U.tt=this.value;syncDateInput(this);fl()"><span class="date-input-value">${esc(fd(U.tt))}</span><span class="date-input-placeholder">To date</span></span></div><div class="card" id="tl">${txList()}</div><div class="transaction-scroll-month" id="transaction-scroll-month" aria-hidden="true"></div>`
+<select aria-label="Filter by type" onchange="U.ty=this.value;fl()">${[['','All types'],['income','Income'],['expense','Expense'],['transfer','Transfer'],['flow','Income and expenses']].map(x=>`<option value="${x[0]}"${x[0]===U.ty?' selected':''}>${x[1]}</option>`).join('')}</select><span class="date-input-wrap date-filter${U.tf ? '' : ' is-empty'}"><input type="date" aria-label="From date" value="${esc(U.tf)}" onchange="U.tf=this.value;syncDateInput(this);fl()"><span class="date-input-value">${esc(fd(U.tf))}</span><span class="date-input-placeholder">From date</span></span><span class="date-input-wrap date-filter${U.tt ? '' : ' is-empty'}"><input type="date" aria-label="To date" value="${esc(U.tt)}" onchange="U.tt=this.value;syncDateInput(this);fl()"><span class="date-input-value">${esc(fd(U.tt))}</span><span class="date-input-placeholder">To date</span></span></div><div class="card" id="tl">${txList()}</div><div class="transaction-scroll-month" id="transaction-scroll-month" aria-hidden="true"></div>`
         };
         const transactionMonthFormatter = new Intl.DateTimeFormat(undefined, { month: 'short', year: 'numeric' });
         let transactionScrollHideTimer = 0;
@@ -1612,20 +1614,297 @@ ${summaryWidget}${shortcutsWidget}${actionsWidget}${accountsWidget}${transaction
                 A(rule.acc) && !od(A(rule.acc)) && bal(A(rule.acc)) < rule.amount;
             return `<div class="row"><div class="gr"><h2>Recurring transactions</h2><small>Due items are added while Pocket is open; missed items catch up next time.</small></div></div><div class="g g2">${D.recurring.length ? D.recurring.map(rule => `<div class="card"><div class="row"><span class="dot" style="background:var(--sq);color:${rule.type==='income'?'var(--in)':rule.type==='expense'?'var(--ex)':'var(--tr)'}">${ic(rule.type==='transfer'?'arrow-left-right':rule.type==='income'?'wallet':'zap')}</span><div class="gr"><b>${esc(rule.title || 'Transfer')}</b><br><small>${frequencyName(rule.frequency)} · ${details(rule)}</small></div><button class="ib" onclick="recurringForm('${rule.id}')" aria-label="Edit schedule">${ic('pencil')}</button><button class="ib" onclick="deleteRecurring('${rule.id}')" aria-label="Delete schedule">${ic('trash-2')}</button></div><div class="row sp" style="margin-top:10px"><b style="color:${rule.type==='income'?'var(--in)':rule.type==='expense'?'var(--ex)':'var(--tr)'}">${rule.type==='expense'?'−':rule.type==='income'?'+':''}${peso(rule.amount)}</b><small>${rule.active ? waitingForFunds(rule) ? 'Waiting for sufficient funds' : `Next: ${fd(rule.next)}` : 'Paused'}</small></div><div class="row sp" style="margin-top:10px"><small>${rule.next < today() && !rule.active ? `Paused · next due ${fd(rule.next)}` : `Starts ${fd(rule.start)}`}</small><button class="chip" onclick="toggleRecurring('${rule.id}')">${rule.active?'Pause':'Resume'}</button></div></div>`).join('') : '<div class="empty card">No recurring schedules yet. Add one for a regular bill, subscription, salary, or transfer.</div>'}</div>`
         };
+        const REPORT_COLORS = ['#16a34a', '#ea580c', '#2563eb'];
+        const reportDate = value => {
+            const [year, month, day] = value.split('-').map(Number);
+            return new Date(year, month - 1, day)
+        };
+        const reportDayLabel = value => new Intl.DateTimeFormat('en-PH', {
+            month: 'short',
+            day: 'numeric'
+        }).format(reportDate(value));
+        const reportTick = value => peso(Math.round(value));
+        function reportPeriod() {
+            const now = new Date(),
+                endToday = today();
+            let start, end = endToday;
+            if (U.reportRange === 'weekly') {
+                const weekStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - ((now.getDay() + 6) % 7));
+                start = iso(weekStart)
+            } else if (U.reportRange === 'yearly') {
+                start = iso(new Date(now.getFullYear(), 0, 1))
+            } else if (U.reportRange === 'custom') {
+                start = U.reportFrom || iso(new Date(now.getFullYear(), now.getMonth(), 1));
+                end = U.reportTo || endToday
+            } else {
+                start = iso(new Date(now.getFullYear(), now.getMonth(), 1))
+            }
+            const valid = /^\d{4}-\d\d-\d\d$/.test(start) && /^\d{4}-\d\d-\d\d$/.test(end) && start <= end;
+            if (!valid) return { start, end, valid: false, buckets: [] };
+            const days = Math.round((reportDate(end) - reportDate(start)) / 86400000) + 1,
+                bucketMode = U.reportRange === 'yearly' || (U.reportRange === 'custom' && days > 180) ?
+                    'month' : U.reportRange === 'custom' && days > 35 ? 'week' : 'day',
+                buckets = [];
+            if (bucketMode === 'month') {
+                let cursor = new Date(reportDate(start).getFullYear(), reportDate(start).getMonth(), 1);
+                while (iso(cursor) <= end) {
+                    const bucketStart = iso(cursor),
+                        bucketEnd = iso(new Date(cursor.getFullYear(), cursor.getMonth() + 1, 0)),
+                        first = bucketStart < start ? start : bucketStart,
+                        last = bucketEnd > end ? end : bucketEnd;
+                    buckets.push({
+                        start: first,
+                        end: last,
+                        label: new Intl.DateTimeFormat('en-PH', { month: 'short', year: days > 365 ? '2-digit' : undefined }).format(cursor)
+                    });
+                    cursor = new Date(cursor.getFullYear(), cursor.getMonth() + 1, 1)
+                }
+            } else if (bucketMode === 'week') {
+                let cursor = reportDate(start);
+                while (iso(cursor) <= end) {
+                    const bucketEnd = new Date(cursor.getFullYear(), cursor.getMonth(), cursor.getDate() + 6),
+                        last = iso(bucketEnd) > end ? end : iso(bucketEnd);
+                    buckets.push({ start: iso(cursor), end: last, label: reportDayLabel(iso(cursor)) });
+                    cursor = new Date(bucketEnd.getFullYear(), bucketEnd.getMonth(), bucketEnd.getDate() + 1)
+                }
+            } else {
+                let cursor = reportDate(start);
+                while (iso(cursor) <= end) {
+                    const value = iso(cursor);
+                    buckets.push({ start: value, end: value, label: reportDate(value).getDate().toString() });
+                    cursor = new Date(cursor.getFullYear(), cursor.getMonth(), cursor.getDate() + 1)
+                }
+            }
+            return { start, end, valid, buckets }
+        }
+        const reportRangeTransactions = (transactions, start, end) => transactions.filter(transaction =>
+            transaction.date >= start && transaction.date <= end
+        );
+        function reportClick(bucket, type, category = U.rc || '', account = U.ra || '') {
+            const args = [bucket.start, bucket.end, type, category, account].map(value => `'${esc(value)}'`).join(',');
+            return `tabindex="0" role="button" onclick="openReportTransactions(${args})" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openReportTransactions(${args})}"`;
+        }
+        function reportEmpty(message = 'No transactions in this period.') {
+            return `<div class="empty report-empty">${message}</div>`
+        }
+        function reportLegend(series) {
+            return `<div class="report-legend">${series.map(item => `<span><i style="--report-color:${item.color}"></i>${esc(item.name)}</span>`).join('')}</div>`
+        }
+        function reportLineChart(buckets, series, emptyMessage, area = false) {
+            if (!buckets.length || !series.some(item => item.values.some(value => value !== 0))) return reportEmpty(emptyMessage);
+            const width = 640, height = 270, left = 64, right = 16, top = 18, bottom = 40,
+                values = series.flatMap(item => item.values),
+                high = Math.max(1, ...values), low = Math.min(0, ...values),
+                y = value => top + (high - value) / (high - low || 1) * (height - top - bottom),
+                x = index => left + (buckets.length < 2 ? (width - left - right) / 2 :
+                    index * (width - left - right) / (buckets.length - 1)),
+                tickIndexes = new Set([0, ...Array.from({ length: 4 }, (_, index) =>
+                    Math.round((buckets.length - 1) * (index + 1) / 5)), buckets.length - 1]);
+            let svg = `<svg viewBox="0 0 ${width} ${height}" class="ch report-chart" role="img" aria-label="Line chart">`;
+            for (let index = 0; index <= 4; index++) {
+                const value = low + (high - low) * (4 - index) / 4, yy = y(value);
+                svg += `<line x1="${left}" x2="${width-right}" y1="${yy}" y2="${yy}" class="report-gridline"/><text x="${left-8}" y="${yy+4}" text-anchor="end">${reportTick(value)}</text>`
+            }
+            for (const index of tickIndexes) {
+                const bucket = buckets[index];
+                svg += `<text x="${x(index)}" y="${height-12}" text-anchor="middle">${esc(bucket.label)}</text>`
+            }
+            series.forEach(item => {
+                if (area) {
+                    const areaPoints = item.values.map((value, index) => `${x(index)},${y(value)}`);
+                    svg += `<polygon points="${x(0)},${y(0)} ${areaPoints.join(' ')} ${x(item.values.length-1)},${y(0)}" fill="${item.color}" fill-opacity=".16"/>`
+                }
+                svg += `<polyline fill="none" stroke="${item.color}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" points="${item.values.map((value, index) => `${x(index)},${y(value)}`).join(' ')}"/>`;
+                item.values.forEach((value, index) => {
+                    const bucket = buckets[index],
+                        tooltip = `${item.name}: ${peso(value)} · ${fd(bucket.start)}${bucket.start !== bucket.end ? ` – ${fd(bucket.end)}` : ''}`,
+                        filterType = item.type || '';
+                    svg += `<g class="report-mark" ${reportClick(bucket, filterType)}><title>${esc(tooltip)}</title><circle cx="${x(index)}" cy="${y(value)}" r="11" fill="transparent"/><circle cx="${x(index)}" cy="${y(value)}" r="4" fill="${item.color}"/></g>`
+                })
+            });
+            return svg + '</svg>' + reportLegend(series)
+        }
+        function reportBarChart(buckets, series, emptyMessage) {
+            if (!buckets.length || !series.some(item => item.values.some(value => value !== 0))) return reportEmpty(emptyMessage);
+            const width = 640, height = 270, left = 64, right = 16, top = 18, bottom = 40,
+                values = series.flatMap(item => item.values),
+                high = Math.max(1, ...values), low = Math.min(0, ...values),
+                y = value => top + (high - value) / (high - low || 1) * (height - top - bottom),
+                baseline = y(0), groupWidth = (width - left - right) / buckets.length,
+                barWidth = Math.max(2, groupWidth * .66 / series.length),
+                tickIndexes = new Set([0, ...Array.from({ length: 4 }, (_, index) =>
+                    Math.round((buckets.length - 1) * (index + 1) / 5)), buckets.length - 1]);
+            let svg = `<svg viewBox="0 0 ${width} ${height}" class="ch report-chart" role="img" aria-label="Bar chart">`;
+            for (let index = 0; index <= 4; index++) {
+                const value = low + (high - low) * (4 - index) / 4, yy = y(value);
+                svg += `<line x1="${left}" x2="${width-right}" y1="${yy}" y2="${yy}" class="report-gridline"/><text x="${left-8}" y="${yy+4}" text-anchor="end">${reportTick(value)}</text>`
+            }
+            buckets.forEach((bucket, bucketIndex) => {
+                if (tickIndexes.has(bucketIndex)) svg += `<text x="${left+(bucketIndex+.5)*groupWidth}" y="${height-12}" text-anchor="middle">${esc(bucket.label)}</text>`;
+                series.forEach((item, seriesIndex) => {
+                    const value = item.values[bucketIndex], x = left + bucketIndex * groupWidth +
+                        (groupWidth - barWidth * series.length) / 2 + seriesIndex * barWidth,
+                        yy = y(value), actualHeight = Math.abs(baseline - yy),
+                        tooltip = `${item.name}: ${peso(value)} · ${fd(bucket.start)}${bucket.start !== bucket.end ? ` – ${fd(bucket.end)}` : ''}`;
+                    svg += `<g class="report-mark" ${reportClick(bucket, item.type || '', item.category || U.rc || '')}><title>${esc(tooltip)}</title><rect x="${x}" y="${value ? Math.min(baseline,yy) : baseline-2}" width="${Math.max(1,barWidth-3)}" height="${Math.max(4,actualHeight)}" rx="3" fill="${item.color}"/></g>`
+                })
+            });
+            return svg + '</svg>' + reportLegend(series)
+        }
+        function reportDonutChart(entries, period, emptyMessage) {
+            const total = entries.reduce((sum, entry) => sum + entry.value, 0);
+            if (!entries.length || total <= 0) return reportEmpty(emptyMessage);
+            const radius = 62, circumference = 2 * Math.PI * radius;
+            let offset = 0,
+                svg = `<svg viewBox="0 0 220 180" class="report-donut" role="img" aria-label="Donut chart showing expenses by category"><circle cx="110" cy="88" r="${radius}" fill="none" stroke="var(--bd)" stroke-width="25"/>`;
+            entries.forEach(entry => {
+                const length = entry.value / total * circumference,
+                    bucket = { start: period.start, end: period.end },
+                    tooltip = `${entry.name}: ${peso(entry.value)} (${Math.round(entry.value / total * 100)}%) · ${fd(period.start)} – ${fd(period.end)}`;
+                svg += `<g class="report-mark" ${reportClick(bucket, 'expense', entry.id)}><title>${esc(tooltip)}</title><circle cx="110" cy="88" r="${radius}" fill="none" stroke="${entry.color}" stroke-width="25" stroke-dasharray="${length} ${circumference-length}" stroke-dashoffset="${-offset}" transform="rotate(-90 110 88)"/></g>`;
+                offset += length
+            });
+            svg += `<text x="110" y="84" text-anchor="middle" class="report-donut-total">${esc(peso(total))}</text><text x="110" y="104" text-anchor="middle" class="report-donut-caption">Total expenses</text></svg>`;
+            const legend = entries.map(entry => {
+                const percent = Math.round(entry.value / total * 100),
+                    bucket = { start: period.start, end: period.end };
+                return `<button type="button" class="report-category" ${reportClick(bucket, 'expense', entry.id)}><span><i style="--report-color:${entry.color}"></i>${esc(entry.name)}</span><b>${peso(entry.value)} <small>${percent}%</small></b></button>`
+            }).join('');
+            return `<div class="report-donut-wrap">${svg}<div class="report-category-list">${legend}</div></div>`
+        }
+        function reportAccountBars(accounts, endDate, emptyMessage) {
+            if (!accounts.length) return reportEmpty(emptyMessage);
+            const values = accounts.map(account => ({ account, value: bal(account, endDate) })),
+                max = Math.max(1, ...values.map(item => Math.abs(item.value))),
+                width = 640, left = 174, right = 100, rowHeight = 38,
+                height = Math.max(100, values.length * rowHeight + 20),
+                baseline = left + (width - left - right) / 2,
+                half = (width - left - right) / 2;
+            let svg = `<svg viewBox="0 0 ${width} ${height}" class="ch report-account-chart" role="img" aria-label="Horizontal bar chart of account balances">`;
+            svg += `<line x1="${baseline}" x2="${baseline}" y1="8" y2="${height-8}" class="report-gridline"/>`;
+            values.forEach(({ account, value }, index) => {
+                const y = 16 + index * rowHeight,
+                    barWidth = Math.abs(value) / max * half,
+                    x = value < 0 ? baseline - barWidth : baseline,
+                    bucket = { start: endDate, end: endDate },
+                    tooltip = `${account.name}: ${peso(value)} · Balance on ${fd(endDate)}`;
+                svg += `<g class="report-mark" ${reportClick(bucket, '', '', account.id)}><title>${esc(tooltip)}</title><text x="${left-12}" y="${y+14}" text-anchor="end">${esc(account.name)}</text><rect x="${x}" y="${y}" width="${Math.max(value ? 2 : 0,barWidth)}" height="22" rx="5" fill="${value < 0 ? 'var(--ex)' : account.color}"/><text x="${value < 0 ? x-6 : x+barWidth+6}" y="${y+15}" text-anchor="${value < 0 ? 'end' : 'start'}">${esc(peso(value))}</text></g>`
+            });
+            return svg + '</svg>'
+        }
+        function reportBudgetAmount(categoryId, start, end) {
+            const monthlyAmount = D.budgets[categoryId] || 0;
+            let total = 0, cursor = new Date(reportDate(start).getFullYear(), reportDate(start).getMonth(), 1);
+            while (iso(cursor) <= end) {
+                const monthStart = iso(cursor),
+                    monthEnd = iso(new Date(cursor.getFullYear(), cursor.getMonth() + 1, 0)),
+                    overlapStart = monthStart < start ? start : monthStart,
+                    overlapEnd = monthEnd > end ? end : monthEnd,
+                    overlapDays = Math.floor((reportDate(overlapEnd) - reportDate(overlapStart)) / 86400000) + 1,
+                    daysInMonth = new Date(cursor.getFullYear(), cursor.getMonth() + 1, 0).getDate();
+                total += monthlyAmount * overlapDays / daysInMonth;
+                cursor = new Date(cursor.getFullYear(), cursor.getMonth() + 1, 1)
+            }
+            return Math.round(total * 100) / 100
+        }
+        function openReportTransactions(from, to, type, category, account) {
+            U.v = 'tx';
+            U.tf = from;
+            U.tt = to;
+            U.ty = type || '';
+            U.c = category || '';
+            U.a = account || '';
+            U.q = '';
+            txPageLimit = TRANSACTION_PAGE_SIZE;
+            render();
+            window.scrollTo(0, 0)
+        }
         V.rep = () => {
-            const y = +U.ry,
-                yrs = [...new Set([new Date().getFullYear(), ...D.tx.map(t => +t.date.slice(0, 4))])].sort(),
-                T = D.tx.filter(t => +t.date.slice(0, 4) === y && (!U.ra || t.acc === U.ra) && (!U.rc || t.cat === U
-                    .rc)),
-                m = i => T.filter(t => +t.date.slice(5, 7) === i + 1),
-                inc = MO.map((_, i) => sum(m(i), 'income')),
-                exp = MO.map((_, i) => sum(m(i), 'expense')),
-                ids = U.ra ? [A(U.ra)] : D.acc,
-                hist = MO.map((_, i) => ids.reduce((s, a) => s + bal(a, iso(new Date(y, i + 1, 0))), 0)),
-                o = (L, v) => L.map(x => `<option value="${x[0]}"${x[0]==v?' selected':''}>${esc(x[1])}</option>`)
-                .join('');
-            return `<div class="row sp"><h2>Reports</h2></div><div class="f"><select aria-label="Report year" onchange="U.ry=this.value;render()">${o(yrs.map(x=>[x,x]),y)}</select><select aria-label="Filter by account" onchange="U.ra=this.value;render()">${o([['','All accounts'],...D.acc.map(a=>[a.id,a.name])],U.ra)}</select><select aria-label="Filter by category" onchange="U.rc=this.value;render()">${o([['','All categories'],...D.cats.map(c=>[c.id,c.name])],U.rc)}</select></div>
-<div class="g g2"><div class="card"><h3>Income vs. expenses (monthly)</h3>${bars([inc,exp],MO,['#16a34a','#ea580c'])}</div><div class="card"><h3>Spending trend</h3>${line(exp,MO,'#ea580c')}</div><div class="card"><h3>Expenses by category</h3>${catBars(T)}</div><div class="card"><h3>Account balance history</h3>${line(hist,MO,'#2563eb')}</div><div class="card"><h3>Monthly savings (income − expenses)</h3>${bars([inc.map((v,i)=>v-exp[i])],MO,['#16a34a'])}</div></div>`
+            const period = reportPeriod(),
+                option = (value, label, selected) => `<option value="${esc(value)}"${selected ? ' selected' : ''}>${esc(label)}</option>`,
+                rangeOptions = [['weekly', 'Weekly'], ['monthly', 'Monthly'], ['yearly', 'Yearly'], ['custom', 'Custom']],
+                rangeTransactions = period.valid ? reportRangeTransactions(D.tx, period.start, period.end) : [],
+                transactions = rangeTransactions.filter(transaction =>
+                    transaction.type !== 'transfer' && (!U.ra || transaction.acc === U.ra) &&
+                    (!U.rc || transaction.cat === U.rc)
+                ),
+                buckets = period.buckets,
+                bucketTransactions = bucket => transactions.filter(transaction =>
+                    transaction.date >= bucket.start && transaction.date <= bucket.end
+                ),
+                incomeSeries = { name: 'Income', type: 'income', color: REPORT_COLORS[0], values: buckets.map(bucket => sum(bucketTransactions(bucket), 'income')) },
+                expenseSeries = { name: 'Expenses', type: 'expense', color: REPORT_COLORS[1], values: buckets.map(bucket => sum(bucketTransactions(bucket), 'expense')) },
+                incomeExpenses = reportLineChart(buckets, [incomeSeries, expenseSeries]),
+                spendingSeries = { name: 'Expenses', type: 'expense', color: REPORT_COLORS[1], values: expenseSeries.values },
+                spendingTrend = reportBarChart(buckets, [spendingSeries]),
+                categoryTotals = new Map();
+            transactions.filter(transaction => transaction.type === 'expense').forEach(transaction =>
+                categoryTotals.set(transaction.cat, (categoryTotals.get(transaction.cat) || 0) + transaction.amount)
+            );
+            const categoryEntries = [...categoryTotals].map(([id, value]) => {
+                const category = C(id);
+                return { id, value, name: category?.name || 'Uncategorized', color: category?.color || '#78716c' }
+            }).sort((first, second) => second.value - first.value);
+            const expenseBreakdown = reportDonutChart(categoryEntries, period);
+            const budgetCategories = Object.keys(D.budgets).filter(id => !U.rc || id === U.rc).map(id => ({
+                id,
+                name: C(id)?.name || 'Uncategorized',
+                planned: reportBudgetAmount(id, period.start, period.end),
+                actual: transactions.filter(transaction => transaction.type === 'expense' && transaction.cat === id)
+                    .reduce((total, transaction) => total + transaction.amount, 0)
+            })).filter(category => category.planned || category.actual);
+            const budgetBuckets = budgetCategories.map(category => ({
+                start: period.start, end: period.end, label: category.name
+            }));
+            const budgetVsActual = !transactions.some(transaction => transaction.type === 'expense') ?
+                reportEmpty() : reportBarChart(budgetBuckets, [
+                    { name: 'Planned', color: '#2563eb', type: 'expense', values: budgetCategories.map(category => category.planned) },
+                    { name: 'Actual', color: '#ea580c', type: 'expense', values: budgetCategories.map(category => category.actual) }
+                ]);
+            const savingAccounts = D.acc.filter(account => account.type === 'Savings' && (!U.ra || account.id === U.ra)),
+                savingsBuckets = buckets.map(bucket => ({ ...bucket, label: reportDayLabel(bucket.end) })),
+                openingSavings = savingAccounts.reduce((total, account) => total + bal(account,
+                    iso(new Date(reportDate(period.start).getFullYear(), reportDate(period.start).getMonth(), reportDate(period.start).getDate() - 1))), 0),
+                savingsSeries = {
+                    name: 'Savings balance',
+                    color: '#2563eb',
+                    values: [openingSavings, ...savingsBuckets.map(bucket => savingAccounts.reduce((total, account) =>
+                        total + bal(account, bucket.end), 0))]
+                },
+                savingsChartBuckets = [{ start: period.start, end: period.start, label: 'Start' }, ...savingsBuckets],
+                savingsGrowth = !savingAccounts.length ? reportEmpty('No savings accounts match this filter.') :
+                    reportLineChart(savingsChartBuckets, [savingsSeries], 'No savings balance history available.', true);
+            const accounts = D.acc.filter(account => !U.ra || account.id === U.ra),
+                accountDistribution = reportAccountBars(accounts, period.end, 'No accounts to show.');
+            const cashFlowSeries = [
+                { name: 'Inflows', type: 'income', color: REPORT_COLORS[0], values: incomeSeries.values },
+                { name: 'Outflows', type: 'expense', color: REPORT_COLORS[1], values: expenseSeries.values },
+                { name: 'Net cash flow', type: 'flow', color: REPORT_COLORS[2], values: incomeSeries.values.map((value, index) => value - expenseSeries.values[index]) }
+            ],
+                cashFlowChart = reportLineChart(buckets, cashFlowSeries),
+                customRange = U.reportRange === 'custom',
+                startValue = U.reportFrom || iso(new Date(new Date().getFullYear(), new Date().getMonth(), 1)),
+                endValue = U.reportTo || today(),
+                accountOptions = [option('', 'All accounts', !U.ra), ...D.acc.map(account => option(account.id, account.name, U.ra === account.id))],
+                categoryOptions = [option('', 'All categories', !U.rc), ...D.cats.map(category => option(category.id, category.name, U.rc === category.id))];
+            const chartCard = (title, chart) => `<section class="card report-card"><h3>${title}</h3>${chart}</section>`;
+            return `<div class="row sp"><h2>Reports</h2></div>
+<div class="card report-filters">
+<label><span>Date range</span><select aria-label="Report date range" onchange="U.reportRange=this.value;render()">${rangeOptions.map(([value,label]) => option(value,label,U.reportRange === value)).join('')}</select></label>
+<label><span>Account</span><select aria-label="Filter reports by account" onchange="U.ra=this.value;render()">${accountOptions.join('')}</select></label>
+<label><span>Category</span><select aria-label="Filter reports by category" onchange="U.rc=this.value;render()">${categoryOptions.join('')}</select></label>
+${customRange ? `<label><span>From</span><input type="date" aria-label="Report start date" value="${esc(startValue)}" onchange="U.reportFrom=this.value;render()"></label><label><span>To</span><input type="date" aria-label="Report end date" value="${esc(endValue)}" onchange="U.reportTo=this.value;render()"></label>` : ''}
+<small class="report-period-label">${period.valid ? `${fd(period.start)} – ${fd(period.end)}` : 'Choose a valid date range.'}</small>
+</div>
+${period.valid ? `<div class="g g2 report-grid">
+${chartCard('Income vs. Expenses', incomeExpenses)}
+${chartCard('Expense Breakdown', expenseBreakdown)}
+${chartCard('Monthly Spending Trends', spendingTrend)}
+${chartCard('Budget vs. Actual', budgetVsActual)}
+${chartCard('Savings Growth', savingsGrowth)}
+${chartCard('Account Distribution', accountDistribution)}
+${chartCard('Cash Flow', cashFlowChart)}
+</div>` : `<div class="empty card">The start date must be on or before the end date.</div>`}`
         };
 
         function catForm(id) {
@@ -2054,8 +2333,7 @@ ${summaryWidget}${shortcutsWidget}${actionsWidget}${accountsWidget}${transaction
                     animation.onfinish = () => animation.cancel();
                 });
             }
-            if (from >= 0 && to >= 0 && from !== to &&
-                !reduceMotion) {
+            if (from >= 0 && to >= 0 && from !== to) {
                 const main = $('#m');
                 if (typeof main.animate === 'function') {
                     pageTransition?.cancel();
