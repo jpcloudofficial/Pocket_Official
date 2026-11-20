@@ -709,20 +709,69 @@
         }
 
         .dashboard-shortcuts {
-            flex-wrap: nowrap;
-            gap: 4px;
-            overflow-x: auto;
-            scrollbar-width: none
+            flex-direction: column;
+            align-items: stretch;
+            gap: 10px;
+            margin-top: 14px
         }
 
-        .dashboard-shortcuts::-webkit-scrollbar {
-            display: none
+        .dashboard-shortcuts .sec {
+            margin: 0;
+            font-size: 20px
         }
 
-        .dashboard-shortcuts .chip {
-            flex: none;
-            padding: 6px 8px;
-            font-size: 12px
+        .quick-actions-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 6px
+        }
+
+        .quick-action {
+            display: flex;
+            min-width: 0;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            padding: 0 2px;
+            border: 0;
+            background: none;
+            color: var(--mu);
+            font-weight: 500;
+            text-align: center;
+            cursor: pointer
+        }
+
+        .quick-action-icon {
+            display: grid;
+            width: 56px;
+            max-width: 100%;
+            aspect-ratio: 1;
+            place-items: center;
+            border: 1px solid var(--bd);
+            border-radius: 16px;
+            background: var(--cd);
+            box-shadow: 0 1px 3px #0000000a
+        }
+
+        .quick-action-icon .ic {
+            width: 24px;
+            height: 24px
+        }
+
+        .quick-action-budget {
+            color: #2563eb
+        }
+
+        .quick-action-cashback {
+            color: #7c3aed
+        }
+
+        .quick-action-recurring {
+            color: #059669
+        }
+
+        .quick-action-savings {
+            color: #ea8c00
         }
 
         .account-carousel {
