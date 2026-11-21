@@ -1704,45 +1704,69 @@ ${summaryWidget}${shortcutsWidget}${actionsWidget}${accountsWidget}${transaction
             const args = [bucket.start, bucket.end, type, category, account].map(value => `'${esc(value)}'`).join(',');
             return `tabindex="0" role="button" onclick="openReportTransactions(${args})" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openReportTransactions(${args})}"`;
         }
+        function clearReportDoughnutSelection(wrap) {
+            if (!wrap) return;
+            wrap.dataset.selectedCategory = '';
+            wrap.classList.remove('has-selection');
+            wrap.querySelectorAll('.report-category').forEach(element => {
+                element.classList.remove('is-selected', 'is-dimmed')
+            });
+            const canvas = wrap.querySelector('.report-donut-canvas'),
+                chart = canvas && Chart.getChart(canvas);
+            if (!chart) return;
+            chart.data.datasets[0].selectedIndex = -1;
+            chart.data.datasets[0].backgroundColor = [...chart.data.datasets[0].originalColors];
+            chart.update()
+        }
+        function applyReportDoughnutSelection(wrap, categoryId) {
+            if (!wrap) return;
+            wrap.dataset.selectedCategory = categoryId;
+            wrap.classList.add('has-selection');
+            wrap.querySelectorAll('.report-category').forEach(element => {
+                const selected = element.dataset.categoryId === categoryId;
+                element.classList.toggle('is-selected', selected);
+                element.classList.toggle('is-dimmed', !selected)
+            });
+            const canvas = wrap.querySelector('.report-donut-canvas'),
+                chart = canvas && Chart.getChart(canvas);
+            if (!chart) return;
+            const selectedIndex = chart.data.datasets[0].categoryIds.indexOf(categoryId);
+            if (selectedIndex < 0) return;
+            chart.data.datasets[0].selectedIndex = selectedIndex;
+            chart.data.datasets[0].backgroundColor = chart.data.datasets[0].originalColors.map((color, index) =>
+                index === selectedIndex ? color : colorWithOpacity(color, .28)
+            );
+            chart.update()
+        }
+        function selectReportDoughnut(element, categoryId, start, end) {
+            const wrap = element.closest('.report-donut-wrap');
+            if (!wrap) return;
+            if (wrap.dataset.selectedCategory === categoryId) {
+                openReportTransactions(start, end, 'expense', categoryId, U.ra || '');
+                return
+            }
+            applyReportDoughnutSelection(wrap, categoryId)
+        }
+        function deselectReportDoughnutOutside(event, wrap) {
+            if (event.target.closest('.report-donut-canvas, .report-category')) return;
+            clearReportDoughnutSelection(wrap)
+        }
+        document.addEventListener('click', event => {
+            if (event.target.closest('.report-donut-wrap')) return;
+            document.querySelectorAll('.report-donut-wrap.has-selection').forEach(clearReportDoughnutSelection)
+        });
         function reportEmpty(message = 'No transactions in this period.') {
             return `<div class="empty report-empty">${message}</div>`
         }
         function reportLegend(series) {
             return `<div class="report-legend">${series.map(item => `<span><i style="--report-color:${item.color}"></i>${esc(item.name)}</span>`).join('')}</div>`
         }
+        let reportChartInstances = [];
+        const chartConfigAttribute = config => `data-chart-config="${esc(JSON.stringify(config))}"`;
         function reportLineChart(buckets, series, emptyMessage, area = false) {
             if (!buckets.length || !series.some(item => item.values.some(value => value !== 0))) return reportEmpty(emptyMessage);
-            const width = 640, height = 270, left = 64, right = 16, top = 18, bottom = 40,
-                values = series.flatMap(item => item.values),
-                high = Math.max(1, ...values), low = Math.min(0, ...values),
-                y = value => top + (high - value) / (high - low || 1) * (height - top - bottom),
-                x = index => left + (buckets.length < 2 ? (width - left - right) / 2 :
-                    index * (width - left - right) / (buckets.length - 1)),
-                tickIndexes = new Set([0, ...Array.from({ length: 4 }, (_, index) =>
-                    Math.round((buckets.length - 1) * (index + 1) / 5)), buckets.length - 1]);
-            let svg = `<svg viewBox="0 0 ${width} ${height}" class="ch report-chart" role="img" aria-label="Line chart">`;
-            for (let index = 0; index <= 4; index++) {
-                const value = low + (high - low) * (4 - index) / 4, yy = y(value);
-                svg += `<line x1="${left}" x2="${width-right}" y1="${yy}" y2="${yy}" class="report-gridline"/><text x="${left-8}" y="${yy+4}" text-anchor="end">${reportTick(value)}</text>`
-            }
-            for (const index of tickIndexes) {
-                const bucket = buckets[index];
-                svg += `<text x="${x(index)}" y="${height-12}" text-anchor="middle">${esc(bucket.label)}</text>`
-            }
-            series.forEach(item => {
-                if (area) {
-                    const areaPoints = item.values.map((value, index) => `${x(index)},${y(value)}`);
-                    svg += `<polygon points="${x(0)},${y(0)} ${areaPoints.join(' ')} ${x(item.values.length-1)},${y(0)}" fill="${item.color}" fill-opacity=".16"/>`
-                }
-                svg += `<polyline fill="none" stroke="${item.color}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" points="${item.values.map((value, index) => `${x(index)},${y(value)}`).join(' ')}"/>`;
-                item.values.forEach((value, index) => {
-                    const bucket = buckets[index],
-                        tooltip = `${item.name}: ${peso(value)} · ${fd(bucket.start)}${bucket.start !== bucket.end ? ` – ${fd(bucket.end)}` : ''}`,
-                        filterType = item.type || '';
-                    svg += `<g class="report-mark" ${reportClick(bucket, filterType)}><title>${esc(tooltip)}</title><circle cx="${x(index)}" cy="${y(value)}" r="11" fill="transparent"/><circle cx="${x(index)}" cy="${y(value)}" r="4" fill="${item.color}"/></g>`
-                })
-            });
-            return svg + '</svg>' + reportLegend(series)
+            const config = { kind: 'line', buckets, series, area };
+            return `<div class="report-line-chart"><canvas class="report-line-canvas" role="img" aria-label="Line chart" ${chartConfigAttribute(config)}>Line chart</canvas></div>${reportLegend(series)}`
         }
         function reportBarChart(buckets, series, emptyMessage) {
             if (!buckets.length || !series.some(item => item.values.some(value => value !== 0))) return reportEmpty(emptyMessage);
@@ -1774,23 +1798,195 @@ ${summaryWidget}${shortcutsWidget}${actionsWidget}${accountsWidget}${transaction
         function reportDonutChart(entries, period, emptyMessage) {
             const total = entries.reduce((sum, entry) => sum + entry.value, 0);
             if (!entries.length || total <= 0) return reportEmpty(emptyMessage);
-            const radius = 62, circumference = 2 * Math.PI * radius;
-            let offset = 0,
-                svg = `<svg viewBox="0 0 220 180" class="report-donut" role="img" aria-label="Donut chart showing expenses by category"><circle cx="110" cy="88" r="${radius}" fill="none" stroke="var(--bd)" stroke-width="25"/>`;
-            entries.forEach(entry => {
-                const length = entry.value / total * circumference,
-                    bucket = { start: period.start, end: period.end },
-                    tooltip = `${entry.name}: ${peso(entry.value)} (${Math.round(entry.value / total * 100)}%) · ${fd(period.start)} – ${fd(period.end)}`;
-                svg += `<g class="report-mark" ${reportClick(bucket, 'expense', entry.id)}><title>${esc(tooltip)}</title><circle cx="110" cy="88" r="${radius}" fill="none" stroke="${entry.color}" stroke-width="25" stroke-dasharray="${length} ${circumference-length}" stroke-dashoffset="${-offset}" transform="rotate(-90 110 88)"/></g>`;
-                offset += length
-            });
-            svg += `<text x="110" y="84" text-anchor="middle" class="report-donut-total">${esc(peso(total))}</text><text x="110" y="104" text-anchor="middle" class="report-donut-caption">Total expenses</text></svg>`;
             const legend = entries.map(entry => {
                 const percent = Math.round(entry.value / total * 100),
-                    bucket = { start: period.start, end: period.end };
-                return `<button type="button" class="report-category" ${reportClick(bucket, 'expense', entry.id)}><span><i style="--report-color:${entry.color}"></i>${esc(entry.name)}</span><b>${peso(entry.value)} <small>${percent}%</small></b></button>`
+                    onclick = `selectReportDoughnut(this,'${esc(entry.id)}','${esc(period.start)}','${esc(period.end)}')`;
+                return `<button type="button" class="report-category" data-category-id="${esc(entry.id)}" style="--report-color:${entry.color}" onclick="${onclick}"><span><i style="--report-color:${entry.color}"></i><span class="report-category-name">${esc(entry.name)}</span></span><b>${peso(entry.value)} <small>${percent}%</small></b></button>`
             }).join('');
-            return `<div class="report-donut-wrap">${svg}<div class="report-category-list">${legend}</div></div>`
+            const config = { kind: 'doughnut', entries, total, period };
+            return `<div class="report-donut-wrap" onclick="deselectReportDoughnutOutside(event,this)"><div class="report-donut-stage"><canvas class="report-donut-canvas" role="img" aria-label="Donut chart showing expenses by category" ${chartConfigAttribute(config)}>Donut chart showing expenses by category</canvas></div><div class="report-category-list">${legend}</div></div>`
+        }
+        const chartCssColor = name => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+        function colorWithOpacity(color, opacity) {
+            const match = /^#([\da-f]{6})$/i.exec(color);
+            if (!match) return color;
+            const value = match[1];
+            return `rgba(${parseInt(value.slice(0, 2), 16)},${parseInt(value.slice(2, 4), 16)},${parseInt(value.slice(4, 6), 16)},${opacity})`
+        }
+        function createReportChart(canvas) {
+            const config = JSON.parse(canvas.dataset.chartConfig),
+                textColor = chartCssColor('--tx'),
+                mutedColor = chartCssColor('--mu'),
+                gridColor = colorWithOpacity(chartCssColor('--bd'), .6);
+            const chartOptions = {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: { duration: 180 },
+                plugins: { legend: { display: false } },
+                onClick(event, elements) {
+                    if (config.kind === 'doughnut') {
+                        const wrap = canvas.closest('.report-donut-wrap');
+                        if (!elements.length) {
+                            clearReportDoughnutSelection(wrap);
+                            return
+                        }
+                        const category = config.entries[elements[0].index];
+                        if (wrap.dataset.selectedCategory === category.id) {
+                            openReportTransactions(config.period.start, config.period.end, 'expense', category.id, U.ra || '');
+                        } else {
+                            applyReportDoughnutSelection(wrap, category.id)
+                        }
+                        return
+                    }
+                    if (!elements.length) return;
+                    const element = elements[0],
+                        bucket = config.buckets[element.index],
+                        series = config.series[element.datasetIndex];
+                    if (bucket && series) {
+                        openReportTransactions(bucket.start, bucket.end, series.type || '', series.category || U.rc || '', U.ra || '')
+                    }
+                }
+            };
+            let chartConfig;
+            if (config.kind === 'doughnut') {
+                const background = chartCssColor('--cd'),
+                    colors = config.entries.map(entry => entry.color),
+                    centerText = {
+                        id: 'reportDoughnutCenter',
+                        afterDraw(chart) {
+                            const arc = chart.getDatasetMeta(0).data[0];
+                            if (!arc) return;
+                            const context = chart.ctx;
+                            context.save();
+                            context.textAlign = 'center';
+                            context.textBaseline = 'middle';
+                            context.fillStyle = textColor;
+                            context.font = '700 16px system-ui, sans-serif';
+                            context.fillText(peso(config.total), arc.x, arc.y - 5);
+                            context.fillStyle = mutedColor;
+                            context.font = '12px system-ui, sans-serif';
+                            context.fillText('Total expenses', arc.x, arc.y + 13);
+                            const index = chart.data.datasets[0].selectedIndex;
+                            if (index >= 0) {
+                                const selectedArc = chart.getDatasetMeta(0).data[index],
+                                    entry = config.entries[index];
+                                if (selectedArc && entry) {
+                                    const angle = (selectedArc.startAngle + selectedArc.endAngle) / 2,
+                                        fromX = selectedArc.x + Math.cos(angle) * selectedArc.outerRadius,
+                                        fromY = selectedArc.y + Math.sin(angle) * selectedArc.outerRadius,
+                                        toX = selectedArc.x + Math.cos(angle) * (selectedArc.outerRadius + 16),
+                                        toY = selectedArc.y + Math.sin(angle) * (selectedArc.outerRadius + 16),
+                                        rightSide = Math.cos(angle) >= 0,
+                                        labelX = toX + (rightSide ? 4 : -4);
+                                    context.strokeStyle = textColor;
+                                    context.lineWidth = 1;
+                                    context.beginPath();
+                                    context.moveTo(fromX, fromY);
+                                    context.lineTo(toX, toY);
+                                    context.stroke();
+                                    context.fillStyle = textColor;
+                                    context.textAlign = rightSide ? 'left' : 'right';
+                                    context.font = '600 11px system-ui, sans-serif';
+                                    context.fillText(entry.name, labelX, toY - 5);
+                                    context.font = '12px system-ui, sans-serif';
+                                    context.fillText(peso(entry.value), labelX, toY + 10)
+                                }
+                            }
+                            context.restore()
+                        }
+                    };
+                chartConfig = {
+                    type: 'doughnut',
+                    data: {
+                        labels: config.entries.map(entry => entry.name),
+                        datasets: [{
+                            data: config.entries.map(entry => entry.value),
+                            categoryIds: config.entries.map(entry => entry.id),
+                            originalColors: colors,
+                            backgroundColor: colors,
+                            borderColor: background,
+                            borderWidth: 3,
+                            hoverOffset: 6,
+                            selectedIndex: -1,
+                            offset: context => context.dataIndex === context.dataset.selectedIndex ? 8 : 0
+                        }]
+                    },
+                    options: {
+                        ...chartOptions,
+                        cutout: '62%',
+                        layout: { padding: 28 },
+                        plugins: {
+                            ...chartOptions.plugins,
+                            tooltip: {
+                                callbacks: {
+                                    label(context) {
+                                        const entry = config.entries[context.dataIndex],
+                                            percent = Math.round(entry.value / config.total * 100);
+                                        return `${entry.name}: ${peso(entry.value)} (${percent}%)`
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    plugins: [centerText]
+                }
+            } else {
+                chartConfig = {
+                    type: 'line',
+                    data: {
+                        labels: config.buckets.map(bucket => bucket.label),
+                        datasets: config.series.map(item => ({
+                            label: item.name,
+                            data: item.values,
+                            borderColor: item.color,
+                            backgroundColor: colorWithOpacity(item.color, .14),
+                            fill: config.area,
+                            tension: .35,
+                            borderWidth: 2.5,
+                            pointRadius: 2,
+                            pointHoverRadius: 5
+                        }))
+                    },
+                    options: {
+                        ...chartOptions,
+                        scales: {
+                            x: {
+                                grid: { display: false },
+                                ticks: { color: mutedColor, maxTicksLimit: 7, maxRotation: 0 }
+                            },
+                            y: {
+                                beginAtZero: true,
+                                grid: { color: gridColor },
+                                ticks: { color: mutedColor, callback: reportTick }
+                            }
+                        },
+                        plugins: {
+                            ...chartOptions.plugins,
+                            tooltip: {
+                                callbacks: {
+                                    title(items) {
+                                        const bucket = config.buckets[items[0]?.dataIndex];
+                                        return bucket ? `${fd(bucket.start)}${bucket.start !== bucket.end ? ` – ${fd(bucket.end)}` : ''}` : ''
+                                    },
+                                    label(context) {
+                                        return `${config.series[context.datasetIndex].name}: ${peso(context.parsed.y)}`
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return new Chart(canvas, chartConfig)
+        }
+        function destroyReportCharts() {
+            reportChartInstances.forEach(chart => chart.destroy());
+            reportChartInstances = []
+        }
+        function renderReportCharts(root) {
+            if (typeof Chart !== 'function') throw new Error('Chart.js did not load. Check vendor/chartjs/chart.umd.min.js.');
+            reportChartInstances = Array.from(root.querySelectorAll('canvas[data-chart-config]'))
+                .map(createReportChart)
         }
         function reportAccountBars(accounts, endDate, emptyMessage) {
             if (!accounts.length) return reportEmpty(emptyMessage);
@@ -2419,7 +2615,9 @@ ${chartCard('Cash Flow', cashFlowChart)}
             updateNavigationIndicator();
             if (isFirstIndicator) requestAnimationFrame(() => indicator.classList.add('ready'));
             $('#m').dataset.view = U.v;
+            destroyReportCharts();
             $('#m').innerHTML = V[U.v]();
+            if (U.v === 'rep') renderReportCharts($('#m'));
             wireRenderedSelects($('#m'));
             setupTitleMenu();
             if (U.v === 'acc') wireAccountStack();

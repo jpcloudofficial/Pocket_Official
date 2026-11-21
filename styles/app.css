@@ -735,6 +735,7 @@
         .report-filters label {
             display: grid;
             gap: 5px;
+            margin: 0;
             color: var(--mu);
             font-size: 12px
         }
@@ -750,7 +751,12 @@
         }
 
         .report-period-label {
-            grid-column: 1 / -1
+            grid-column: 1 / -1;
+            width: fit-content;
+            padding: 6px 9px;
+            border-radius: 999px;
+            background: var(--bg);
+            color: var(--mu)
         }
 
         .report-grid {
@@ -818,35 +824,83 @@
 
         .report-donut-wrap {
             display: grid;
-            grid-template-columns: minmax(150px, .8fr) minmax(0, 1.2fr);
-            align-items: center;
-            gap: 10px
+            gap: 18px
         }
 
-        .report-donut {
-            width: 100%;
-            max-height: 200px
+        .report-donut-wrap.has-selection .report-category.is-dimmed {
+            opacity: .28
         }
 
-        .report-donut circle {
-            cursor: pointer
+        .report-donut-stage {
+            position: relative;
+            width: min(100%, 380px);
+            height: clamp(240px, 72vw, 340px);
+            margin-inline: auto
         }
 
-        .report-donut text {
-            fill: var(--tx);
-            font-size: 9px;
-            font-weight: 700
+        .report-donut-canvas,
+        .report-line-canvas {
+            display: block;
+            width: 100% !important;
+            height: 100% !important
         }
 
-        .report-donut .report-donut-caption {
-            fill: var(--mu);
-            font-size: 7px;
-            font-weight: 400
+        .report-line-chart {
+            position: relative;
+            height: clamp(220px, 42vw, 290px)
         }
 
         .report-category-list {
             display: grid;
-            gap: 2px
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 8px
+        }
+
+        .report-category {
+            display: flex;
+            min-width: 0;
+            min-height: 68px;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            padding: 10px;
+            border: 1px solid transparent;
+            border-radius: 12px;
+            background: var(--cd);
+            color: var(--tx);
+            text-align: left;
+            transition: opacity .16s ease, border-color .16s ease, transform .16s ease
+        }
+
+        .report-category > span {
+            min-width: 0
+        }
+
+        .report-category-name {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap
+        }
+
+        .report-category b {
+            flex: none;
+            line-height: 1.15
+        }
+
+        .report-category b small {
+            display: block;
+            margin-top: 2px;
+            color: var(--mu);
+            text-align: right
+        }
+
+        .report-category.is-selected {
+            border-color: var(--report-color, var(--bd));
+            transform: translateY(-1px)
+        }
+
+        .report-category.is-dimmed {
+            transition: opacity .16s ease
         }
 
         .report-category {
@@ -2313,7 +2367,11 @@
             }
 
             .report-donut-wrap {
-                grid-template-columns: minmax(130px, .8fr) minmax(0, 1.2fr)
+                gap: 14px
+            }
+
+            .report-category-list {
+                grid-template-columns: repeat(2, minmax(0, 1fr))
             }
 
             .profile-layout {
@@ -2322,6 +2380,17 @@
 
             .hb {
                 font-size: clamp(20px, 7vw, 28px)
+            }
+
+            @media(max-width:560px) {
+                .report-filters {
+                    grid-template-columns: repeat(2, minmax(0, 1fr));
+                    gap: 12px
+                }
+
+                .report-filters label:nth-of-type(3) {
+                    grid-column: 1 / -1
+                }
             }
 
             input,
