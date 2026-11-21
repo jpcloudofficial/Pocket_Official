@@ -491,10 +491,10 @@ function syncDateInput(input) {
                     `<span class="date-input-wrap${v ? '' : ' is-empty'}"><input name="${x.k}" type="date" value="${esc(v)}" onchange="syncDateInput(this)"><span class="date-input-value">${esc(fd(v))}</span><span class="date-input-placeholder">${esc(x.placeholder || 'Choose date')}</span></span>` :
                     x.t === 'area' ? `<textarea name="${x.k}" rows="2">${esc(v)}</textarea>` :
                     `<input name="${x.k}" type="${x.t||'text'}" value="${esc(v)}" ${x.t==='number'?'step="0.01"':''}>`;
-                return `<label>${x.l}${x.req?' *':''}${i}</label>`
+                return `<label${x.cls?` class="${esc(x.cls)}"`:''}>${x.l}${x.req?' *':''}${i}</label>`
             };
             ov(
-            `<div id="f"><h3>${title}</h3><div class="form-fields">${f.map(fld).join('')}</div><p class="er" id="er"></p><div class="row end"><button type="button" class="b2" onclick="cl()">Cancel</button><button type="button" class="b1" id="sv">Save</button></div></div>`);
+            `<div id="f"${title === 'Add transaction' || title === 'Edit transaction' ? ' class="pocket-transaction-form"' : ''}><h3>${title}</h3><div class="form-fields">${f.map(fld).join('')}</div><p class="er" id="er"></p><div class="row end"><button type="button" class="b2" onclick="cl()">Cancel</button><button type="button" class="b1" id="sv">Save</button></div></div>`);
             $('#ov').classList.add('form-open');
             const F = $('#f'),
                 el = k => F.querySelector('[name="' + k + '"]'),
@@ -558,6 +558,7 @@ function syncDateInput(input) {
         function txForm(id) {
             window._dup = '';
             const t = id ? D.tx.find(x => x.id === id) : null;
+            const linkedCashback = t && D.cashbacks.find(claim => claim.expenseId === t.id);
             openForm(t ? 'Edit transaction' : 'Add transaction', v => {
                     const tr = v.type === 'transfer',
                         ac = D.acc.map(a => [a.id, a.name]);
@@ -565,6 +566,7 @@ function syncDateInput(input) {
                             k: 'type',
                             l: 'Type',
                             t: 'sel',
+                            cls: 'form-field-full',
                             o: [
                                 ['expense', 'Expense'],
                                 ['income', 'Income'],
@@ -573,30 +575,35 @@ function syncDateInput(input) {
                         }, {
                             k: 'title',
                             l: 'Title',
+                            cls: 'form-field-full',
                             req: !tr
                         }, {
                             k: 'amount',
                             l: 'Amount (₱)',
                             t: 'number',
                             req: 1,
-                            pos: 1
-                        }, ...(!t && v.type === 'expense' ? [{
+                            pos: 1,
+                            cls: v.type === 'income' ? 'form-field-full' : 'form-field-pair'
+                        }, ...((v.type === 'expense' || v.type === 'transfer') ? [{
                             k: 'cashbackAmount',
                             l: 'Cashback',
                             t: 'number',
-                            pos: 1
+                            pos: 1,
+                            cls: 'form-field-pair'
                         }] : []),
                         tr ? {
                             k: 'acc',
                             l: 'From account',
                             t: 'sel',
                             req: 1,
+                            cls: 'form-field-pair',
                             o: ac
                         } : {
                             k: 'cat',
                             l: 'Category',
                             t: 'sel',
                             req: 1,
+                            cls: 'form-field-pair',
                             placeholder: 'Choose category',
                             o: D.cats.filter(c => v.type === 'income' ? c.g === 'Income' : c.g !== 'Income')
                                 .map(c => [c.id, c.name])
@@ -606,42 +613,51 @@ function syncDateInput(input) {
                             l: 'To account',
                             t: 'sel',
                             req: 1,
+                            cls: 'form-field-pair',
                             o: ac
                         } : {
                             k: 'acc',
                             l: 'Account',
                             t: 'sel',
                             req: 1,
+                            cls: 'form-field-pair',
                             placeholder: 'Choose account',
                             o: ac
                         }, {
                             k: 'date',
                             l: 'Date',
                             t: 'date',
-                            req: 1
+                            req: 1,
+                            cls: 'form-field-pair'
+                        }, {
+                            k: 'time',
+                            l: 'Time',
+                            t: 'time',
+                            cls: 'form-field-pair'
                         }, {
                             k: 'note',
                             l: 'Notes (optional)',
-                            t: 'area'
+                            t: 'area',
+                            cls: 'form-field-full'
                         }
                     ]
                 },
-                t || {
+                t ? { ...t, cashbackAmount: linkedCashback?.amount || '' } : {
                     type: 'expense',
                     date: today(),
+                    time: '',
                     acc: '',
                     to: 'gcash'
                 }, v => {
                     const amt = +v.amount,
                         tr = v.type === 'transfer',
                         title = v.title || 'Transfer';
-                    const linkedCashback = t && D.cashbacks.find(claim => claim.expenseId === t.id);
                     const cashbackAmount = +v.cashbackAmount || 0;
-                    if (cashbackAmount > 0 && v.type !== 'expense') return 'Cashback can only be added to an expense.';
-                    if (cashbackAmount > amt) return 'Cashback can’t exceed the expense amount.';
-                    if (cashbackAmount > 0 && !A(v.acc)) return 'Choose an expense account for the cashback deposit.';
-                    if (linkedCashback && (tr || v.type !== 'expense')) return 'Remove the linked cashback claim before changing this expense type.';
-                    if (linkedCashback && amt < linkedCashback.amount) return 'This expense amount is below its cashback claim. Update the claim first.';
+                    if (cashbackAmount > 0 && v.type !== 'expense' && v.type !== 'transfer') return 'Cashback can only be added to an expense or transfer.';
+                    if (cashbackAmount > amt) return 'Cashback can’t exceed the transaction amount.';
+                    if (cashbackAmount > 0 && !A(tr ? v.to : v.acc)) return 'Choose an account for the cashback deposit.';
+                    if (linkedCashback && v.type !== 'expense' && v.type !== 'transfer') return 'Remove the linked cashback claim before changing this transaction type.';
+                    if (linkedCashback && cashbackAmount > 0 && amt < cashbackAmount) return 'This transaction amount is below its cashback claim.';
                     if (tr) {
                         if (v.acc === v.to) return 'Choose two different accounts';
                         const a = A(v.acc),
@@ -662,24 +678,26 @@ function syncDateInput(input) {
                         acc: v.acc,
                         to: tr ? v.to : null,
                         date: v.date,
-                        time: t?.time || '',
+                        time: v.time || t?.time || '',
                         note: v.note,
                         ...(t?.cashbackId ? { cashbackId: t.cashbackId } : {})
                     };
                     if (linkedCashback) {
                         linkedCashback.expenseTitle = title;
                         linkedCashback.expenseDate = v.date;
-                        linkedCashback.account = v.acc
+                        linkedCashback.account = tr ? v.to : v.acc;
+                        if (cashbackAmount > 0) linkedCashback.amount = cashbackAmount;
+                        else D.cashbacks = D.cashbacks.filter(claim => claim.id !== linkedCashback.id)
                     }
                     t ? Object.assign(t, o) : D.tx.push(o);
-                    if (!t && v.type === 'expense' && cashbackAmount > 0) {
+                    if (!t && (v.type === 'expense' || v.type === 'transfer') && cashbackAmount > 0) {
                         D.cashbacks.push({
                             id: uid(),
                             expenseId: o.id,
                             expenseTitle: title,
                             expenseDate: v.date,
                             amount: cashbackAmount,
-                            account: v.acc,
+                            account: tr ? v.to : v.acc,
                             created: today(),
                             status: 'pending',
                             receivedDate: '',
@@ -929,6 +947,7 @@ function syncDateInput(input) {
                 const transaction = D.tx.find(t => t.id === id);
                 D.tx = D.tx.filter(t => t.id !== id);
                 if (transaction?.cashbackId) D.cashbacks = D.cashbacks.filter(claim => claim.id !== transaction.cashbackId)
+                else D.cashbacks = D.cashbacks.filter(claim => claim.expenseId !== id)
             });
 
         function openRecentTransaction(id) {
@@ -1332,13 +1351,14 @@ ${summaryWidget}${shortcutsWidget}${actionsWidget}${accountsWidget}${transaction
             const received = D.cashbacks.filter(claim => claim.status === 'received');
             const claimCard = claim => {
                 const expense = D.tx.find(item => item.id === claim.expenseId);
+                const transactionType = expense?.type === 'transfer' ? 'Transfer' : 'Expense';
                 const timingLabel = claim.status === 'received' ? 'Received' : 'Added';
                 const timingDate = claim.status === 'received' ? claim.receivedDate : claim.created;
                 const deleteButton = `<button class="ib" onclick="deleteCashback('${claim.id}')" aria-label="Delete cashback claim">${ic('trash-2')}</button>`;
                 const actions = claim.status === 'pending'
                     ? `<div class="cashback-card-actions"><button class="chip" onclick="markCashbackReceived('${claim.id}')">Mark received</button>${deleteButton}</div>`
                     : '';
-                return `<article class="card cashback-card"><div class="cashback-card-heading"><span class="dot" style="background:#0891b222;color:#0891b2">${ic('coins')}</span><div class="cashback-card-title"><b>${esc(claim.expenseTitle || expense?.title || 'Linked expense')}</b><small>Expense · ${fd(claim.expenseDate || expense?.date || claim.created)}</small></div><b class="cashback-amount">${peso(claim.amount)}</b></div><div class="cashback-card-meta"><span><small>Deposit account</small><b>${esc(A(claim.account)?.name || 'Unknown account')}</b></span><span><small>${timingLabel}</small><b>${fd(timingDate)}</b></span>${claim.status === 'received' ? deleteButton : ''}</div>${actions}</article>`
+                return `<article class="card cashback-card"><div class="cashback-card-heading"><span class="dot" style="background:#0891b222;color:#0891b2">${ic('coins')}</span><div class="cashback-card-title"><b>${esc(claim.expenseTitle || expense?.title || 'Linked transaction')}</b><small>${transactionType} · ${fd(claim.expenseDate || expense?.date || claim.created)}</small></div><b class="cashback-amount">${peso(claim.amount)}</b></div><div class="cashback-card-meta"><span><small>Deposit account</small><b>${esc(A(claim.account)?.name || 'Unknown account')}</b></span><span><small>${timingLabel}</small><b>${fd(timingDate)}</b></span>${claim.status === 'received' ? deleteButton : ''}</div>${actions}</article>`
             };
             const receivedTotal = received.reduce((total, claim) => total + claim.amount, 0);
             return `<div class="cashback-header"><div><h2>Cashback</h2><small>Track pending and received cashback.</small></div></div><h3 class="sec cashback-subtitle"><span>Pending</span><span class="cashback-count">${pending.length}</span></h3><div class="g g2 cashback-list">${pending.length ? pending.map(claimCard).join('') : '<div class="empty card cashback-empty">No pending cashback. Add a claim from an expense in Transactions.</div>'}</div><div class="cashback-section-heading"><h3 class="sec cashback-subtitle"><span>Received</span><span class="cashback-count">${received.length}</span></h3><div class="cashback-total"><small>Total received</small><b>${peso(receivedTotal)}</b></div></div><div class="g g2 cashback-list">${received.length ? received.map(claimCard).join('') : '<div class="empty card cashback-empty">Cashback marked received will appear here as income.</div>'}</div>`
