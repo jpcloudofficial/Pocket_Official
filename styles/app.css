@@ -63,6 +63,15 @@
             font: 14px/1.45 'Plus Jakarta Sans', system-ui, sans-serif
         }
 
+        body.pocket-modal-open {
+            position: fixed;
+            top: var(--pocket-modal-scroll-top, 0);
+            left: 0;
+            right: 0;
+            width: 100%;
+            overflow: hidden
+        }
+
         html:not([data-view="tx"]),
         html:not([data-view="tx"]) body {
             scrollbar-width: none;
@@ -1222,7 +1231,7 @@
 
         .quick-actions-grid {
             display: grid;
-            grid-template-columns: repeat(4, minmax(0, 1fr));
+            grid-template-columns: repeat(5, minmax(0, 1fr));
             gap: 6px
         }
 
@@ -1272,6 +1281,143 @@
 
         .quick-action-savings {
             color: #ea8c00
+        }
+
+        .quick-action-shopping {
+            color: #0f9f77
+        }
+
+        .shopping-lists {
+            align-items: start
+        }
+
+        .shopping-list-summary {
+            display: flex;
+            width: 100%;
+            min-width: 0;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 18px;
+            border: 1px solid var(--bd);
+            border-radius: 16px;
+            background: var(--cd);
+            color: var(--tx);
+            font: inherit;
+            text-align: left;
+            cursor: pointer;
+            transition: background-color .18s ease, border-color .18s ease
+        }
+
+        .shopping-list-summary:hover {
+            background: var(--sq)
+        }
+
+        .shopping-list-summary:focus-visible {
+            outline: 2px solid var(--tx);
+            outline-offset: 2px
+        }
+
+        .shopping-list-summary span {
+            min-width: 0;
+            overflow-wrap: anywhere;
+            font-weight: 600
+        }
+
+        .shopping-list-summary b {
+            flex: none;
+            color: var(--in);
+            font-size: 16px
+        }
+
+        .shopping-list-detail {
+            display: flex;
+            flex-direction: column;
+            gap: 12px
+        }
+
+        .shopping-list-heading {
+            display: flex;
+            align-items: center;
+            gap: 10px
+        }
+
+        .shopping-list-heading h3 {
+            margin: 0 0 3px;
+            font-size: 16px
+        }
+
+        .shopping-list-heading small {
+            color: var(--mu)
+        }
+
+        .shopping-list-total {
+            padding: 10px 0;
+            border-top: 1px solid var(--bd);
+            border-bottom: 1px solid var(--bd);
+            color: var(--mu)
+        }
+
+        .shopping-list-total b {
+            color: var(--tx)
+        }
+
+        .shopping-list-items {
+            display: grid;
+            gap: 2px
+        }
+
+        .shopping-list-item {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto auto auto;
+            align-items: center;
+            gap: 8px;
+            min-height: 42px;
+            border-bottom: 1px solid var(--bd)
+        }
+
+        .shopping-list-item:last-child {
+            border-bottom: 0
+        }
+
+        .shopping-list-item label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-width: 0;
+            width: 100%;
+            margin: 0;
+            cursor: pointer
+        }
+
+        .shopping-list-item input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            flex: none;
+            margin: 0;
+            padding: 0
+        }
+
+        .shopping-list-item label span {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap
+        }
+
+        .shopping-list-item-amount {
+            flex: none;
+            color: var(--mu);
+            font-size: 13px
+        }
+
+        .shopping-list-item.is-checked label span {
+            color: var(--mu);
+            text-decoration: line-through
+        }
+
+        .shopping-list-empty {
+            padding: 8px 0;
+            text-align: left
         }
 
         @media (min-width: 761px) {
@@ -2027,7 +2173,8 @@
             justify-content: center;
             padding: 16px;
             z-index: 20;
-            overflow: auto
+            overflow: hidden;
+            overscroll-behavior: contain
         }
 
         #ov>div {
@@ -2037,7 +2184,8 @@
             width: 100%;
             max-width: 440px;
             max-height: 92vh;
-            overflow: auto
+            overflow: auto;
+            overscroll-behavior: contain
         }
 
         #ov.form-open>div {

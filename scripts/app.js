@@ -234,6 +234,7 @@ function syncDateInput(input) {
                 })),
                 recurring: [],
                 cashbacks: [],
+                shoppingLists: [],
                 dashboardWidgets: defaultDashboardWidgets()
             }
         }
@@ -339,9 +340,14 @@ function syncDateInput(input) {
                 })),
             lu = () => {};
 
+        let modalScrollPosition = 0;
         function ov(h) {
             document.querySelectorAll('.pocket-select-overlay').forEach(menu => menu.remove());
             $('#ovc').innerHTML = h;
+            if (!document.body.classList.contains('pocket-modal-open')) {
+                modalScrollPosition = window.scrollY || document.documentElement.scrollTop || 0;
+                document.body.style.setProperty('--pocket-modal-scroll-top', `-${modalScrollPosition}px`)
+            }
             document.body.classList.add('pocket-modal-open');
             $('#ov').style.display = 'flex';
             lu()
@@ -351,7 +357,10 @@ function syncDateInput(input) {
                 menu.closePicker ? menu.closePicker(false) : menu.remove());
             $('#ov').style.display = 'none';
             $('#ov').classList.remove('form-open');
-            document.body.classList.remove('pocket-modal-open')
+            const wasLocked = document.body.classList.contains('pocket-modal-open');
+            document.body.classList.remove('pocket-modal-open');
+            document.body.style.removeProperty('--pocket-modal-scroll-top');
+            if (wasLocked) window.scrollTo(0, modalScrollPosition)
         };
 
         function wireSelectPicker(select, trigger, label) {
@@ -472,7 +481,7 @@ function syncDateInput(input) {
         }
         const info = m => ov(`<h3>${m}</h3><div class="row end"><button class="b1" onclick="cl()">OK</button></div>`);
 
-        function openForm(title, fn, vals, submit, rr) {
+        function openForm(title, fn, vals, submit, rr, saveLabel = 'Save') {
             const f = fn(vals).filter(Boolean);
             const fld = x => {
                 const v = vals[x.k] ?? '',
@@ -494,7 +503,7 @@ function syncDateInput(input) {
                 return `<label${x.cls?` class="${esc(x.cls)}"`:''}>${x.l}${x.req?' *':''}${i}</label>`
             };
             ov(
-            `<div id="f"${title === 'Add transaction' || title === 'Edit transaction' ? ' class="pocket-transaction-form"' : ''}><h3>${title}</h3><div class="form-fields">${f.map(fld).join('')}</div><p class="er" id="er"></p><div class="row end"><button type="button" class="b2" onclick="cl()">Cancel</button><button type="button" class="b1" id="sv">Save</button></div></div>`);
+            `<div id="f"${title === 'Add transaction' || title === 'Edit transaction' ? ' class="pocket-transaction-form"' : ''}><h3>${title}</h3><div class="form-fields">${f.map(fld).join('')}</div><p class="er" id="er"></p><div class="row end"><button type="button" class="b2" onclick="cl()">Cancel</button><button type="button" class="b1" id="sv">${esc(saveLabel)}</button></div></div>`);
             $('#ov').classList.add('form-open');
             const F = $('#f'),
                 el = k => F.querySelector('[name="' + k + '"]'),
@@ -527,7 +536,7 @@ function syncDateInput(input) {
             if (rr) el(rr).onchange = () => openForm(title, fn, {
                 ...vals,
                 ...get()
-            }, submit, rr);
+            }, submit, rr, saveLabel);
             const go2 = () => {
                 const v = get();
                 for (const x of f) {
@@ -690,7 +699,7 @@ function syncDateInput(input) {
                         else D.cashbacks = D.cashbacks.filter(claim => claim.id !== linkedCashback.id)
                     }
                     t ? Object.assign(t, o) : D.tx.push(o);
-                    if (!t && (v.type === 'expense' || v.type === 'transfer') && cashbackAmount > 0) {
+                    if (!linkedCashback && (v.type === 'expense' || v.type === 'transfer') && cashbackAmount > 0) {
                         D.cashbacks.push({
                             id: uid(),
                             expenseId: o.id,
@@ -718,6 +727,7 @@ function syncDateInput(input) {
 
         function primaryAdd() {
             if (U.v === 'acc') accForm();
+            else if (U.v === 'shop') shoppingListForm();
             else txForm()
         }
 
@@ -736,12 +746,14 @@ function syncDateInput(input) {
             render()
         }
 
-        function cashbackForm(expenseId) {
-            const expense = D.tx.find(item => item.id === expenseId && item.type === 'expense');
-            if (!expense) return info('The linked expense could not be found.');
-            if (D.cashbacks.some(claim => claim.expenseId === expenseId)) {
+        function cashbackForm(transactionId) {
+            const transaction = D.tx.find(item =>
+                item.id === transactionId && (item.type === 'expense' || item.type === 'transfer')
+            );
+            if (!transaction) return info('The linked transaction could not be found.');
+            if (D.cashbacks.some(claim => claim.expenseId === transactionId)) {
                 go('cash');
-                return info('This expense already has a cashback claim. You can manage it on the Cashback page.');
+                return info('This transaction already has a cashback claim. You can manage it on the Cashback page.');
             }
             const cashbackCategory = D.cats.find(category => category.g === 'Income' && category.name.toLowerCase() === 'cashback');
             if (!cashbackCategory) return info('Cashback category is unavailable. Reload Pocket to update categories.');
@@ -749,14 +761,14 @@ function syncDateInput(input) {
                 k: 'amount', l: 'Expected cashback (₱)', t: 'number', req: 1, pos: 1
             }, {
                 k: 'account', l: 'Deposit account', t: 'sel', req: 1, o: D.acc.map(account => [account.id, account.name])
-            }], { amount: '', account: expense.acc }, value => {
+            }], { amount: '', account: transaction.type === 'transfer' ? transaction.to : transaction.acc }, value => {
                 const amount = +value.amount;
-                if (amount > expense.amount) return 'Cashback can’t exceed the linked expense amount.';
+                if (amount > transaction.amount) return 'Cashback can’t exceed the linked transaction amount.';
                 D.cashbacks.push({
                     id: uid(),
-                    expenseId,
-                    expenseTitle: expense.title,
-                    expenseDate: expense.date,
+                    expenseId: transactionId,
+                    expenseTitle: transaction.title,
+                    expenseDate: transaction.date,
                     amount,
                     account: value.account,
                     created: today(),
@@ -968,8 +980,8 @@ function syncDateInput(input) {
                 details = tr ? `${esc(A(t.acc)?.name)} → ${esc(A(t.to)?.name)}` : `${esc(c ? c.name : 'Uncategorized')} · ${esc(A(t.acc)?.name)}`,
                 date = `${fd(t.date)}${t.time ? ' ' + t.time : ''}`,
                 amount = `${t.type === 'expense' ? '−' : t.type === 'income' ? '+' : ''}${peso(t.amount)}`;
-            const cashback = t.type === 'expense' ? D.cashbacks.find(claim => claim.expenseId === t.id) : null;
-            const actions = act ? `<div class="tx-actions">${t.type === 'expense' ? `<button class="ib" onclick="${cashback ? "go('cash')" : `cashbackForm('${t.id}')`}" aria-label="${cashback ? 'Manage cashback' : 'Track cashback'}" title="${cashback ? 'Manage cashback' : 'Track cashback'}">${ic('coins')}</button>` : ''}<button class="ib" onclick="editTx('${t.id}')" aria-label="Edit">${ic('pencil')}</button><button class="ib" onclick="delTx('${t.id}')" aria-label="Delete">${ic('trash-2')}</button></div>` : '';
+            const cashback = t.type === 'expense' || tr ? D.cashbacks.find(claim => claim.expenseId === t.id) : null;
+            const actions = act ? `<div class="tx-actions">${t.type === 'expense' || tr ? `<button class="ib" onclick="${cashback ? "go('cash')" : `cashbackForm('${t.id}')`}" aria-label="${cashback ? 'Manage cashback' : 'Track cashback'}" title="${cashback ? 'Manage cashback' : 'Track cashback'}">${ic('coins')}</button>` : ''}<button class="ib" onclick="editTx('${t.id}')" aria-label="Edit">${ic('pencil')}</button><button class="ib" onclick="delTx('${t.id}')" aria-label="Delete">${ic('trash-2')}</button></div>` : '';
             return `<div class="tx tx-list-row${recentLink ? ' recent-link' : ''}" data-date="${esc(t.date)}"${recentLink ? ` role="link" tabindex="0" aria-label="Open ${esc(t.title)} in Transactions" onclick="openRecentTransaction('${t.id}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openRecentTransaction('${t.id}')}"` : ''}><span class="dot" style="background:var(--sq);color:var(--tx)">${ic(tr ? 'arrow-left-right' : c ? c.icon : 'tag')}</span><div class="gr tx-copy"><b>${esc(t.title)}</b><small class="tx-meta"><span>${details}</span><span>${date}</span></small></div><div class="tx-end"><b class="tx-amount" style="color:${col}">${amount}</b>${actions}</div></div>`
         }
 
@@ -1050,6 +1062,7 @@ function syncDateInput(input) {
             `<div class="warn">${ic('alert-triangle')} ${esc(C(x.id)?.name)} ${x.msg} (${Math.round(x.p)}% of ${peso(x.b)})</div>`
         ).join('');
         const V = {};
+        let selectedShoppingListId = '';
         function accountPageChanged(carousel) {
             const indicator = $('#account-page-indicator'),
                 count = carousel.querySelectorAll('.account-page').length;
@@ -1277,7 +1290,7 @@ function syncDateInput(input) {
                 `<div class="hero"><small>Total Balance</small><div class="hb">${peso(tot,1)}</div><div class="two"><div><small>Income</small><div class="hn" style="color:var(--in)">${peso(inc)}</div></div><div><small>Expenses</small><div class="hn" style="color:var(--ex)">${peso(exp)}</div></div></div><small class="pocket-summary-amounts">Available ${peso(av)}${cr<0?' · Card owed '+peso(-cr):''}</small></div>` :
                 '';
             const shortcutsWidget = widgets.shortcuts ?
-                `<section class="dashboard-shortcuts" aria-labelledby="dashboard-shortcuts-title"><h3 class="sec" id="dashboard-shortcuts-title">Quick Actions</h3><div class="quick-actions-grid"><button class="quick-action" onclick="go('bud')"><span class="quick-action-icon quick-action-budget" aria-hidden="true">${ic('gauge')}</span><span>Budgets</span></button><button class="quick-action" onclick="go('cash')"><span class="quick-action-icon quick-action-cashback" aria-hidden="true">${ic('coins')}</span><span>Cashback</span></button><button class="quick-action" onclick="go('rec')"><span class="quick-action-icon quick-action-recurring" aria-hidden="true">${ic('repeat')}</span><span>Recurring</span></button><button class="quick-action" onclick="go('goal')"><span class="quick-action-icon quick-action-savings" aria-hidden="true">${ic('target')}</span><span>Savings goals</span></button></div></section>` :
+                `<section class="dashboard-shortcuts" aria-labelledby="dashboard-shortcuts-title"><h3 class="sec" id="dashboard-shortcuts-title">Quick Actions</h3><div class="quick-actions-grid"><button class="quick-action" onclick="go('bud')"><span class="quick-action-icon quick-action-budget" aria-hidden="true">${ic('gauge')}</span><span>Budgets</span></button><button class="quick-action" onclick="go('cash')"><span class="quick-action-icon quick-action-cashback" aria-hidden="true">${ic('coins')}</span><span>Cashback</span></button><button class="quick-action" onclick="go('rec')"><span class="quick-action-icon quick-action-recurring" aria-hidden="true">${ic('repeat')}</span><span>Recurring</span></button><button class="quick-action" onclick="go('goal')"><span class="quick-action-icon quick-action-savings" aria-hidden="true">${ic('target')}</span><span>Savings goals</span></button><button class="quick-action" onclick="go('shop')"><span class="quick-action-icon quick-action-shopping" aria-hidden="true">${ic('shopping-cart')}</span><span>Shopping List</span></button></div></section>` :
                 '';
             const actionsWidget = widgets.actions ?
                 `<div class="row end" style="margin-top:18px"><button class="b2" onclick="quickAdd('expense')">${ic('plus')} Expense</button><button class="b2" onclick="quickAdd('income')">${ic('plus')} Income</button><button class="b2" onclick="quickAdd('transfer')">${ic('arrow-left-right')} Transfer</button></div>` :
@@ -1361,7 +1374,7 @@ ${summaryWidget}${shortcutsWidget}${actionsWidget}${accountsWidget}${transaction
                 return `<article class="card cashback-card"><div class="cashback-card-heading"><span class="dot" style="background:#0891b222;color:#0891b2">${ic('coins')}</span><div class="cashback-card-title"><b>${esc(claim.expenseTitle || expense?.title || 'Linked transaction')}</b><small>${transactionType} · ${fd(claim.expenseDate || expense?.date || claim.created)}</small></div><b class="cashback-amount">${peso(claim.amount)}</b></div><div class="cashback-card-meta"><span><small>Deposit account</small><b>${esc(A(claim.account)?.name || 'Unknown account')}</b></span><span><small>${timingLabel}</small><b>${fd(timingDate)}</b></span>${claim.status === 'received' ? deleteButton : ''}</div>${actions}</article>`
             };
             const receivedTotal = received.reduce((total, claim) => total + claim.amount, 0);
-            return `<div class="cashback-header"><div><h2>Cashback</h2><small>Track pending and received cashback.</small></div></div><h3 class="sec cashback-subtitle"><span>Pending</span><span class="cashback-count">${pending.length}</span></h3><div class="g g2 cashback-list">${pending.length ? pending.map(claimCard).join('') : '<div class="empty card cashback-empty">No pending cashback. Add a claim from an expense in Transactions.</div>'}</div><div class="cashback-section-heading"><h3 class="sec cashback-subtitle"><span>Received</span><span class="cashback-count">${received.length}</span></h3><div class="cashback-total"><small>Total received</small><b>${peso(receivedTotal)}</b></div></div><div class="g g2 cashback-list">${received.length ? received.map(claimCard).join('') : '<div class="empty card cashback-empty">Cashback marked received will appear here as income.</div>'}</div>`
+            return `<div class="cashback-header"><div><h2>Cashback</h2><small>Track pending and received cashback.</small></div></div><h3 class="sec cashback-subtitle"><span>Pending</span><span class="cashback-count">${pending.length}</span></h3><div class="g g2 cashback-list">${pending.length ? pending.map(claimCard).join('') : '<div class="empty card cashback-empty">Add a claim from an expense or transfer in Transactions.</div>'}</div><div class="cashback-section-heading"><h3 class="sec cashback-subtitle"><span>Received</span><span class="cashback-count">${received.length}</span></h3><div class="cashback-total"><small>Total received</small><b>${peso(receivedTotal)}</b></div></div><div class="g g2 cashback-list">${received.length ? received.map(claimCard).join('') : '<div class="empty card cashback-empty">Cashback marked received will appear here as income.</div>'}</div>`
         };
         V.tx = () => {
             const o = (L, all) => `<option value="">${all}</option>` + L.map(x =>
@@ -1625,6 +1638,96 @@ ${summaryWidget}${shortcutsWidget}${actionsWidget}${accountsWidget}${transaction
         });
         V.goal = () =>
             `<div class="row sp"><div><h2>Savings goals</h2><small>Track progress separately from your account balances.</small></div></div><div class="g g2">${D.goals.length?D.goals.map(g=>{const p=Math.min(100,g.current/g.target*100),mo=Math.max(1,Math.ceil((new Date(g.date)-new Date())/2629e6));return`<div class="card goal-card"><div class="row goal-heading"><span style="color:var(--in);display:inline-flex">${ic('target')}</span><b class="gr">${esc(g.name)}</b><button class="ib" onclick="goalForm('${g.id}')">${ic('pencil')}</button><button class="ib" onclick="ask('Delete this goal?',()=>D.goals=D.goals.filter(x=>x.id!=='${g.id}'))">${ic('trash-2')}</button></div><div class="big goal-amount">${peso(g.current)} <small>of ${peso(g.target)}</small></div><div class="bar"><i style="width:${p}%;background:var(--in)"></i></div><div class="goal-details-row"><small>${Math.round(p)}% · by ${fd(g.date)}${A(g.acc)?' · '+esc(A(g.acc).name):''}</small><button class="chip" onclick="fund('${g.id}')">+ Add money</button></div><small class="goal-estimate">${p<100?`≈ ${peso((g.target-g.current)/mo)} per month to stay on track`:'Goal reached 🎉'}</small></div>`}).join(''):'<div class="empty card">No goals yet. Create one to start saving toward it.</div>'}</div>`;
+        function shoppingListForm(id) {
+            const list = id ? D.shoppingLists.find(item => item.id === id) : null;
+            openForm(list ? 'Edit shopping list' : 'Name your list', () => [{
+                k: 'name',
+                l: 'List name',
+                req: 1
+            }], list || { name: '' }, value => {
+                if (D.shoppingLists.some(item => item.id !== id && item.name.toLowerCase() === value.name.toLowerCase())) {
+                    return 'A shopping list with this name already exists.';
+                }
+                if (list) list.name = value.name;
+                else D.shoppingLists.push({ id: uid(), name: value.name, created: today(), items: [] });
+            }, null, list ? 'Save changes' : 'Create list');
+        }
+        function shoppingItemForm(listId, itemId) {
+            const list = D.shoppingLists.find(item => item.id === listId);
+            if (!list) return info('This shopping list could not be found.');
+            const existingItem = itemId ? list.items.find(item => item.id === itemId) : null;
+            if (itemId && !existingItem) return info('This shopping list item could not be found.');
+            openForm(existingItem ? 'Edit item' : 'Add item', () => [{
+                k: 'name',
+                l: 'Item name',
+                req: 1
+            }, {
+                k: 'estimatedAmount',
+                l: 'Estimated amount (₱)',
+                t: 'number'
+            }], existingItem ? {
+                name: existingItem.name,
+                estimatedAmount: existingItem.estimatedAmount || ''
+            } : {
+                name: '',
+                estimatedAmount: ''
+            }, value => {
+                const itemData = {
+                    name: value.name,
+                    estimatedAmount: Math.max(0, Number(value.estimatedAmount) || 0)
+                };
+                if (existingItem) Object.assign(existingItem, itemData);
+                else list.items.push({ id: uid(), ...itemData, checked: false });
+            });
+        }
+        function shoppingListEstimate(list) {
+            return list.items.reduce((total, item) => total + (Number(item.estimatedAmount) || 0), 0);
+        }
+        function openShoppingList(id) {
+            selectedShoppingListId = id;
+            render();
+        }
+        function closeShoppingList() {
+            selectedShoppingListId = '';
+            render();
+        }
+        function shoppingListFabAction() {
+            if (selectedShoppingListId) shoppingItemForm(selectedShoppingListId);
+            else shoppingListForm();
+        }
+        function shoppingListFabLabel() {
+            return selectedShoppingListId ? 'Add item' : 'Add list';
+        }
+        function toggleShoppingItem(listId, itemId) {
+            const item = D.shoppingLists.find(list => list.id === listId)?.items.find(entry => entry.id === itemId);
+            if (!item) return;
+            item.checked = !item.checked;
+            save();
+            render();
+        }
+        const deleteShoppingItem = (listId, itemId) => ask('Remove this item from the shopping list?', () => {
+            const list = D.shoppingLists.find(item => item.id === listId);
+            if (list) list.items = list.items.filter(item => item.id !== itemId)
+        });
+        const deleteShoppingList = id => ask('Delete this shopping list and all its items?', () => {
+            D.shoppingLists = D.shoppingLists.filter(list => list.id !== id);
+            if (selectedShoppingListId === id) selectedShoppingListId = ''
+        });
+        V.shop = () => {
+            const selectedList = D.shoppingLists.find(list => list.id === selectedShoppingListId);
+            if (selectedShoppingListId && !selectedList) selectedShoppingListId = '';
+            if (selectedList) {
+                const items = selectedList.items.length ? selectedList.items.map(item =>
+                    `<div class="shopping-list-item${item.checked ? ' is-checked' : ''}"><label><input type="checkbox"${item.checked ? ' checked' : ''} onchange="toggleShoppingItem('${selectedList.id}','${item.id}')"><span>${esc(item.name)}</span></label><b class="shopping-list-item-amount">${peso(item.estimatedAmount || 0)}</b><button type="button" class="ib" aria-label="Edit ${esc(item.name)}" onclick="shoppingItemForm('${selectedList.id}','${item.id}')">${ic('pencil')}</button><button type="button" class="ib" aria-label="Remove ${esc(item.name)}" onclick="deleteShoppingItem('${selectedList.id}','${item.id}')">${ic('trash-2')}</button></div>`
+                ).join('') : '<div class="empty shopping-list-empty">No items yet. Add something you need.</div>';
+                return `<div class="row sp"><div><h2>Shopping List</h2></div><button type="button" class="chip" onclick="closeShoppingList()">All lists</button></div><section class="card shopping-list-detail"><div class="shopping-list-heading"><div class="gr"><h3>${esc(selectedList.name)}</h3></div><button type="button" class="ib" aria-label="Rename ${esc(selectedList.name)}" onclick="shoppingListForm('${selectedList.id}')">${ic('pencil')}</button><button type="button" class="ib" aria-label="Delete ${esc(selectedList.name)}" onclick="deleteShoppingList('${selectedList.id}')">${ic('trash-2')}</button></div><div class="row sp shopping-list-total"><span>Estimated amount</span><b>${peso(shoppingListEstimate(selectedList))}</b></div><div class="shopping-list-items">${items}</div></section>`
+            }
+            const lists = D.shoppingLists.map(list => {
+                const estimate = shoppingListEstimate(list);
+                return `<button type="button" class="shopping-list-summary" aria-label="Open ${esc(list.name)}, estimated amount ${peso(estimate)}" onclick="openShoppingList('${list.id}')"><span>${esc(list.name)}</span><b>${peso(estimate)}</b></button>`
+            }).join('');
+            return `<div class="row sp"><div><h2>Shopping List</h2><small>Organize what you need to buy.</small></div></div><div class="g g2 shopping-lists">${lists || '<div class="empty card">No shopping lists yet. Tap “Add list” to create one.</div>'}</div>`
+        };
         V.rec = () => {
             const frequencyName = frequency => RECURRENCES.find(item => item[0] === frequency)?.[1] || 'Recurring';
             const details = rule => rule.type === 'transfer'
@@ -2357,6 +2460,7 @@ ${chartCard('Cash Flow', cashFlowChart)}
                 ['bud', 'Budgets'],
                 ['goal', 'Savings goals'],
                 ['rec', 'Recurring transactions'],
+                ['shop', 'Shopping List'],
                 ['cat', 'Categories'],
                 ['cash', 'Cashback']
             ]],
@@ -2527,6 +2631,7 @@ ${chartCard('Cash Flow', cashFlowChart)}
         function go(v) {
             const previousView = U.v;
             closeTitleMenu();
+            if (v === 'shop') selectedShoppingListId = '';
             if (v === 'tx' && previousView !== 'tx') txPageLimit = TRANSACTION_PAGE_SIZE;
             U.v = v;
             render();
@@ -2727,7 +2832,22 @@ ${chartCard('Cash Flow', cashFlowChart)}
                     current: nm(g.current),
                     date: okD(g.date) ? g.date : today(),
                     acc: okId(g.acc) ? g.acc : ''
-                }))
+                })),
+                shoppingLists: (Array.isArray(d.shoppingLists) ? d.shoppingLists : [])
+                    .filter(list => list && okId(list.id) && typeof list.name === 'string')
+                    .map(list => ({
+                        id: list.id,
+                        name: sx(list.name, 100),
+                        created: okD(list.created) ? list.created : today(),
+                        items: (Array.isArray(list.items) ? list.items : [])
+                            .filter(item => item && okId(item.id) && typeof item.name === 'string')
+                            .map(item => ({
+                                id: item.id,
+                                name: sx(item.name, 100),
+                                estimatedAmount: Math.max(0, nm(item.estimatedAmount)),
+                                checked: item.checked === true
+                            }))
+                    }))
             }
         }
         window.pocketApp = {

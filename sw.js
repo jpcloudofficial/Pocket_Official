@@ -1,4 +1,4 @@
-const CACHE = 'pera-v97';
+const CACHE = 'pera-v100';
 const FILES = [
   './',
   'index.html',
@@ -6,7 +6,7 @@ const FILES = [
   'styles/app.css',
   'vendor/chartjs/chart.umd.min.js',
   'scripts/app.js',
-  'scripts/enhancements.js?v=20261118-page-swipe-1',
+  'scripts/enhancements.js?v=20261121-shopping-fab-1',
   'scripts/privacy-mask.js',
   'scripts/page-title-sync.js',
   'scripts/firebase-sync.js',
@@ -23,7 +23,7 @@ self.addEventListener('install', event => {
 
     // Repair quick-add SVGs when an older enhancement script has icon names
     // without matching path definitions (otherwise the icon squares render empty).
-    const scriptRequest = new Request(new URL('scripts/enhancements.js?v=20261118-page-swipe-1', self.registration.scope));
+    const scriptRequest = new Request(new URL('scripts/enhancements.js?v=20261121-shopping-fab-1', self.registration.scope));
     const scriptResponse = await cache.match(scriptRequest);
     if (scriptResponse) {
       const source = await scriptResponse.text();

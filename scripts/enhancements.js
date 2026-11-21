@@ -413,6 +413,11 @@
           if (typeof window.budForm === 'function') window.budForm();
           return;
         }
+        if (main.dataset.view === 'shop') {
+          closeMenu(menu, fab);
+          if (typeof window.shoppingListFabAction === 'function') window.shoppingListFabAction();
+          return;
+        }
         const opening = menu.classList.contains('pocket-hidden');
         if (opening || menu.classList.contains('pocket-fab-closing')) openMenu(menu, fab);
         else closeMenu(menu, fab);
@@ -429,15 +434,17 @@
     const categoryPage = main.dataset.view === 'cat';
     const goalPage = main.dataset.view === 'goal';
     const budgetPage = main.dataset.view === 'bud';
+    const shoppingPage = main.dataset.view === 'shop';
     const hideFab = main.dataset.view === 'set' || main.dataset.view === 'rep' || main.dataset.view === 'prof';
-    const fabLabel = accountPage ? 'Add account' : recurringPage ? 'Add schedule' : categoryPage ? 'New category' : goalPage ? 'New goal' : budgetPage ? 'Add budget' : 'Add transaction';
-    fab.classList.toggle('pocket-fab-labeled', accountPage || recurringPage || categoryPage || goalPage || budgetPage);
+    const shoppingFabLabel = shoppingPage && typeof window.shoppingListFabLabel === 'function' ? window.shoppingListFabLabel() : 'Add list';
+    const fabLabel = accountPage ? 'Add account' : recurringPage ? 'Add schedule' : categoryPage ? 'New category' : goalPage ? 'New goal' : budgetPage ? 'Add budget' : shoppingPage ? shoppingFabLabel : 'Add transaction';
+    fab.classList.toggle('pocket-fab-labeled', accountPage || recurringPage || categoryPage || goalPage || budgetPage || shoppingPage);
     fab.classList.toggle('pocket-hidden', hideFab);
     fab.setAttribute('aria-label', fabLabel);
     fab.title = fabLabel;
     const label = fab.querySelector('.fab-label');
     if (label) label.textContent = fabLabel;
-    if (accountPage || recurringPage || categoryPage || goalPage || budgetPage || hideFab) closeMenu(menu, fab);
+    if (accountPage || recurringPage || categoryPage || goalPage || budgetPage || shoppingPage || hideFab) closeMenu(menu, fab);
     let transferButton = document.querySelector('.pocket-account-transfer');
     if (!transferButton) {
       transferButton = document.createElement('button');
