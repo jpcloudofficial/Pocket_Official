@@ -6,6 +6,7 @@
                 acc: 'Accounts',
                 bud: 'Budgets',
                 goal: 'Savings goals',
+                shop: 'Shopping List',
                 rep: 'Reports',
                 cat: 'Categories',
                 prof: 'Profile',
