@@ -1,9 +1,10 @@
-const CACHE = 'pera-v96';
+const CACHE = 'pera-v97';
 const FILES = [
   './',
   'index.html',
   'manifest.webmanifest',
   'styles/app.css',
+  'vendor/chartjs/chart.umd.min.js',
   'scripts/app.js',
   'scripts/enhancements.js?v=20261118-page-swipe-1',
   'scripts/privacy-mask.js',
