@@ -2018,6 +2018,27 @@
             display: none
         }
 
+        .pocket-transaction-form .form-fields {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            column-gap: 12px;
+            align-content: start
+        }
+
+        .pocket-transaction-form .form-field-full {
+            grid-column: 1 / -1
+        }
+
+        .pocket-transaction-form .form-field-pair {
+            grid-column: auto
+        }
+
+        @media (max-width: 380px) {
+            .pocket-transaction-form .form-fields {
+                column-gap: 8px
+            }
+        }
+
         #m.pocket-private .hb,
         #m.pocket-private .hn,
         #m.pocket-private .av,
