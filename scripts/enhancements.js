@@ -72,9 +72,6 @@
       @keyframes pocket-fab-menu-in{from{opacity:0;transform:scale(.7) translateY(8px)}to{opacity:1;transform:scale(1) translateY(0)}}
       @keyframes pocket-fab-menu-out{from{opacity:1;transform:scale(1) translateY(0)}to{opacity:0;transform:scale(.7) translateY(8px)}}
       @keyframes pocket-fab-action-in{from{opacity:0;transform:translateY(8px) scale(.94)}to{opacity:1;transform:translateY(0) scale(1)}}
-      .pocket-category-hint{display:block;color:var(--mu);font-size:12px;margin:6px 2px 0;min-height:17px}
-      .pocket-category-hint[hidden]{display:none}
-      .pocket-category-hint[data-active="true"]{color:var(--in)}
       #m.pocket-private .pocket-private-amount{user-select:none}
       @media(max-width:760px){.pocket-fab-menu{right:14px;bottom:calc(82px + env(safe-area-inset-bottom,0px))}.pocket-account-transfer{right:14px;bottom:calc(142px + env(safe-area-inset-bottom,0px))}}
       @media(prefers-reduced-motion:reduce){.pocket-carousel-track,.pocket-fab-menu,.pocket-account-transfer,.fab,.page-menu-toggle,.page-menu-toggle span{transition:none!important}}
@@ -120,28 +117,21 @@
     const catEl = form.querySelector('[name="cat"]');
     if (!titleEl || !typeEl || !catEl) return;
     form.dataset.pocketAutoCategoryReady = '1';
-    const hint = document.createElement('small');
-    hint.className = 'pocket-category-hint';
-    hint.hidden = true;
-    hint.style.display = 'none';
-    hint.setAttribute('aria-live', 'polite');
-    catEl.insertAdjacentElement('afterend', hint);
     let manuallyChanged = false;
     let applying = false;
     catEl.addEventListener('change', () => {
-      if (!applying) { manuallyChanged = true; hint.textContent = 'Category selected manually.'; hint.dataset.active = 'true'; hint.hidden = false; hint.style.display = 'block'; }
+      if (!applying) manuallyChanged = true;
     });
     const infer = () => {
-      if (typeEl.value === 'transfer' || !titleEl.value.trim()) { hint.textContent = ''; delete hint.dataset.active; hint.hidden = true; hint.style.display = 'none'; return; }
+      if (typeEl.value === 'transfer' || !titleEl.value.trim()) return;
       if (manuallyChanged) return;
       const rule = CATEGORY_RULES.find(item => item.words.some(word => keywordMatch(titleEl.value, word)));
       const option = rule && [...catEl.options].find(item => normalize(item.textContent) === normalize(rule.category));
-      if (!option) { hint.textContent = ''; delete hint.dataset.active; hint.hidden = true; hint.style.display = 'none'; return; }
-      applying = true; catEl.value = option.value; applying = false;
-      hint.textContent = `Suggested: ${option.textContent} · change if needed`;
-      hint.dataset.active = 'true';
-      hint.hidden = false;
-      hint.style.display = 'block';
+      if (!option || catEl.value === option.value) return;
+      applying = true;
+      catEl.value = option.value;
+      catEl.dispatchEvent(new Event('change', { bubbles: true }));
+      applying = false;
     };
     titleEl.addEventListener('input', infer);
     titleEl.addEventListener('change', infer);
@@ -289,7 +279,12 @@
         pageSwipeStart = null;
         return;
       }
-      pageSwipeStart = { x: event.touches[0].clientX, y: event.touches[0].clientY };
+      const x = event.touches[0].clientX;
+      if (x <= 28 || x >= window.innerWidth - 28) {
+        pageSwipeStart = null;
+        return;
+      }
+      pageSwipeStart = { x, y: event.touches[0].clientY };
     }, { passive: true });
     main.addEventListener('touchmove', event => {
       if (event.touches.length !== 1) pageSwipeStart = null;

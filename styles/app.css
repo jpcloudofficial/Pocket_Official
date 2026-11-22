@@ -1362,6 +1362,16 @@
             color: var(--tx)
         }
 
+        .shopping-list-expense {
+            align-items: center;
+            gap: 12px
+        }
+
+        .shopping-list-expense small {
+            flex: 1 1 auto;
+            color: var(--mu)
+        }
+
         .shopping-list-items {
             display: grid;
             gap: 2px
@@ -2459,10 +2469,6 @@
 
         label>.ip {
             margin-top: 8px
-        }
-
-        #f .pocket-category-hint:not([data-active="true"]) {
-            display: none !important
         }
 
         .er {
