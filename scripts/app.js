@@ -22,6 +22,7 @@ function syncDateInput(input) {
             minimumFractionDigits: f ? 2 : Number.isInteger(Math.abs(n)) ? 0 : 2,
             maximumFractionDigits: 2
         });
+        const pesoBalance = amount => peso(amount, amount === 0);
         const esc = s => String(s ?? '').replace(/[&<>\"]/g, c => ({
             '&': '&amp;',
             '<': '&lt;',
@@ -1337,11 +1338,13 @@ function syncDateInput(input) {
                 `<div class="card"><small>${l}</small><div class="big" style="color:${c||'inherit'}">${peso(v)}</div><small>${s}</small></div>`;
             const accountPages = [];
             for (let i = 0; i < D.acc.length; i += 4) accountPages.push(D.acc.slice(i, i + 4));
-            const accountCard = x =>
-                `<div class="ac" onclick="go('acc')"><div class="row" style="flex-wrap:nowrap;gap:8px"><span style="display:inline-flex">${ic(x.icon||'wallet')}</span><b>${esc(x.name)}</b></div><div class="av" style="color:${bal(x)<0?'var(--ex)':'inherit'}">${peso(bal(x))}</div></div>`;
+            const accountCard = x => {
+                const balance = bal(x);
+                return `<div class="ac" onclick="go('acc')"><div class="row" style="flex-wrap:nowrap;gap:8px"><span style="display:inline-flex">${ic(x.icon||'wallet')}</span><b>${esc(x.name)}</b></div><div class="av" style="color:${balance<0?'var(--ex)':'inherit'}">${pesoBalance(balance)}</div></div>`
+            };
             const widgets = D.dashboardWidgets;
             const summaryWidget = widgets.summary ?
-                `<div class="hero"><small>Total Balance</small><div class="hb">${peso(tot,1)}</div><div class="two"><div><small>Income</small><div class="hn" style="color:var(--in)">${peso(inc)}</div></div><div><small>Expenses</small><div class="hn" style="color:var(--ex)">${peso(exp)}</div></div></div><small class="pocket-summary-amounts">Available ${peso(av)}${cr<0?' · Card owed '+peso(-cr):''}</small></div>` :
+                `<div class="hero"><small>Total Balance</small><div class="hb">${peso(tot,1)}</div><div class="two"><div><small>Income</small><div class="hn" style="color:var(--in)">${peso(inc, inc === 0)}</div></div><div><small>Expenses</small><div class="hn" style="color:var(--ex)">${peso(exp, exp === 0)}</div></div></div><small class="pocket-summary-amounts">Available ${peso(av)}${cr<0?' · Card owed '+peso(-cr):''}</small></div>` :
                 '';
             const shortcutsWidget = widgets.shortcuts ?
                 `<section class="dashboard-shortcuts" aria-labelledby="dashboard-shortcuts-title"><h3 class="sec" id="dashboard-shortcuts-title">Quick Actions</h3><div class="quick-actions-grid"><button class="quick-action" onclick="go('bud')"><span class="quick-action-icon quick-action-budget" aria-hidden="true">${ic('gauge')}</span><span>Budgets</span></button><button class="quick-action" onclick="go('cash')"><span class="quick-action-icon quick-action-cashback" aria-hidden="true">${ic('coins')}</span><span>Cashback</span></button><button class="quick-action" onclick="go('rec')"><span class="quick-action-icon quick-action-recurring" aria-hidden="true">${ic('repeat')}</span><span>Recurring</span></button><button class="quick-action" onclick="go('goal')"><span class="quick-action-icon quick-action-savings" aria-hidden="true">${ic('target')}</span><span>Savings goals</span></button><button class="quick-action" onclick="go('shop')"><span class="quick-action-icon quick-action-shopping" aria-hidden="true">${ic('shopping-cart')}</span><span>Shopping List</span></button></div></section>` :
@@ -1594,15 +1597,15 @@ ${summaryWidget}${shortcutsWidget}${actionsWidget}${accountsWidget}${transaction
                 const isFront = index === visibleAccounts.length - 1;
                 const isNext = index === visibleAccounts.length - 2;
                 const balanceNote = account.type === 'Credit Card' ? 'Liability · not counted in available balance' :
-                    isSav(account) ? 'Savings · kept separate from total balance' : `Initial ${peso(account.initial)}`;
+                    isSav(account) ? 'Savings · kept separate from total balance' : `Initial ${pesoBalance(account.initial)}`;
                 const actions = isFront ?
                     `<div class="account-stack-actions"><button class="ib" onclick="accForm('${account.id}')" aria-label="Edit ${esc(account.name)}">${ic('pencil')}</button><button class="ib" onclick="delAcc('${account.id}')" aria-label="Delete ${esc(account.name)}">${ic('trash-2')}</button></div>` :
                     '';
-                return `<article class="account-stack-card${isFront ? ' is-front' : ''}${isNext ? ' is-next' : ''}" data-account-id="${esc(account.id)}" aria-hidden="${!isFront && !accountStackExpanded}" style="--account-accent:${esc(account.color)};--stack-offset:${index * stackGap}px;z-index:${index}"><div class="account-stack-card-heading"><div class="account-stack-name"><span class="account-stack-icon">${ic(account.icon || 'wallet')}</span><span class="account-stack-name-copy"><b>${esc(account.name)}</b><small>${esc(account.type)} · since ${fd(account.created)}</small></span></div><b class="account-stack-balance" style="color:${balance < 0 ? 'var(--ex)' : 'var(--tx)'}">${peso(balance)}</b></div><div class="account-stack-card-footer"><small>${balanceNote}</small>${actions}</div></article>`
+                return `<article class="account-stack-card${isFront ? ' is-front' : ''}${isNext ? ' is-next' : ''}" data-account-id="${esc(account.id)}" aria-hidden="${!isFront && !accountStackExpanded}" style="--account-accent:${esc(account.color)};--stack-offset:${index * stackGap}px;z-index:${index}"><div class="account-stack-card-heading"><div class="account-stack-name"><span class="account-stack-icon">${ic(account.icon || 'wallet')}</span><span class="account-stack-name-copy"><b>${esc(account.name)}</b><small>${esc(account.type)} · since ${fd(account.created)}</small></span></div><b class="account-stack-balance" style="color:${balance < 0 ? 'var(--ex)' : 'var(--tx)'}">${pesoBalance(balance)}</b></div><div class="account-stack-card-footer"><small>${balanceNote}</small>${actions}</div></article>`
             }).join('');
             const accountCount = `<small class="account-stack-summary-count">${accounts.length} accounts</small>`;
-            const accountBalances = `<div class="account-stack-summary-balances"><small class="account-stack-summary-line"><span>Total Balance</span><b>${peso(totalBalance)}</b></small><small class="account-stack-summary-line"><span>Savings</span><b>${peso(savingsBalance)}</b></small></div>`;
-            const accountOverview = `<div class="account-stack-overview" aria-label="Account summary"><div><b>${accounts.length}</b><small>Accounts</small></div><div><b>${peso(totalBalance)}</b><small>Total balance</small></div><div><b>${peso(savingsBalance)}</b><small>Savings</small></div></div>`;
+            const accountBalances = `<div class="account-stack-summary-balances"><small class="account-stack-summary-line"><span>Total Balance</span><b>${pesoBalance(totalBalance)}</b></small><small class="account-stack-summary-line"><span>Savings</span><b>${pesoBalance(savingsBalance)}</b></small></div>`;
+            const accountOverview = `<div class="account-stack-overview" aria-label="Account summary"><div><b>${accounts.length}</b><small>Accounts</small></div><div><b>${pesoBalance(totalBalance)}</b><small>Total balance</small></div><div><b>${pesoBalance(savingsBalance)}</b><small>Savings</small></div></div>`;
             return `<div class="row sp account-stack-summary"><div class="account-stack-summary-copy"><h2>Accounts</h2>${accounts.length ? '' : accountBalances}</div>${accounts.length ? '' : accountCount}</div>${accounts.length ? `<div class="account-stack-wrap">${accountOverview}<div class="account-stack-controls"><div class="account-stack-control-actions"><button type="button" class="chip" aria-label="Show next account" ${accounts.length < 2 ? 'disabled' : ''} onclick="sendAccountCardToBack()">Next account</button><button type="button" class="chip" aria-label="${accountStackExpanded ? 'Collapse account cards' : 'Show all account balances'}" aria-expanded="${accountStackExpanded}" ${accounts.length < 2 ? 'disabled' : ''} onclick="toggleAccountStackExpanded()">${accountStackExpanded ? 'Collapse cards' : 'Show balances'}</button></div></div><div class="${stackClass}" role="region" aria-expanded="${accountStackExpanded}" aria-label="Account cards. Swipe sideways to switch accounts, or use Show balances to expand." tabindex="0" style="height:${stackHeight}px">${cards}</div><div class="account-stack-footer"><small>Swipe sideways to switch accounts.</small></div></div>` : '<div class="empty">No accounts yet.</div>'}`
         };
 
