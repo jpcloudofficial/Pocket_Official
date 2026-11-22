@@ -343,6 +343,7 @@ function syncDateInput(input) {
         let modalScrollPosition = 0;
         function ov(h) {
             document.querySelectorAll('.pocket-select-overlay').forEach(menu => menu.remove());
+            $('#ov').classList.remove('report-filter-open');
             $('#ovc').innerHTML = h;
             if (!document.body.classList.contains('pocket-modal-open')) {
                 modalScrollPosition = window.scrollY || document.documentElement.scrollTop || 0;
@@ -356,7 +357,7 @@ function syncDateInput(input) {
             document.querySelectorAll('.pocket-select-overlay').forEach(menu =>
                 menu.closePicker ? menu.closePicker(false) : menu.remove());
             $('#ov').style.display = 'none';
-            $('#ov').classList.remove('form-open');
+            $('#ov').classList.remove('form-open', 'report-filter-open');
             const wasLocked = document.body.classList.contains('pocket-modal-open');
             document.body.classList.remove('pocket-modal-open');
             document.body.style.removeProperty('--pocket-modal-scroll-top');
@@ -1358,8 +1359,16 @@ ${summaryWidget}${shortcutsWidget}${actionsWidget}${accountsWidget}${transaction
             lu()
         }
         const cashbackSection = () => {
-            const pending = D.cashbacks.filter(claim => claim.status === 'pending');
-            const received = D.cashbacks.filter(claim => claim.status === 'received');
+            const recentClaims = status => D.cashbacks.map((claim, index) => ({
+                claim,
+                index,
+                date: status === 'received' ? claim.receivedDate || claim.created : claim.created
+            })).filter(({ claim }) => claim.status === status)
+                .sort((first, second) =>
+                    (second.date || '').localeCompare(first.date || '') || second.index - first.index
+                ).map(({ claim }) => claim),
+                pending = recentClaims('pending'),
+                received = recentClaims('received');
             const claimCard = claim => {
                 const expense = D.tx.find(item => item.id === claim.expenseId);
                 const transactionType = expense?.type === 'transfer' ? 'Transfer' : 'Expense';
@@ -1817,7 +1826,8 @@ ${summaryWidget}${shortcutsWidget}${actionsWidget}${accountsWidget}${transaction
                 A(rule.acc) && !od(A(rule.acc)) && bal(A(rule.acc)) < rule.amount;
             return `<div class="row"><div class="gr"><h2>Recurring transactions</h2><small>Due items are added while Pocket is open; missed items catch up next time.</small></div></div><div class="g g2">${D.recurring.length ? D.recurring.map(rule => `<div class="card"><div class="row"><span class="dot" style="background:var(--sq);color:${rule.type==='income'?'var(--in)':rule.type==='expense'?'var(--ex)':'var(--tr)'}">${ic(rule.type==='transfer'?'arrow-left-right':rule.type==='income'?'wallet':'zap')}</span><div class="gr"><b>${esc(rule.title || 'Transfer')}</b><br><small>${frequencyName(rule.frequency)} · ${details(rule)}</small></div><button class="ib" onclick="recurringForm('${rule.id}')" aria-label="Edit schedule">${ic('pencil')}</button><button class="ib" onclick="deleteRecurring('${rule.id}')" aria-label="Delete schedule">${ic('trash-2')}</button></div><div class="row sp" style="margin-top:10px"><b style="color:${rule.type==='income'?'var(--in)':rule.type==='expense'?'var(--ex)':'var(--tr)'}">${rule.type==='expense'?'−':rule.type==='income'?'+':''}${peso(rule.amount)}</b><small>${rule.active ? waitingForFunds(rule) ? 'Waiting for sufficient funds' : `Next: ${fd(rule.next)}` : 'Paused'}</small></div><div class="row sp" style="margin-top:10px"><small>${rule.next < today() && !rule.active ? `Paused · next due ${fd(rule.next)}` : `Starts ${fd(rule.start)}`}</small><button class="chip" onclick="toggleRecurring('${rule.id}')">${rule.active?'Pause':'Resume'}</button></div></div>`).join('') : '<div class="empty card">No recurring schedules yet. Add one for a regular bill, subscription, salary, or transfer.</div>'}</div>`
         };
-        const REPORT_COLORS = ['#16a34a', '#ea580c', '#2563eb'];
+        const REPORT_COLORS = ['#16a34a', '#ea580c', '#2563eb'],
+            REPORT_RANGES = [['weekly', 'Weekly'], ['monthly', 'Monthly'], ['yearly', 'Yearly'], ['custom', 'Custom']];
         const reportDate = value => {
             const [year, month, day] = value.split('-').map(Number);
             return new Date(year, month - 1, day)
@@ -1879,6 +1889,56 @@ ${summaryWidget}${shortcutsWidget}${actionsWidget}${accountsWidget}${transaction
                 }
             }
             return { start, end, valid, buckets }
+        }
+        function openReportFilters() {
+            const rangeOptions = REPORT_RANGES.map(([value, label]) =>
+                    `<option value="${value}"${U.reportRange === value ? ' selected' : ''}>${label}</option>`
+                ).join(''),
+                accountOptions = [['', 'All accounts'], ...D.acc.map(account => [account.id, account.name])]
+                    .map(([value, label]) => `<option value="${esc(value)}"${U.ra === value ? ' selected' : ''}>${esc(label)}</option>`)
+                    .join(''),
+                categoryOptions = [['', 'All categories'], ...D.cats.map(category => [category.id, category.name])]
+                    .map(([value, label]) => `<option value="${esc(value)}"${U.rc === value ? ' selected' : ''}>${esc(label)}</option>`)
+                    .join(''),
+                startValue = U.reportFrom || iso(new Date(new Date().getFullYear(), new Date().getMonth(), 1)),
+                endValue = U.reportTo || today();
+            ov(`<div class="report-filter-sheet">
+<div class="report-filter-sheet-header"><div><h3>Report filters</h3><small>Choose what to include in your reports.</small></div><button type="button" class="chip" onclick="cl()">Close</button></div>
+<div class="report-filter-sheet-fields">
+<label><span>Date range</span><select name="reportRange" aria-label="Report date range">${rangeOptions}</select></label>
+<label><span>Account</span><select name="reportAccount" aria-label="Filter reports by account">${accountOptions}</select></label>
+<label class="report-filter-sheet-category"><span>Category</span><select name="reportCategory" aria-label="Filter reports by category">${categoryOptions}</select></label>
+<div class="report-filter-custom-range"${U.reportRange === 'custom' ? '' : ' hidden'}><label><span>From</span><input name="reportFrom" type="date" value="${esc(startValue)}"></label><label><span>To</span><input name="reportTo" type="date" value="${esc(endValue)}"></label></div>
+</div>
+<small id="report-filter-error" class="report-filter-error" hidden></small>
+<div class="row end report-filter-sheet-actions"><button type="button" class="b2" onclick="cl()">Cancel</button><button type="button" class="b1" onclick="applyReportFilters()">Apply filters</button></div>
+</div>`);
+            $('#ov').classList.add('report-filter-open');
+            wireRenderedSelects($('#ovc'));
+            $('#ovc [name="reportRange"]').addEventListener('change', event => {
+                $('#ovc .report-filter-custom-range').hidden = event.target.value !== 'custom';
+            })
+        }
+        function applyReportFilters() {
+            const sheet = $('#ovc'),
+                range = sheet.querySelector('[name="reportRange"]').value,
+                from = sheet.querySelector('[name="reportFrom"]').value,
+                to = sheet.querySelector('[name="reportTo"]').value,
+                error = $('#report-filter-error');
+            if (range === 'custom' && from && to && from > to) {
+                error.textContent = 'The start date must be on or before the end date.';
+                error.hidden = false;
+                return
+            }
+            U.reportRange = range;
+            U.ra = sheet.querySelector('[name="reportAccount"]').value;
+            U.rc = sheet.querySelector('[name="reportCategory"]').value;
+            if (range === 'custom') {
+                U.reportFrom = from;
+                U.reportTo = to
+            }
+            cl();
+            render()
         }
         const reportRangeTransactions = (transactions, start, end) => transactions.filter(transaction =>
             transaction.date >= start && transaction.date <= end
@@ -2219,7 +2279,7 @@ ${summaryWidget}${shortcutsWidget}${actionsWidget}${accountsWidget}${transaction
         V.rep = () => {
             const period = reportPeriod(),
                 option = (value, label, selected) => `<option value="${esc(value)}"${selected ? ' selected' : ''}>${esc(label)}</option>`,
-                rangeOptions = [['weekly', 'Weekly'], ['monthly', 'Monthly'], ['yearly', 'Yearly'], ['custom', 'Custom']],
+                rangeOptions = REPORT_RANGES,
                 rangeTransactions = period.valid ? reportRangeTransactions(D.tx, period.start, period.end) : [],
                 transactions = rangeTransactions.filter(transaction =>
                     transaction.type !== 'transfer' && (!U.ra || transaction.acc === U.ra) &&
@@ -2282,6 +2342,9 @@ ${summaryWidget}${shortcutsWidget}${actionsWidget}${accountsWidget}${transaction
                 customRange = U.reportRange === 'custom',
                 startValue = U.reportFrom || iso(new Date(new Date().getFullYear(), new Date().getMonth(), 1)),
                 endValue = U.reportTo || today(),
+                rangeLabel = REPORT_RANGES.find(([value]) => value === U.reportRange)?.[1] || 'Monthly',
+                selectedReportFilters = [U.ra ? A(U.ra)?.name : '', U.rc ? C(U.rc)?.name : ''].filter(Boolean),
+                activeReportFilterCount = Number(!!U.ra) + Number(!!U.rc),
                 accountOptions = [option('', 'All accounts', !U.ra), ...D.acc.map(account => option(account.id, account.name, U.ra === account.id))],
                 categoryOptions = [option('', 'All categories', !U.rc), ...D.cats.map(category => option(category.id, category.name, U.rc === category.id))];
             const chartCard = (title, chart) => `<section class="card report-card"><h3>${title}</h3>${chart}</section>`;
@@ -2293,6 +2356,7 @@ ${summaryWidget}${shortcutsWidget}${actionsWidget}${accountsWidget}${transaction
 ${customRange ? `<label><span>From</span><input type="date" aria-label="Report start date" value="${esc(startValue)}" onchange="U.reportFrom=this.value;render()"></label><label><span>To</span><input type="date" aria-label="Report end date" value="${esc(endValue)}" onchange="U.reportTo=this.value;render()"></label>` : ''}
 <small class="report-period-label">${period.valid ? `${fd(period.start)} – ${fd(period.end)}` : 'Choose a valid date range.'}</small>
 </div>
+<div class="card report-filter-toolbar"><div class="report-filter-toolbar-copy"><small>${rangeLabel}${selectedReportFilters.length ? ` · ${selectedReportFilters.map(esc).join(' · ')}` : ''}</small><b>${period.valid ? `${fd(period.start)} – ${fd(period.end)}` : 'Choose a valid date range.'}</b></div><button type="button" class="b2" onclick="openReportFilters()">${ic('settings')} Filters${activeReportFilterCount ? `<span class="report-filter-count">${activeReportFilterCount}</span>` : ''}</button></div>
 ${period.valid ? `<div class="g g2 report-grid">
 ${chartCard('Income vs. Expenses', incomeExpenses)}
 ${chartCard('Expense Breakdown', expenseBreakdown)}
