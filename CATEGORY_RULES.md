@@ -1,7 +1,7 @@
 # Managing automatic category rules
 
 Automatic transaction categories are read from the Firestore document `config/categoryRules`. Create a `config` collection, then a `categoryRules` document with a `rules` field of type Array. Each array item is a map with:
-
+  
 - `category`: a transaction category name
 - `words`: an array of matching words or phrases
 
