@@ -1363,12 +1363,14 @@
         }
 
         .shopping-list-expense {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
             align-items: center;
-            gap: 12px
+            gap: 8px 12px
         }
 
         .shopping-list-expense small {
-            flex: 1 1 auto;
+            min-width: 0;
             color: var(--mu)
         }
 
@@ -1426,8 +1428,20 @@
         }
 
         .shopping-list-empty {
-            padding: 8px 0;
+            display: grid;
+            gap: 4px;
+            padding: 12px;
+            border: 1px dashed var(--bd);
+            border-radius: 12px;
             text-align: left
+        }
+
+        .shopping-list-empty b {
+            color: var(--tx)
+        }
+
+        .shopping-list-empty small {
+            color: var(--mu)
         }
 
         @media (min-width: 761px) {
@@ -1508,9 +1522,37 @@
             margin: 16px auto 0
         }
 
-        .account-stack-hint {
-            display: block;
-            text-align: center
+        .account-stack-overview {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            padding: 12px 0;
+            border: 1px solid var(--bd);
+            border-radius: 14px;
+            background: var(--cd)
+        }
+
+        .account-stack-overview > div {
+            display: grid;
+            min-width: 0;
+            gap: 4px;
+            padding: 0 12px
+        }
+
+        .account-stack-overview > div + div {
+            border-left: 1px solid var(--bd)
+        }
+
+        .account-stack-overview b {
+            overflow: hidden;
+            font-size: 14px;
+            text-overflow: ellipsis;
+            white-space: nowrap
+        }
+
+        .account-stack-overview small {
+            color: var(--mu);
+            font-size: 11px;
+            white-space: nowrap
         }
 
         .account-stack-summary {
@@ -1568,7 +1610,7 @@
             left: 0;
             right: 0;
             box-sizing: border-box;
-            height: 206px;
+            height: 160px;
             padding: 16px;
             overflow: hidden;
             border: 1px solid var(--bd);
@@ -1602,33 +1644,36 @@
 
         .account-stack-controls {
             display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px;
-            margin: 8px 0 6px
-        }
-
-        .account-stack-controls-info {
-            flex: 1 1 auto;
-            min-width: 0
-        }
-
-        .account-stack-controls-info .account-stack-summary-count {
-            display: block;
-            margin-bottom: 2px
+            justify-content: flex-end;
+            margin: 10px 0 8px
         }
 
         .account-stack-summary-balances {
             display: grid;
-            gap: 2px
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px
         }
 
         .account-stack-control-actions {
             display: flex;
-            flex: none;
             align-items: center;
             justify-content: flex-end;
             gap: 6px
+        }
+
+        .account-stack-summary-balances .account-stack-summary-line {
+            display: grid;
+            gap: 2px;
+            white-space: nowrap
+        }
+
+        .account-stack-summary-balances .account-stack-summary-line > span {
+            color: var(--mu);
+            font-size: 11px
+        }
+
+        .account-stack-summary-balances .account-stack-summary-line > b {
+            font-size: 13px
         }
 
         .account-stack-card-heading,
@@ -1717,14 +1762,8 @@
         }
 
         @media (max-width: 400px) {
-            .account-stack-controls {
-                align-items: stretch;
-                flex-direction: column;
-                gap: 8px
-            }
-
-            .account-stack-control-actions {
-                align-self: flex-end
+            .account-stack-overview > div {
+                padding: 0 8px
             }
         }
 
@@ -2525,7 +2564,24 @@
             }
 
             .report-category-list {
-                grid-template-columns: repeat(2, minmax(0, 1fr))
+                grid-template-columns: minmax(0, 1fr);
+                gap: 0
+            }
+
+            .report-category {
+                min-height: 44px;
+                padding: 8px 2px;
+                border-bottom: 1px solid var(--bd);
+                border-radius: 0
+            }
+
+            .report-category:last-child {
+                border-bottom: 0
+            }
+
+            .report-category b small {
+                display: inline;
+                margin: 0 0 0 6px
             }
 
             .profile-layout {

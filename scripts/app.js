@@ -1518,9 +1518,9 @@ ${summaryWidget}${shortcutsWidget}${actionsWidget}${accountsWidget}${transaction
         });
         V.acc = () => {
             const accounts = accountStackAccounts();
-            const collapsedHeight = accounts.length ? Math.min(206 + (accounts.length - 1) * 28, 430) : 0,
-                stackGap = accounts.length > 1 ? accountStackExpanded ? 68 : (collapsedHeight - 206) / (accounts.length - 1) : 0,
-                stackHeight = accounts.length ? 206 + (accounts.length - 1) * stackGap : 0,
+            const collapsedHeight = accounts.length ? Math.min(160 + (accounts.length - 1) * 28, 384) : 0,
+                stackGap = accounts.length > 1 ? accountStackExpanded ? 68 : (collapsedHeight - 160) / (accounts.length - 1) : 0,
+                stackHeight = accounts.length ? 160 + (accounts.length - 1) * stackGap : 0,
                 stackClass = accountStackExpanded ? 'account-stack is-expanded' : 'account-stack',
                 totalBalance = D.acc.filter(account => !isSav(account)).reduce((total, account) => total + bal(account), 0),
                 savingsBalance = D.acc.filter(isSav).reduce((total, account) => total + bal(account), 0);
@@ -1538,7 +1538,8 @@ ${summaryWidget}${shortcutsWidget}${actionsWidget}${accountsWidget}${transaction
             }).join('');
             const accountCount = `<small class="account-stack-summary-count">${accounts.length} accounts</small>`;
             const accountBalances = `<div class="account-stack-summary-balances"><small class="account-stack-summary-line"><span>Total Balance</span><b>${peso(totalBalance)}</b></small><small class="account-stack-summary-line"><span>Savings</span><b>${peso(savingsBalance)}</b></small></div>`;
-            return `<div class="row sp account-stack-summary"><div class="account-stack-summary-copy"><h2>Accounts</h2>${accounts.length ? '' : accountBalances}</div>${accounts.length ? '' : accountCount}</div>${accounts.length ? `<div class="account-stack-wrap"><div class="account-stack-controls"><div class="account-stack-controls-info">${accountCount}${accountBalances}</div><div class="account-stack-control-actions"><button type="button" class="chip" aria-label="Show next account" ${accounts.length < 2 ? 'disabled' : ''} onclick="sendAccountCardToBack()">Next card</button><button type="button" class="chip" aria-label="${accountStackExpanded ? 'Collapse account cards' : 'Show all account balances'}" aria-expanded="${accountStackExpanded}" ${accounts.length < 2 ? 'disabled' : ''} onclick="toggleAccountStackExpanded()">${accountStackExpanded ? 'Collapse cards' : 'Show balances'}</button></div></div><small class="account-stack-hint">${accountStackExpanded ? 'Swipe up to return to the card stack.' : 'Swipe down to see each account name and balance.'}</small><div class="${stackClass}" role="region" aria-expanded="${accountStackExpanded}" aria-label="Account cards. Swipe down to show all account names and balances, or swipe up to collapse." tabindex="0" style="height:${stackHeight}px">${cards}</div><div class="account-stack-footer"><small>${accountStackExpanded ? 'Swipe up to collapse the cards.' : 'Down for balances · sideways to switch'}</small></div></div>` : '<div class="empty">No accounts yet.</div>'}`
+            const accountOverview = `<div class="account-stack-overview" aria-label="Account summary"><div><b>${accounts.length}</b><small>Accounts</small></div><div><b>${peso(totalBalance)}</b><small>Total balance</small></div><div><b>${peso(savingsBalance)}</b><small>Savings</small></div></div>`;
+            return `<div class="row sp account-stack-summary"><div class="account-stack-summary-copy"><h2>Accounts</h2>${accounts.length ? '' : accountBalances}</div>${accounts.length ? '' : accountCount}</div>${accounts.length ? `<div class="account-stack-wrap">${accountOverview}<div class="account-stack-controls"><div class="account-stack-control-actions"><button type="button" class="chip" aria-label="Show next account" ${accounts.length < 2 ? 'disabled' : ''} onclick="sendAccountCardToBack()">Next account</button><button type="button" class="chip" aria-label="${accountStackExpanded ? 'Collapse account cards' : 'Show all account balances'}" aria-expanded="${accountStackExpanded}" ${accounts.length < 2 ? 'disabled' : ''} onclick="toggleAccountStackExpanded()">${accountStackExpanded ? 'Collapse cards' : 'Show balances'}</button></div></div><div class="${stackClass}" role="region" aria-expanded="${accountStackExpanded}" aria-label="Account cards. Swipe sideways to switch accounts, or use Show balances to expand." tabindex="0" style="height:${stackHeight}px">${cards}</div><div class="account-stack-footer"><small>Swipe sideways to switch accounts.</small></div></div>` : '<div class="empty">No accounts yet.</div>'}`
         };
 
         function budForm(id) {
@@ -1792,13 +1793,13 @@ ${summaryWidget}${shortcutsWidget}${actionsWidget}${accountsWidget}${transaction
             if (selectedList) {
                 const items = selectedList.items.length ? selectedList.items.map(item =>
                     `<div class="shopping-list-item${item.checked ? ' is-checked' : ''}"><label><input type="checkbox"${item.checked ? ' checked' : ''} onchange="toggleShoppingItem('${selectedList.id}','${item.id}')"><span>${esc(item.name)}</span></label><b class="shopping-list-item-amount">${peso(item.estimatedAmount || 0)}</b><button type="button" class="ib" aria-label="Edit ${esc(item.name)}" onclick="shoppingItemForm('${selectedList.id}','${item.id}')">${ic('pencil')}</button><button type="button" class="ib" aria-label="Remove ${esc(item.name)}" onclick="deleteShoppingItem('${selectedList.id}','${item.id}')">${ic('trash-2')}</button></div>`
-                ).join('') : '<div class="empty shopping-list-empty">No items yet. Add something you need.</div>';
+                ).join('') : '<div class="shopping-list-empty"><b>No items yet</b><small>Tap Add item to start your list.</small></div>';
                 const linkedExpense = D.tx.find(transaction =>
                     transaction.id === selectedList.expenseTransactionId && transaction.type === 'expense'
                 );
                 const expenseAction = linkedExpense
-                    ? `<div class="row sp shopping-list-expense"><small>Recorded expense: ${peso(linkedExpense.amount)} · ${fd(linkedExpense.date)}</small><button type="button" class="chip" onclick="editTx('${linkedExpense.id}')">Edit expense</button></div>`
-                    : `<div class="row sp shopping-list-expense"><small>No expense recorded for this list yet.</small><button type="button" class="b1" onclick="recordShoppingListExpense('${selectedList.id}')">Record as expense</button></div>`;
+                    ? `<div class="shopping-list-expense"><small>Expense recorded · ${peso(linkedExpense.amount)} · ${fd(linkedExpense.date)}</small><button type="button" class="chip" onclick="editTx('${linkedExpense.id}')">Edit</button></div>`
+                    : `<div class="shopping-list-expense"><small>Expense not recorded yet</small><button type="button" class="b1" onclick="recordShoppingListExpense('${selectedList.id}')">Record expense</button></div>`;
                 return `<div class="row sp"><div><h2>Shopping List</h2></div><button type="button" class="chip" onclick="closeShoppingList()">All lists</button></div><section class="card shopping-list-detail"><div class="shopping-list-heading"><div class="gr"><h3>${esc(selectedList.name)}</h3></div><button type="button" class="ib" aria-label="Rename ${esc(selectedList.name)}" onclick="shoppingListForm('${selectedList.id}')">${ic('pencil')}</button><button type="button" class="ib" aria-label="Delete ${esc(selectedList.name)}" onclick="deleteShoppingList('${selectedList.id}')">${ic('trash-2')}</button></div><div class="row sp shopping-list-total"><span>Estimated amount</span><b>${peso(shoppingListEstimate(selectedList))}</b></div>${expenseAction}<div class="shopping-list-items">${items}</div></section>`
             }
             const lists = D.shoppingLists.map(list => {
@@ -2820,7 +2821,14 @@ ${chartCard('Cash Flow', cashFlowChart)}
             $('#m').dataset.view = U.v;
             destroyReportCharts();
             $('#m').innerHTML = V[U.v]();
-            if (U.v === 'rep') renderReportCharts($('#m'));
+            if (U.v === 'rep') {
+                const reportRoot = $('#m');
+                renderReportCharts(reportRoot);
+                const charts = reportChartInstances.slice();
+                requestAnimationFrame(() => charts.forEach(chart => {
+                    if (chart.canvas.isConnected) chart.resize()
+                }));
+            }
             wireRenderedSelects($('#m'));
             setupTitleMenu();
             if (U.v === 'acc') wireAccountStack();
