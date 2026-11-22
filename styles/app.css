@@ -1363,12 +1363,14 @@
         }
 
         .shopping-list-expense {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
             align-items: center;
-            gap: 12px
+            gap: 8px 12px
         }
 
         .shopping-list-expense small {
-            flex: 1 1 auto;
+            min-width: 0;
             color: var(--mu)
         }
 
@@ -1426,8 +1428,20 @@
         }
 
         .shopping-list-empty {
-            padding: 8px 0;
+            display: grid;
+            gap: 4px;
+            padding: 12px;
+            border: 1px dashed var(--bd);
+            border-radius: 12px;
             text-align: left
+        }
+
+        .shopping-list-empty b {
+            color: var(--tx)
+        }
+
+        .shopping-list-empty small {
+            color: var(--mu)
         }
 
         @media (min-width: 761px) {
