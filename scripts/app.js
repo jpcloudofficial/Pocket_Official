@@ -1,4 +1,5 @@
 const K = 'pera.v1',
+            ONBOARDING_KEY = 'pera.onboarding.v1',
             VIEW_KEY = 'pera.view.v1',
             $ = s => document.querySelector(s),
             uid = () => Math.random().toString(36).slice(2, 9),
@@ -37,6 +38,15 @@ function syncDateInput(input) {
         ].map(x => [x, x]);
         const TYPES = ['Cash', 'E-Wallet', 'Digital Bank', 'Traditional Bank', 'Savings', 'Credit Card', 'Other'].map(
             x => [x, x]);
+        const SUGGESTED_ACCOUNTS = [
+            { key: 'cash', name: 'Cash', type: 'Cash', color: '#16a34a', icon: 'banknote' },
+            { key: 'gcash', name: 'GCash', type: 'E-Wallet', color: '#2563eb', icon: 'smartphone' },
+            { key: 'maya', name: 'Maya', type: 'E-Wallet', color: '#059669', icon: 'smartphone' },
+            { key: 'maribank', name: 'MariBank', type: 'Digital Bank', color: '#f97316', icon: 'landmark' },
+            { key: 'tonik', name: 'Tonik', type: 'Digital Bank', color: '#7c3aed', icon: 'landmark' },
+            { key: 'savings', name: 'Savings', type: 'Savings', color: '#0ea5e9', icon: 'piggy-bank' }
+        ];
+        const ONBOARDING_STEPS = ['accounts', 'categories', 'preferences', 'optional'];
         const DASHBOARD_WIDGETS = [
             ['summary', 'Balance summary', true],
             ['alerts', 'Budget alerts', true],
@@ -64,7 +74,9 @@ function syncDateInput(input) {
             '#dc2626', '#ea580c', '#d97706', '#16a34a', '#0f766e', '#0891b2'
         ];
         const defaultDashboardWidgets = () => Object.fromEntries(DASHBOARD_WIDGETS.map(([id, , enabled]) => [id, enabled]));
-        let D, accountStackOrder = [], accountStackSignature = '', accountStackExpanded = false, U = {
+        let D, onboardingState = null, onboardingActive = false, onboardingPersistenceError = false,
+            demoMode = false, demoReturnData = null, demoReturnView = 'dash', demoReturnOnboarding = false,
+            accountStackOrder = [], accountStackSignature = '', accountStackExpanded = false, U = {
             v: 'dash',
             ra: '',
             rc: '',
@@ -204,6 +216,7 @@ function syncDateInput(input) {
                 profilePhoto: '',
                 theme: matchMedia('(prefers-color-scheme:dark)').matches ? 'dark' : 'light',
                 dateFormat: DATE_FORMATS[0],
+                financialPeriod: 'monthly',
                 acc,
                 cats: cs.map(c => ({
                     id: k(c[0]),
@@ -249,6 +262,21 @@ function syncDateInput(input) {
         };
         let sf = 0;
         const save = () => {
+            if (demoMode) {
+                if (demoReturnData) {
+                    try {
+                        localStorage.setItem(K, JSON.stringify(demoReturnData))
+                    } catch (e) {
+                        if (!sf) {
+                            sf = 1;
+                            setTimeout(() => info(
+                                'Couldn’t save your data on this device. Storage may be full or blocked (private mode?). Use Settings → Back up so you don’t lose anything.'
+                                ), 0)
+                        }
+                    }
+                }
+                return
+            }
             try {
                 localStorage.setItem(K, JSON.stringify(D))
             } catch (e) {
@@ -261,6 +289,98 @@ function syncDateInput(input) {
             }
             if (window.pocketCloud) window.pocketCloud.queueSave(D)
         };
+        function persistOnboardingState() {
+            try {
+                localStorage.setItem(ONBOARDING_KEY, JSON.stringify(onboardingState));
+                onboardingPersistenceError = false;
+            } catch (error) {
+                console.warn('Unable to save onboarding progress', error);
+                onboardingPersistenceError = true
+            }
+        }
+        function createOnboardingState() {
+            const categories = D.cats.map(category => ({ ...category }));
+            return {
+                version: 1,
+                completed: false,
+                checklistDismissed: false,
+                step: 'welcome',
+                draft: {
+                    accounts: [],
+                    categories,
+                    categoryIds: categories.map(category => category.id),
+                    customCategories: [],
+                    theme: D.theme,
+                    dateFormat: DATE_FORMATS[0],
+                    financialPeriod: 'monthly',
+                    budgets: {},
+                    goals: []
+                }
+            }
+        }
+        function restoreOnboardingState() {
+            try {
+                const value = JSON.parse(localStorage.getItem(ONBOARDING_KEY) || 'null');
+                if (!value || value.version !== 1 || typeof value.completed !== 'boolean') return null;
+                const initial = createOnboardingState();
+                if (value.completed) {
+                    return {
+                        ...initial,
+                        ...value,
+                        completed: true,
+                        checklistDismissed: value.checklistDismissed === true,
+                        draft: null
+                    }
+                }
+                const draft = value.draft && typeof value.draft === 'object' ? value.draft : {},
+                    categories = Array.isArray(draft.categories) ? draft.categories.filter(category =>
+                        category && okId(category.id) && typeof category.name === 'string' &&
+                        ['Daily', 'Financial', 'Income'].includes(category.g)
+                    ) : initial.draft.categories,
+                    categoryIds = new Set(categories.map(category => category.id));
+                return {
+                    ...initial,
+                    ...value,
+                    version: 1,
+                    completed: false,
+                    checklistDismissed: false,
+                    step: ['welcome', ...ONBOARDING_STEPS, 'complete'].includes(value.step) ? value.step : 'welcome',
+                    draft: {
+                        ...initial.draft,
+                        theme: ['dark', 'light'].includes(draft.theme) ? draft.theme : initial.draft.theme,
+                        dateFormat: DATE_FORMATS.includes(draft.dateFormat) ? draft.dateFormat : initial.draft.dateFormat,
+                        financialPeriod: ['weekly', 'monthly', 'yearly'].includes(draft.financialPeriod) ?
+                            draft.financialPeriod : initial.draft.financialPeriod,
+                        categories,
+                        categoryIds: Array.isArray(draft.categoryIds) ?
+                            draft.categoryIds.filter(id => categoryIds.has(id)) : [...categoryIds],
+                        customCategories: Array.isArray(draft.customCategories) ? draft.customCategories.filter(category =>
+                            category && okId(category.id) && typeof category.name === 'string' &&
+                            ['Daily', 'Income'].includes(category.g)
+                        ) : [],
+                        accounts: Array.isArray(draft.accounts) ? draft.accounts.filter(account =>
+                            account && typeof account.key === 'string' &&
+                            (SUGGESTED_ACCOUNTS.some(suggestion => suggestion.key === account.key) ||
+                                /^custom-[\w-]{1,40}$/.test(account.key)) &&
+                            typeof account.name === 'string' && TYPES.some(([type]) => type === account.type)
+                        ).map(account => ({
+                            ...account,
+                            name: sx(account.name, 40),
+                            color: okCol(account.color) ? account.color : '#2563eb',
+                            initial: String(account.initial ?? '0')
+                        })) : [],
+                        budgets: draft.budgets && typeof draft.budgets === 'object' && !Array.isArray(draft.budgets) ?
+                            draft.budgets : {},
+                        goals: Array.isArray(draft.goals) ? draft.goals.filter(goal =>
+                            goal && okId(goal.key) && typeof goal.name === 'string'
+                        ).map(goal => ({ ...goal, target: String(goal.target ?? '') })) : []
+                    }
+                }
+            } catch (error) {
+                console.warn('Unable to restore onboarding progress', error)
+            }
+            return null
+        }
         const A = id => D.acc.find(a => a.id === id),
             C = id => D.cats.find(c => c.id === id),
             od = a => a.type === 'Credit Card' || a.od === 'yes',
@@ -328,6 +448,10 @@ function syncDateInput(input) {
                 download: '<path d="M12 4v12M7 11l5 5 5-5M4 20h16"/>',
                 sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2.5V5M12 19v2.5M2.5 12H5M19 12h2.5M5.3 5.3l1.8 1.8M16.9 16.9l1.8 1.8M5.3 18.7l1.8-1.8M16.9 7.1l1.8-1.8"/>',
                 moon: '<path d="M20 14.5A8.5 8.5 0 0 1 9.5 4 8.5 8.5 0 1 0 20 14.5z"/>',
+                eye: '<path d="M2.5 12s3.2-6 9.5-6 9.5 6 9.5 6-3.2 6-9.5 6-9.5-6-9.5-6z"/><circle cx="12" cy="12" r="2.5"/>',
+                check: '<path d="m5 12 4.5 4.5L19 7"/>',
+                circle: '<circle cx="12" cy="12" r="8"/>',
+                x: '<path d="m6 6 12 12M18 6 6 18"/>',
                 'alert-triangle': '<path d="M12 4 21.5 20h-19L12 4zM12 10v4.5M12 17.5v.1"/>'
             },
             ic = n =>
@@ -1366,15 +1490,415 @@ function syncDateInput(input) {
             if (widgets.spendingTrend) reportCards.push(`<div class="card"><h3>Spending trend (${reportYear})</h3>${line(reportExpenses,MO,'#ea580c')}</div>`);
             if (widgets.accountBalanceHistory) reportCards.push(`<div class="card"><h3>Account balance history (${reportYear})</h3>${line(reportBalanceHistory,MO,'#2563eb')}</div>`);
             if (widgets.monthlySavings) reportCards.push(`<div class="card"><h3>Monthly savings (${reportYear})</h3>${bars([reportIncome.map((income,i)=>income-reportExpenses[i])],MO,['#16a34a'])}</div>`);
-            const reportsWidget = reportCards.length ? `<div class="g g2">${reportCards.join('')}</div>` : '';
+            const reportsWidget = reportCards.length ? D.tx.length ?
+                `<div class="g g2">${reportCards.join('')}</div>` :
+                `<div class="card dashboard-empty-reports"><span aria-hidden="true">${ic('bar-chart-3')}</span><div><b>Your reports will appear here</b><small>Add your first transaction to see income, expenses, and trends.</small></div></div>` :
+                '';
             const emptyDashboard = DASHBOARD_WIDGETS.some(([id]) => widgets[id]) ? '' :
                 '<div class="empty card">No dashboard sections are visible. Go to Settings and select Customize Dashboard to add sections.</div>';
             const hour = new Date().getHours(),
                 greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening',
                 dashboardTitle = D.name ? `${greeting}, ${esc(D.name)}!` : `${greeting}!`;
             return `<div class="row sp pocket-privacy-header"><h2 style="font-size:26px">${dashboardTitle}</h2></div>${widgets.alerts?alerts():''}
-${summaryWidget}${shortcutsWidget}${actionsWidget}${accountsWidget}${transactionsWidget}${reportsWidget}${emptyDashboard}`
+${summaryWidget}${gettingStartedChecklist()}${shortcutsWidget}${actionsWidget}${accountsWidget}${transactionsWidget}${reportsWidget}${emptyDashboard}`
         };
+
+        const onboardingDraft = () => onboardingState && onboardingState.draft;
+        function saveOnboardingProgress() {
+            persistOnboardingState();
+            if (onboardingActive) render()
+        }
+        function setOnboardingStep(step) {
+            if (!onboardingState || !['welcome', ...ONBOARDING_STEPS, 'complete'].includes(step)) return;
+            onboardingState.step = step;
+            saveOnboardingProgress()
+        }
+        function beginOnboarding() {
+            if (!onboardingState || onboardingState.completed) return;
+            setOnboardingStep('accounts')
+        }
+        function toggleOnboardingAccount(key, selected) {
+            const draft = onboardingDraft(),
+                suggestion = SUGGESTED_ACCOUNTS.find(account => account.key === key);
+            if (!draft || !suggestion) return;
+            if (selected && !draft.accounts.some(account => account.key === key)) {
+                draft.accounts.push({ ...suggestion, initial: '0' });
+            } else if (!selected) {
+                draft.accounts = draft.accounts.filter(account => account.key !== key)
+            }
+            saveOnboardingProgress()
+        }
+        function updateOnboardingAccount(key, property, value) {
+            const account = onboardingDraft()?.accounts.find(item => item.key === key);
+            if (!account || !['name', 'type', 'initial'].includes(property)) return;
+            account[property] = value;
+            persistOnboardingState()
+        }
+        function addOnboardingAccount() {
+            const draft = onboardingDraft(),
+                name = $('#onboarding-account-name')?.value.trim(),
+                type = $('#onboarding-account-type')?.value,
+                rawBalance = $('#onboarding-account-balance')?.value.trim(),
+                initial = rawBalance ? Number(rawBalance) : 0,
+                error = $('#onboarding-account-error');
+            if (!draft || !error) return;
+            if (!name) return error.textContent = 'Enter an account name.';
+            if (draft.accounts.some(account => account.name.trim().toLowerCase() === name.toLowerCase())) {
+                return error.textContent = 'An account with this name is already selected.';
+            }
+            if (!TYPES.some(([value]) => value === type)) return error.textContent = 'Choose a valid account type.';
+            if (!Number.isFinite(initial) || Math.abs(initial) > 1e12) {
+                return error.textContent = 'Enter a valid opening balance up to ₱1,000,000,000,000.';
+            }
+            draft.accounts.push({
+                key: 'custom-' + uid(),
+                name: name.slice(0, 40),
+                type,
+                initial: String(initial),
+                color: '#2563eb',
+                icon: 'wallet'
+            });
+            saveOnboardingProgress()
+        }
+        function onboardingSkipAccounts() {
+            const draft = onboardingDraft();
+            if (!draft) return;
+            draft.accounts = [];
+            setOnboardingStep('categories')
+        }
+        function validateOnboardingAccounts() {
+            const accounts = onboardingDraft()?.accounts || [],
+                seen = new Set();
+            for (const account of accounts) {
+                const name = String(account.name || '').trim(),
+                    balance = account.initial === '' ? 0 : Number(account.initial);
+                if (!name) return 'Enter a name for each selected account.';
+                if (seen.has(name.toLowerCase())) return 'Account names must be unique.';
+                if (!TYPES.some(([value]) => value === account.type)) return 'Choose a valid type for each account.';
+                if (!Number.isFinite(balance) || Math.abs(balance) > 1e12) {
+                    return 'Enter valid account balances up to ₱1,000,000,000,000.';
+                }
+                seen.add(name.toLowerCase())
+            }
+            return ''
+        }
+        function toggleOnboardingCategory(id, selected) {
+            const draft = onboardingDraft();
+            if (!draft || !draft.categories.some(category => category.id === id && category.g !== 'Financial' &&
+                !(category.g === 'Income' && category.name.toLowerCase() === 'cashback'))) return;
+            const ids = new Set(draft.categoryIds);
+            selected ? ids.add(id) : ids.delete(id);
+            draft.categoryIds = [...ids];
+            saveOnboardingProgress()
+        }
+        function addOnboardingCategory() {
+            const draft = onboardingDraft(),
+                nameInput = $('#onboarding-category-name'),
+                typeInput = $('#onboarding-category-type'),
+                error = $('#onboarding-category-error'),
+                name = nameInput?.value.trim(),
+                group = typeInput?.value;
+            if (!draft || !error) return;
+            const names = [...draft.categories, ...draft.customCategories].map(category => category.name.toLowerCase());
+            if (!name) return error.textContent = 'Enter a category name.';
+            if (name.length > 40) return error.textContent = 'Keep category names under 40 characters.';
+            if (names.includes(name.toLowerCase())) return error.textContent = 'A category with this name already exists.';
+            if (!['Daily', 'Income'].includes(group)) return error.textContent = 'Choose expense or income.';
+            draft.customCategories.push({
+                id: 'c_' + uid(),
+                name,
+                icon: group === 'Income' ? 'coins' : 'tag',
+                color: group === 'Income' ? '#16a34a' : '#6366f1',
+                g: group
+            });
+            saveOnboardingProgress()
+        }
+        function removeOnboardingCategory(id) {
+            const draft = onboardingDraft();
+            if (!draft) return;
+            draft.customCategories = draft.customCategories.filter(category => category.id !== id);
+            saveOnboardingProgress()
+        }
+        function updateOnboardingPreference(key, value) {
+            const draft = onboardingDraft();
+            if (!draft || !['theme', 'dateFormat', 'financialPeriod'].includes(key)) return;
+            if (key === 'theme' && !['dark', 'light'].includes(value)) return;
+            if (key === 'dateFormat' && !DATE_FORMATS.includes(value)) return;
+            if (key === 'financialPeriod' && !['weekly', 'monthly', 'yearly'].includes(value)) return;
+            draft[key] = value;
+            saveOnboardingProgress()
+        }
+        function updateOnboardingBudget(id, value) {
+            const draft = onboardingDraft();
+            if (!draft || ![...draft.categories, ...draft.customCategories].some(category =>
+                category.id === id && category.g === 'Daily'
+            )) return;
+            draft.budgets[id] = value;
+            persistOnboardingState()
+        }
+        function addOnboardingGoal() {
+            const draft = onboardingDraft();
+            if (!draft) return;
+            draft.goals.push({ key: uid(), name: '', target: '' });
+            saveOnboardingProgress()
+        }
+        function updateOnboardingGoal(key, property, value) {
+            const goal = onboardingDraft()?.goals.find(item => item.key === key);
+            if (!goal || !['name', 'target'].includes(property)) return;
+            goal[property] = value;
+            persistOnboardingState()
+        }
+        function removeOnboardingGoal(key) {
+            const draft = onboardingDraft();
+            if (!draft) return;
+            draft.goals = draft.goals.filter(goal => goal.key !== key);
+            saveOnboardingProgress()
+        }
+        function validateOnboardingOptional(draft) {
+            for (const value of Object.values(draft.budgets)) {
+                if (value === '') continue;
+                const amount = Number(value);
+                if (!Number.isFinite(amount) || amount < 0 || amount > 1e12) {
+                    return 'Budgets must be valid amounts from ₱0 to ₱1,000,000,000,000.'
+                }
+            }
+            for (const goal of draft.goals.filter(item => item.name.trim() || item.target !== '')) {
+                const target = Number(goal.target);
+                if (!goal.name.trim() || !Number.isFinite(target) || target <= 0 || target > 1e12) {
+                    return 'Each savings goal needs a name and a target greater than ₱0.'
+                }
+            }
+            return ''
+        }
+        function onboardingSkipOptional() {
+            const draft = onboardingDraft();
+            if (!draft) return;
+            draft.budgets = {};
+            draft.goals = [];
+            setOnboardingStep('complete')
+        }
+        function onboardingContinue() {
+            const draft = onboardingDraft();
+            if (!draft) return;
+            const error = $('#onboarding-error');
+            if (error) error.textContent = '';
+            if (onboardingState.step === 'accounts') {
+                const accountError = validateOnboardingAccounts();
+                if (accountError) {
+                    if (error) error.textContent = accountError;
+                    return
+                }
+                return setOnboardingStep('categories')
+            }
+            if (onboardingState.step === 'categories') {
+                const selectedCategories = draft.categories.filter(category =>
+                    category.g === 'Financial' || draft.categoryIds.includes(category.id)
+                );
+                if (![...selectedCategories, ...draft.customCategories].some(category => category.g === 'Daily')) {
+                    if (error) error.textContent = 'Keep at least one expense category.';
+                    return
+                }
+                return setOnboardingStep('preferences')
+            }
+            if (onboardingState.step === 'preferences') return setOnboardingStep('optional');
+            if (onboardingState.step === 'optional') {
+                const optionalError = validateOnboardingOptional(draft);
+                if (optionalError) {
+                    if (error) error.textContent = optionalError;
+                    return
+                }
+                return setOnboardingStep('complete')
+            }
+        }
+        function onboardingBack() {
+            if (!onboardingState) return;
+            const index = ONBOARDING_STEPS.indexOf(onboardingState.step);
+            if (index >= 0) setOnboardingStep(index ? ONBOARDING_STEPS[index - 1] : 'welcome');
+            else if (onboardingState.step === 'complete') setOnboardingStep('optional')
+        }
+        function finishOnboarding() {
+            const draft = onboardingDraft();
+            if (!draft) return;
+            const accountError = validateOnboardingAccounts();
+            if (accountError) return info(accountError);
+            const optionalError = validateOnboardingOptional(draft);
+            if (optionalError) {
+                const error = $('#onboarding-error');
+                if (error) error.textContent = optionalError;
+                return
+            }
+            const selectedIds = new Set(draft.categoryIds);
+            D.acc = draft.accounts.map(account => ({
+                id: uid(),
+                name: account.name.trim(),
+                type: account.type,
+                color: account.color,
+                icon: account.icon,
+                initial: Number(account.initial) || 0,
+                created: today(),
+                od: 'no'
+            }));
+            D.cats = [
+                ...draft.categories.filter(category => category.g === 'Financial' || selectedIds.has(category.id)),
+                ...draft.customCategories
+            ];
+            if (!D.cats.some(category => category.g === 'Income' && category.name.toLowerCase() === 'cashback')) {
+                D.cats.push({ id: 'c_cashback', name: 'Cashback', icon: 'coins', color: '#0891b2', g: 'Income' })
+            }
+            const activeCategoryIds = new Set(D.cats.map(category => category.id));
+            D.budgets = Object.fromEntries(Object.entries(draft.budgets).filter(([id, value]) => {
+                const amount = Number(value);
+                return activeCategoryIds.has(id) && Number.isFinite(amount) && amount >= 0 && value !== ''
+            }).map(([id, value]) => [id, Number(value)]));
+            D.goals = draft.goals.filter(goal => goal.name.trim() && Number(goal.target) > 0).map(goal => ({
+                id: uid(),
+                name: goal.name.trim().slice(0, 80),
+                target: Number(goal.target),
+                current: 0,
+                date: iso(new Date(Date.now() + 18144e6)),
+                acc: ''
+            }));
+            D.theme = draft.theme;
+            D.dateFormat = draft.dateFormat;
+            D.financialPeriod = draft.financialPeriod;
+            onboardingState.completed = true;
+            onboardingState.checklistDismissed = false;
+            onboardingState.step = 'complete';
+            onboardingState.draft = null;
+            onboardingActive = false;
+            U.v = 'dash';
+            U.reportRange = D.financialPeriod;
+            persistOnboardingState();
+            save();
+            render()
+        }
+        function startDemoMode() {
+            if (demoMode) return;
+            demoReturnData = JSON.parse(JSON.stringify(D));
+            demoReturnView = U.v;
+            demoReturnOnboarding = onboardingActive;
+            const theme = onboardingDraft()?.theme || D.theme,
+                dateFormat = onboardingDraft()?.dateFormat || D.dateFormat,
+                financialPeriod = onboardingDraft()?.financialPeriod || D.financialPeriod;
+            demoMode = true;
+            onboardingActive = false;
+            D = seed();
+            D.theme = theme;
+            D.dateFormat = dateFormat;
+            D.financialPeriod = financialPeriod;
+            U.v = 'dash';
+            U.reportRange = financialPeriod;
+            render()
+        }
+        function exitDemoMode() {
+            if (!demoMode || !demoReturnData) return;
+            D = demoReturnData;
+            demoReturnData = null;
+            demoMode = false;
+            U.v = demoReturnOnboarding ? 'dash' : demoReturnView;
+            onboardingActive = demoReturnOnboarding;
+            demoReturnOnboarding = false;
+            save();
+            render()
+        }
+        function dismissGettingStarted() {
+            if (!onboardingState || !onboardingState.completed) return;
+            onboardingState.checklistDismissed = true;
+            persistOnboardingState();
+            render()
+        }
+        function startGettingStartedTask(task) {
+            if (task === 'accounts') {
+                go('acc');
+                return accForm()
+            }
+            if (task === 'transaction') {
+                if (!D.acc.length) {
+                    go('acc');
+                    return accForm()
+                }
+                return quickAdd('expense')
+            }
+            if (task === 'budget') {
+                go('bud');
+                return budForm()
+            }
+            if (task === 'goal') {
+                go('goal');
+                return goalForm()
+            }
+        }
+        function gettingStartedChecklist() {
+            if (!onboardingState?.completed || onboardingState.checklistDismissed || demoMode) return '';
+            const tasks = [
+                ['accounts', 'Add an account', D.acc.length > 0, 'Start with Cash, GCash, or a bank account.'],
+                ['transaction', 'Record your first transaction', D.tx.length > 0, 'Add an expense or income to see real reports.'],
+                ['budget', 'Set a monthly budget', Object.keys(D.budgets).length > 0, 'Choose a category and set a spending limit.'],
+                ['goal', 'Create a savings goal', D.goals.length > 0, 'Give a goal a name and target amount.']
+            ];
+            return `<section class="card getting-started" aria-labelledby="getting-started-title"><div class="row sp"><div><h3 id="getting-started-title">Getting started</h3><small>Your progress stays on this device.</small></div><button type="button" class="ib" aria-label="Dismiss getting started checklist" onclick="dismissGettingStarted()">${ic('x')}</button></div><div class="getting-started-list">${tasks.map(([id, title, done, description]) => `<div class="getting-started-item${done ? ' is-done' : ''}"><span class="getting-started-check" aria-hidden="true">${ic(done ? 'check' : 'circle')}</span><span class="getting-started-copy"><b>${title}</b><small>${description}</small></span><button type="button" class="chip" onclick="startGettingStartedTask('${id}')">${done ? 'View' : 'Start'}</button></div>`).join('')}</div></section>`
+        }
+        function renderOnboarding() {
+            if (!onboardingDraft()) {
+                onboardingState = createOnboardingState();
+                persistOnboardingState()
+            }
+            const draft = onboardingDraft(),
+                brand = `<div class="onboarding-brand"><span class="onboarding-brand-icon">${ic('wallet')}</span><span>Pocket</span></div>`,
+                notice = onboardingPersistenceError ?
+                    '<p class="onboarding-storage-warning" role="status">Setup progress could not be saved on this device. Keep Pocket open until you finish.</p>' : '';
+            if (onboardingState.step === 'welcome') {
+                    return `<div class="onboarding-shell onboarding-welcome"><section class="onboarding-hero">${brand}<h1>Welcome to Pocket</h1><p class="onboarding-tagline">Every peso, accounted for.</p><p>Track accounts, record expenses and income, and keep an eye on budgets and savings goals.</p></section><section class="onboarding-panel"><h2>Let’s get things set up.</h2><p class="onboarding-muted">You can always change these later.</p><div class="onboarding-feature-list"><div><span>${ic('wallet')}</span><div><b>Your accounts</b><small>See your real balances in one place.</small></div></div><div><span>${ic('file-text')}</span><div><b>Your spending</b><small>Record income and expenses as they happen.</small></div></div><div><span>${ic('target')}</span><div><b>Your goals</b><small>Set budgets and savings goals at your pace.</small></div></div></div>${notice}<button type="button" class="b1 onboarding-primary" onclick="beginOnboarding()">Get Started</button><div class="onboarding-welcome-actions"><button type="button" class="b2" onclick="showText('Restore backup','',1)">${ic('upload')} Restore Backup</button><button type="button" class="b2" onclick="startDemoMode()">${ic('eye')} Explore Demo Mode</button></div></section></div>`
+            }
+            if (onboardingState.step === 'complete') {
+                    return `<div class="onboarding-shell onboarding-complete"><section class="onboarding-hero">${brand}<span class="onboarding-complete-mark" aria-hidden="true">${ic('check')}</span><h1>You’re ready to go.</h1><p>Welcome to Pocket. Your setup is saved on this device.</p></section><section class="onboarding-panel"><h2>Your setup</h2><div class="onboarding-completion-stats"><div><b>${draft.accounts.length}</b><small>accounts configured</small></div><div><b>${[...draft.categories.filter(category => category.g === 'Financial' || draft.categoryIds.includes(category.id)), ...draft.customCategories].length}</b><small>categories ready</small></div></div><div class="onboarding-first-transaction"><span>${ic('file-text')}</span><p><b>Record your first transaction</b><small>Tap the + button on your dashboard, choose Expense or Income, then enter the amount, category, and account.</small></p></div><p class="onboarding-muted">${draft.accounts.length ? 'Your opening balances are ready to use.' : 'You skipped accounts. Add one before recording a transaction.'}</p>${notice}<p id="onboarding-error" class="onboarding-inline-error" role="alert"></p><div class="onboarding-navigation"><button type="button" class="b2" onclick="onboardingBack()">Back</button><button type="button" class="b1 onboarding-primary" onclick="finishOnboarding()">Open Dashboard</button></div></section></div>`
+            }
+            const stepIndex = ONBOARDING_STEPS.indexOf(onboardingState.step),
+                stepTitles = ['Accounts', 'Categories', 'Preferences', 'Optional goals'],
+                heading = stepTitles[stepIndex] || 'Setup',
+                percent = Math.round((stepIndex + 1) / ONBOARDING_STEPS.length * 100);
+            let content = '';
+            if (onboardingState.step === 'accounts') {
+                const suggestions = SUGGESTED_ACCOUNTS.map(suggestion => {
+                    const selected = draft.accounts.find(account => account.key === suggestion.key);
+                    return `<div class="onboarding-account-card${selected ? ' is-selected' : ''}"><label class="onboarding-account-choice"><input type="checkbox"${selected ? ' checked' : ''} onchange="toggleOnboardingAccount('${suggestion.key}',this.checked)"><span class="onboarding-account-icon">${ic(suggestion.icon)}</span><span><b>${suggestion.name}</b><small>${suggestion.type}</small></span></label>${selected ? `<label class="onboarding-field">Initial balance (₱)<input type="number" step="0.01" value="${esc(selected.initial)}" aria-label="${suggestion.name} initial balance" oninput="updateOnboardingAccount('${suggestion.key}','initial',this.value)"></label>` : ''}</div>`
+                }).join(''),
+                    customAccounts = draft.accounts.filter(account => account.key.startsWith('custom-')).map(account =>
+                        `<div class="onboarding-custom-account"><div class="onboarding-fields"><label class="onboarding-field">Account name<input type="text" maxlength="40" value="${esc(account.name)}" oninput="updateOnboardingAccount('${account.key}','name',this.value)"></label><label class="onboarding-field">Type<select aria-label="${esc(account.name)} type" onchange="updateOnboardingAccount('${account.key}','type',this.value)">${TYPES.map(([value, label]) => `<option value="${esc(value)}"${account.type === value ? ' selected' : ''}>${esc(label)}</option>`).join('')}</select></label><label class="onboarding-field">Initial balance (₱)<input type="number" step="0.01" value="${esc(account.initial)}" oninput="updateOnboardingAccount('${account.key}','initial',this.value)"></label></div><button type="button" class="ib" aria-label="Remove ${esc(account.name)}" onclick="removeOnboardingAccount('${account.key}')">${ic('trash-2')}</button></div>`
+                    ).join('');
+                content = `<p class="onboarding-step-description">Choose any accounts you use and enter their current opening balances. You can add more later.</p><div class="onboarding-account-grid">${suggestions}</div><section class="onboarding-custom-section"><h3>Add a custom account</h3><div class="onboarding-fields"><label class="onboarding-field">Account name<input id="onboarding-account-name" type="text" maxlength="40" autocomplete="off"></label><label class="onboarding-field">Type<select id="onboarding-account-type">${TYPES.map(([value, label]) => `<option value="${esc(value)}">${esc(label)}</option>`).join('')}</select></label><label class="onboarding-field">Initial balance (₱)<input id="onboarding-account-balance" type="number" step="0.01" value="0"></label></div><button type="button" class="b2" onclick="addOnboardingAccount()">${ic('plus')} Add account</button><p id="onboarding-account-error" class="onboarding-inline-error" role="alert"></p>${customAccounts}</section>`
+            } else if (onboardingState.step === 'categories') {
+                const categoryGroup = (group, title) => `<section class="onboarding-category-group"><h3>${title}</h3><div class="onboarding-category-grid">${draft.categories.filter(category => category.g === group).map(category => {
+                    const required = category.g === 'Income' && category.name.toLowerCase() === 'cashback',
+                        checked = required || draft.categoryIds.includes(category.id);
+                    return `<label class="onboarding-category-choice"><input type="checkbox"${checked ? ' checked' : ''}${required ? ' disabled' : ''} onchange="toggleOnboardingCategory('${esc(category.id)}',this.checked)"><span>${esc(category.name)}</span>${required ? '<small>Always included</small>' : ''}</label>`
+                }).join('')}</div></section>`;
+                const customCategories = draft.customCategories.map(category =>
+                    `<div class="onboarding-custom-category"><span>${ic(category.icon)} ${esc(category.name)} <small>${category.g === 'Income' ? 'Income' : 'Expense'}</small></span><button type="button" class="ib" aria-label="Remove ${esc(category.name)}" onclick="removeOnboardingCategory('${esc(category.id)}')">${ic('trash-2')}</button></div>`
+                ).join('');
+                content = `<p class="onboarding-step-description">Pocket starts with useful expense and income categories. Keep the defaults or uncheck any you don’t use.</p>${categoryGroup('Daily', 'Expense categories')}${categoryGroup('Income', 'Income categories')}<p class="onboarding-category-note">${ic('arrow-left-right')} Financial categories are included automatically for transfers, savings, and debt payments.</p><section class="onboarding-custom-section"><h3>Add a category</h3><div class="onboarding-fields"><label class="onboarding-field">Category name<input id="onboarding-category-name" type="text" maxlength="40" autocomplete="off"></label><label class="onboarding-field">Type<select id="onboarding-category-type"><option value="Daily">Expense</option><option value="Income">Income</option></select></label></div><button type="button" class="b2" onclick="addOnboardingCategory()">${ic('plus')} Add category</button><p id="onboarding-category-error" class="onboarding-inline-error" role="alert"></p>${customCategories}</section>`
+            } else if (onboardingState.step === 'preferences') {
+                content = `<p class="onboarding-step-description">Choose how Pocket looks and how reports group your activity.</p><div class="onboarding-preference-card"><div><b>Currency</b><small>PHP · Philippine Peso (₱)</small></div><div><b>Date format</b><small>Used across Pocket</small></div><select aria-label="Date format" onchange="updateOnboardingPreference('dateFormat',this.value)">${DATE_FORMATS.map(format => `<option value="${format}"${draft.dateFormat === format ? ' selected' : ''}>${format}</option>`).join('')}</select></div><div class="onboarding-preference-block"><b>Appearance</b><div class="onboarding-choice-row" role="group" aria-label="Choose appearance">${[['dark', 'Dark'], ['light', 'Light']].map(([value, label]) => `<button type="button" class="onboarding-choice${draft.theme === value ? ' is-selected' : ''}" aria-pressed="${draft.theme === value}" onclick="updateOnboardingPreference('theme','${value}')">${ic(value === 'dark' ? 'moon' : 'sun')} ${label}</button>`).join('')}</div></div><div class="onboarding-preference-block"><label class="onboarding-field">Financial period<select aria-label="Financial period" onchange="updateOnboardingPreference('financialPeriod',this.value)">${[['weekly', 'Weekly'], ['monthly', 'Monthly'], ['yearly', 'Yearly']].map(([value, label]) => `<option value="${value}"${draft.financialPeriod === value ? ' selected' : ''}>${label}</option>`).join('')}</select></label><small>Used as the default date range in Reports.</small></div>`
+            } else if (onboardingState.step === 'optional') {
+                const selectedIds = new Set(draft.categoryIds),
+                    budgetCategories = [...draft.categories, ...draft.customCategories].filter(category =>
+                        category.g === 'Daily' && (category.id.startsWith('c_') && draft.customCategories.includes(category) || selectedIds.has(category.id))
+                    ),
+                    budgetRows = budgetCategories.map(category =>
+                        `<label class="onboarding-budget-row"><span>${esc(category.name)}</span><input type="number" min="0" max="1000000000000" step="0.01" value="${esc(draft.budgets[category.id] ?? '')}" aria-label="${esc(category.name)} monthly budget" placeholder="Skip" oninput="updateOnboardingBudget('${esc(category.id)}',this.value)"></label>`
+                    ).join(''),
+                    goals = draft.goals.map(goal =>
+                        `<div class="onboarding-goal-row"><label class="onboarding-field">Goal name<input type="text" maxlength="80" value="${esc(goal.name)}" oninput="updateOnboardingGoal('${goal.key}','name',this.value)"></label><label class="onboarding-field">Target amount (₱)<input type="number" min="0.01" max="1000000000000" step="0.01" value="${esc(goal.target)}" oninput="updateOnboardingGoal('${goal.key}','target',this.value)"></label><button type="button" class="ib" aria-label="Remove goal" onclick="removeOnboardingGoal('${goal.key}')">${ic('trash-2')}</button></div>`
+                    ).join('');
+                content = `<p class="onboarding-step-description">Both are optional. You can set or change them any time.</p><details class="onboarding-optional-section"><summary>Set monthly category budgets</summary><div class="onboarding-budget-list">${budgetRows || '<small>Select an expense category first to add a budget.</small>'}</div></details><section class="onboarding-optional-section"><div class="row sp"><div><h3>Savings goals</h3><small>Start with a name and a target amount.</small></div><button type="button" class="b2" onclick="addOnboardingGoal()">${ic('plus')} Add goal</button></div>${goals || '<p class="onboarding-muted">No goals yet.</p>'}</section>`
+            }
+            const skip = onboardingState.step === 'accounts'
+                ? '<button type="button" class="onboarding-text-button" onclick="onboardingSkipAccounts()">Skip adding accounts</button>'
+                : onboardingState.step === 'optional'
+                    ? '<button type="button" class="onboarding-text-button" onclick="onboardingSkipOptional()">Skip optional steps</button>'
+                    : '';
+            return `<div class="onboarding-shell"><header class="onboarding-flow-header">${brand}<span>Step ${stepIndex + 1} of ${ONBOARDING_STEPS.length}</span></header><div class="onboarding-progress" role="progressbar" aria-label="Setup progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${percent}"><span style="width:${percent}%"></span></div><section class="onboarding-panel onboarding-step-panel"><h1>${heading}</h1>${content}${notice}<p id="onboarding-error" class="onboarding-inline-error" role="alert"></p><div class="onboarding-navigation"><button type="button" class="b2" onclick="onboardingBack()">Back</button>${skip}<button type="button" class="b1 onboarding-primary" onclick="onboardingContinue()">${onboardingState.step === 'optional' ? 'Review setup' : 'Continue'}</button></div></section></div>`
+        }
 
         const transactionDateHeadingFormatter = new Intl.DateTimeFormat('en-US', {
             month: 'long',
@@ -2546,8 +3070,20 @@ ${chartCard('Cash Flow', cashFlowChart)}
             if (!d) return $('#er').textContent = 'That doesn’t look like a valid Pocket backup.';
             ask('Replace all your current data with this backup?', () => {
                 D = d;
-                processRecurring()
+                processRecurring();
+                if (onboardingActive && onboardingState && !demoMode) {
+                    onboardingActive = false;
+                    onboardingState.completed = true;
+                    onboardingState.checklistDismissed = false;
+                    onboardingState.step = 'complete';
+                    onboardingState.draft = null;
+                    U.v = 'dash';
+                    persistOnboardingState()
+                }
             }, 'Restore')
+        }
+        function showSetupInstructions() {
+            ov(`<h3>Getting started</h3><p class="settings-note">Start with your accounts, then record income or expenses. Budgets and savings goals are optional and can be changed any time.</p><div class="settings-actions"><button type="button" class="b2" onclick="cl();go('acc');accForm()">${ic('wallet')} Add an account</button><button type="button" class="b2" onclick="cl();go('tx');quickAdd('expense')">${ic('file-text')} Record a transaction</button><button type="button" class="b2" onclick="cl();go('bud');budForm()">${ic('gauge')} Set a budget</button><button type="button" class="b2" onclick="cl();go('goal');goalForm()">${ic('target')} Create a savings goal</button><button type="button" class="b2" onclick="cl();go('cat')">${ic('tag')} Customize categories</button></div><div class="row end" style="margin-top:12px"><button type="button" class="b1" onclick="cl()">Done</button></div>`)
         }
         function profileSettingsCard() {
             const initial = D.name.trim().charAt(0).toUpperCase() || 'P';
@@ -2622,8 +3158,9 @@ ${chartCard('Cash Flow', cashFlowChart)}
             `<div class="row sp"><h2>Profile</h2></div><div class="g g2 profile-layout">${profileSettingsCard()}${cloudSyncCard()}</div>`;
         V.set = () =>
             `<div class="row sp"><h2>Settings</h2></div><div class="g g2">
-<div class="card settings-preferences"><h3>Preferences</h3><div class="settings-preference-list"><div class="settings-preference-row"><span>Currency</span><b>Philippine Peso (₱)</b></div><div class="settings-preference-row"><span>Date format</span><select aria-label="Date format" onchange="D.dateFormat=this.value;save();render()">${DATE_FORMATS.map(format=>`<option value="${format}"${currentDateFormat()===format?' selected':''}>${format}</option>`).join('')}</select></div><div class="settings-preference-row"><span>Theme</span><button class="b2" onclick="D.theme=D.theme==='dark'?'light':'dark';save();render()">${ic(D.theme==='dark'?'sun':'moon')} ${D.theme==='dark'?'Light':'Dark'} mode</button></div></div><div class="settings-preference-dashboard"><small>Dashboard</small><button class="b2 dashboard-layout-setting" onclick="dashboardSettingsForm()">${ic('bar-chart-3')} Customize Dashboard</button></div></div>
+<div class="card settings-preferences"><h3>Preferences</h3><div class="settings-preference-list"><div class="settings-preference-row"><span>Currency</span><b>Philippine Peso (₱)</b></div><div class="settings-preference-row"><span>Date format</span><select aria-label="Date format" onchange="D.dateFormat=this.value;save();render()">${DATE_FORMATS.map(format=>`<option value="${format}"${currentDateFormat()===format?' selected':''}>${format}</option>`).join('')}</select></div><div class="settings-preference-row"><span>Financial period</span><select aria-label="Financial period" onchange="D.financialPeriod=this.value;U.reportRange=this.value;save();render()">${[['weekly','Weekly'],['monthly','Monthly'],['yearly','Yearly']].map(([value,label])=>`<option value="${value}"${D.financialPeriod===value?' selected':''}>${label}</option>`).join('')}</select></div><div class="settings-preference-row"><span>Theme</span><button class="b2" onclick="D.theme=D.theme==='dark'?'light':'dark';save();render()">${ic(D.theme==='dark'?'sun':'moon')} ${D.theme==='dark'?'Light':'Dark'} mode</button></div></div><div class="settings-preference-dashboard"><small>Dashboard</small><button class="b2 dashboard-layout-setting" onclick="dashboardSettingsForm()">${ic('bar-chart-3')} Customize Dashboard</button></div></div>
 <div class="card"><h3>Manage</h3><div class="settings-actions"><button class="b2" onclick="go('acc')">${ic('wallet')} Accounts</button><button class="b2" onclick="go('cat')">${ic('tag')} Categories</button><button class="b2" onclick="go('bud')">${ic('gauge')} Budgets</button><button class="b2" onclick="go('goal')">${ic('target')} Savings goals</button><button class="b2" onclick="go('rec')">${ic('repeat')} Recurring transactions</button><button class="b2" onclick="go('cash')">${ic('coins')} Cashback</button></div></div>
+<div class="card"><h3>Getting started</h3><p class="settings-note">Review setup tips or explore Pocket with sample data. Demo changes are temporary and do not affect your data.</p><div class="settings-actions"><button type="button" class="b2" onclick="showSetupInstructions()">${ic('book')} Setup instructions</button><button type="button" class="b2" onclick="startDemoMode()">${ic('eye')} Explore demo mode</button></div></div>
 <div class="card"><h3>Export</h3><div class="settings-actions"><button class="b2" onclick="showText('Transactions (CSV)',csv())">${ic('file-text')} Transactions CSV</button><button class="b2" onclick="showText('Monthly report (CSV)',repCsv())">${ic('bar-chart-3')} Report CSV</button><button class="b2" onclick="exportAllData()">${ic('download')} Export all data (JSON)</button></div></div>
 <div class="card"><h3>Back up &amp; restore</h3><div class="settings-actions"><button class="b2" onclick="showText('Backup',JSON.stringify(D))">${ic('save')} View / copy backup</button><button class="b2" onclick="showText('Restore backup','',1)">${ic('upload')} Restore backup</button></div><small class="settings-note">Data is saved in this browser. Backups are files you download and store yourself; Pocket does not upload them to the cloud.</small></div>
 <div class="card"><h3>Data management</h3><small class="settings-note">These actions can clear or replace local data. You’ll be asked to confirm before they run.</small><div class="settings-actions" style="margin-top:10px"><button class="b2" style="color:var(--ex)" onclick="clearTransactionHistory()">${ic('trash-2')} Clear transaction history</button><button class="b2" onclick="ask('Reset all amounts to ₱0? This clears every transaction, sets all account balances to ₱0 and empties savings goals.',()=>zero(D),'Reset')">${ic('rotate-ccw')} Reset all amounts</button><button class="b2" onclick="ask('Load the sample data? Your changes will be lost.',()=>{D=seed();D.v2=D.v3=1},'Load')">${ic('rotate-ccw')} Load sample data</button></div></div></div>`;
@@ -2915,9 +3452,28 @@ ${chartCard('Cash Flow', cashFlowChart)}
             }
         }
 
+        function renderDemoModeBanner() {
+            return demoMode ?
+                `<div class="demo-mode-banner" role="status"><span>${ic('eye')} Demo mode · sample data only. Your actual data is safe and unchanged.</span><button type="button" class="b2" onclick="exitDemoMode()">Exit demo</button></div>` :
+                ''
+        }
+
         function render() {
-            persistCurrentView();
             closeTitleMenu();
+            if (onboardingActive) {
+                document.body.classList.add('pocket-onboarding-active');
+                document.documentElement.dataset.theme = onboardingDraft()?.theme || D.theme;
+                document.documentElement.dataset.view = 'onboarding';
+                document.querySelector('meta[name=theme-color]').content =
+                    (onboardingDraft()?.theme || D.theme) === 'dark' ? '#000000' : '#f5f5f4';
+                destroyReportCharts();
+                $('#m').dataset.view = 'onboarding';
+                $('#m').innerHTML = renderOnboarding();
+                wireRenderedSelects($('#m'));
+                return
+            }
+            document.body.classList.remove('pocket-onboarding-active');
+            persistCurrentView();
             document.documentElement.dataset.theme = D.theme;
             document.documentElement.dataset.view = U.v;
             document.querySelector('meta[name=theme-color]').content = D.theme === 'dark' ? '#000000' : '#f5f5f4';
@@ -2942,7 +3498,7 @@ ${chartCard('Cash Flow', cashFlowChart)}
             if (isFirstIndicator) requestAnimationFrame(() => indicator.classList.add('ready'));
             $('#m').dataset.view = U.v;
             destroyReportCharts();
-            $('#m').innerHTML = V[U.v]();
+            $('#m').innerHTML = renderDemoModeBanner() + V[U.v]();
             if (U.v === 'rep') {
                 const reportRoot = $('#m');
                 renderReportCharts(reportRoot);
@@ -2978,6 +3534,7 @@ ${chartCard('Cash Flow', cashFlowChart)}
                     /^data:image\/jpeg;base64,[A-Za-z0-9+/]+={0,2}$/.test(d.profilePhoto) ? d.profilePhoto : '',
                 theme: d.theme === 'light' ? 'light' : 'dark',
                 dateFormat: DATE_FORMATS.includes(d.dateFormat) ? d.dateFormat : DATE_FORMATS[0],
+                financialPeriod: ['weekly', 'monthly', 'yearly'].includes(d.financialPeriod) ? d.financialPeriod : 'yearly',
                 dashboardWidgets: Object.fromEntries(DASHBOARD_WIDGETS.map(([id, , enabled]) => [
                     id,
                     typeof dashboardWidgets[id] === 'boolean' ? dashboardWidgets[id] : enabled
@@ -3085,18 +3642,42 @@ ${chartCard('Cash Flow', cashFlowChart)}
             }
         }
         window.pocketApp = {
-            getData: () => D,
+            getData: () => demoMode ? demoReturnData : D,
             normalizeData: clean,
             uploadProfilePhoto,
             removeProfilePhoto,
             replaceFromCloud: data => {
+                if (demoMode) {
+                    demoReturnData = data;
+                    if (demoReturnOnboarding && onboardingState && !onboardingState.completed) {
+                        demoReturnOnboarding = false;
+                        onboardingState.completed = true;
+                        onboardingState.checklistDismissed = true;
+                        onboardingState.step = 'complete';
+                        onboardingState.draft = null;
+                        persistOnboardingState()
+                    }
+                    save();
+                    return
+                }
                 D = data;
+                if (onboardingActive && onboardingState && !onboardingState.completed) {
+                    onboardingActive = false;
+                    onboardingState.completed = true;
+                    onboardingState.checklistDismissed = true;
+                    onboardingState.step = 'complete';
+                    onboardingState.draft = null;
+                    persistOnboardingState()
+                }
                 save();
                 render()
             }
         };
+        let hasValidSavedData = false;
         try {
-            D = clean(JSON.parse(localStorage.getItem(K)))
+            const storedData = localStorage.getItem(K);
+            D = storedData ? clean(JSON.parse(storedData)) : null;
+            hasValidSavedData = !!D
         } catch (e) {
             D = null
         }
@@ -3107,9 +3688,24 @@ ${chartCard('Cash Flow', cashFlowChart)}
             } catch (e) {}
             D = seed();
             zero(D);
+            D.acc = [];
+            D.budgets = {};
+            D.goals = [];
             D.theme = 'dark';
+            D.financialPeriod = 'monthly';
             D.v2 = 1
         }
+        const restoredOnboarding = restoreOnboardingState();
+        onboardingState = restoredOnboarding || (hasValidSavedData ? {
+            version: 1,
+            completed: true,
+            checklistDismissed: true,
+            step: 'complete',
+            draft: null
+        } : createOnboardingState());
+        onboardingActive = !onboardingState.completed;
+        if (!restoredOnboarding) persistOnboardingState();
+        U.reportRange = D.financialPeriod || 'yearly';
         if (!D.cats.some(category => category.g === 'Income' && category.name.toLowerCase() === 'cashback')) {
             D.cats.push({ id: 'c_cashback', name: 'Cashback', icon: 'coins', color: '#0891b2', g: 'Income' });
         }
