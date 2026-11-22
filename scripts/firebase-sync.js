@@ -205,6 +205,49 @@ function normalizeRemoteData(data) {
   return normalized;
 }
 
+function normalizeCategoryRules(data) {
+  if (!Array.isArray(data?.rules) || data.rules.length > 200) {
+    throw new Error('The rules field must be an array with no more than 200 rules.');
+  }
+  return data.rules.map((rule, index) => {
+    if (!rule || typeof rule.category !== 'string' || !Array.isArray(rule.words) || rule.words.length > 100) {
+      throw new Error(`Category rule ${index + 1} must have a category and a words array.`);
+    }
+    const category = rule.category.trim(),
+      words = rule.words.map(word => {
+        if (typeof word !== 'string' || word.trim().length > 120) {
+          throw new Error(`Category rule ${index + 1} contains an invalid keyword.`);
+        }
+        return word.trim();
+      }).filter(Boolean);
+    if (!category || category.length > 100 || !words.length) {
+      throw new Error(`Category rule ${index + 1} must have a category and at least one keyword.`);
+    }
+    return { category, words };
+  });
+}
+
+function publishCategoryRules(rules) {
+  window.dispatchEvent(new CustomEvent('pocket-category-rules-updated', { detail: rules }));
+}
+
+function startCategoryRuleListener() {
+  const rulesRef = firestoreSdk.doc(database, 'config', 'categoryRules');
+  firestoreSdk.onSnapshot(rulesRef, snapshot => {
+    if (!snapshot.exists()) {
+      publishCategoryRules(null);
+      return;
+    }
+    try {
+      publishCategoryRules(normalizeCategoryRules(snapshot.data()));
+    } catch (error) {
+      console.warn('Invalid category rules in Firestore; keeping the last valid rules.', error);
+    }
+  }, error => {
+    console.warn('Unable to load category rules from Firestore; keeping the last valid rules.', error);
+  });
+}
+
 function applyRemoteData(data) {
   const normalized = normalizeRemoteData(data);
   const incomingJson = JSON.stringify(normalized);
@@ -455,6 +498,7 @@ window.addEventListener('online', () => {
     const app = appSdk.initializeApp(configModule.firebaseConfig);
     auth = authSdk.getAuth(app);
     database = firestoreSdk.getFirestore(app);
+    startCategoryRuleListener();
     statusMessage = 'Checking your sign-in…';
     updatePanel();
     authSdk.onAuthStateChanged(auth, handleAuthState, error => {

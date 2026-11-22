@@ -88,7 +88,7 @@
     if (heading.textContent !== title) heading.textContent = title;
   };
 
-  const CATEGORY_RULES = [
+  const DEFAULT_CATEGORY_RULES = [
     { category: 'Transportation', words: ['jeepney','jeep','bus','taxi','grab','uber','train','mrt','lrt','commute','fare','parking','toll','gasoline','fuel', 'tryc','sidecar'] },
     { category: 'Food & Drinks', words: ['jollibee','mcdonald','mcdo','restaurant','lunch','dinner','breakfast','coffee','cafe','food','meal','eatery','pizza','kfc','chowking'] },
     { category: 'Groceries', words: ['grocery','groceries','supermarket','palengke','vegetable','vegetables','rice','meat','market'] },
@@ -107,6 +107,10 @@
     { category: 'Cashback', words: ['cashback','cash back','cash-back','cash reward'] },
     { category: 'Refund', words: ['refund','reimbursement'] }
   ];
+  let categoryRules = DEFAULT_CATEGORY_RULES;
+  window.addEventListener('pocket-category-rules-updated', event => {
+    categoryRules = Array.isArray(event.detail) ? event.detail : DEFAULT_CATEGORY_RULES;
+  });
   const normalize = value => String(value || '').toLocaleLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
   const keywordMatch = (title, word) => ` ${normalize(title)} `.includes(` ${normalize(word)} `);
 
@@ -125,7 +129,7 @@
     const infer = () => {
       if (typeEl.value === 'transfer' || !titleEl.value.trim()) return;
       if (manuallyChanged) return;
-      const rule = CATEGORY_RULES.find(item => item.words.some(word => keywordMatch(titleEl.value, word)));
+      const rule = categoryRules.find(item => item.words.some(word => keywordMatch(titleEl.value, word)));
       const option = rule && [...catEl.options].find(item => normalize(item.textContent) === normalize(rule.category));
       if (!option || catEl.value === option.value) return;
       applying = true;
