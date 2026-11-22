@@ -25,7 +25,7 @@ jobs:
         run: |
           test -n "$FIREBASE_CONFIG_JSON" || { echo "Set the FIREBASE_CONFIG_JSON repository secret." >&2; exit 1; }
           mkdir -p _site
-          cp -R assets scripts styles index.html manifest.webmanifest sw.js _site/
+          cp -R assets scripts styles vendor index.html manifest.webmanifest sw.js _site/
           rm -f _site/scripts/firebase-config.example.js
           python3 - <<'PY'
           import json
