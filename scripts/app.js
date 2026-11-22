@@ -503,7 +503,7 @@ function syncDateInput(input) {
                 return `<label${x.cls?` class="${esc(x.cls)}"`:''}>${x.l}${x.req?' *':''}${i}</label>`
             };
             ov(
-            `<div id="f"${title === 'Add transaction' || title === 'Edit transaction' ? ' class="pocket-transaction-form"' : ''}><h3>${title}</h3><div class="form-fields">${f.map(fld).join('')}</div><p class="er" id="er"></p><div class="row end"><button type="button" class="b2" onclick="cl()">Cancel</button><button type="button" class="b1" id="sv">${esc(saveLabel)}</button></div></div>`);
+            `<div id="f"${title === 'Add transaction' || title === 'Edit transaction' || title === 'Record shopping expense' ? ' class="pocket-transaction-form"' : ''}><h3>${title}</h3><div class="form-fields">${f.map(fld).join('')}</div><p class="er" id="er"></p><div class="row end"><button type="button" class="b2" onclick="cl()">Cancel</button><button type="button" class="b1" id="sv">${esc(saveLabel)}</button></div></div>`);
             $('#ov').classList.add('form-open');
             const F = $('#f'),
                 el = k => F.querySelector('[name="' + k + '"]'),
@@ -1683,6 +1683,81 @@ ${summaryWidget}${shortcutsWidget}${actionsWidget}${accountsWidget}${transaction
         function shoppingListEstimate(list) {
             return list.items.reduce((total, item) => total + (Number(item.estimatedAmount) || 0), 0);
         }
+        function recordShoppingListExpense(listId) {
+            const list = D.shoppingLists.find(item => item.id === listId);
+            if (!list) return info('This shopping list could not be found.');
+            const linkedExpense = D.tx.find(transaction =>
+                transaction.id === list.expenseTransactionId && transaction.type === 'expense'
+            );
+            if (linkedExpense) return editTx(linkedExpense.id);
+            const shoppingCategory = D.cats.find(category =>
+                category.g !== 'Income' && category.name.toLowerCase() === 'shopping'
+            );
+            openForm('Record shopping expense', () => [{
+                k: 'amount',
+                l: 'Actual total (₱)',
+                t: 'number',
+                req: 1,
+                pos: 1,
+                cls: 'form-field-full'
+            }, {
+                k: 'cat',
+                l: 'Category',
+                t: 'sel',
+                req: 1,
+                cls: 'form-field-pair',
+                placeholder: 'Choose category',
+                o: D.cats.filter(category => category.g !== 'Income')
+                    .map(category => [category.id, category.name])
+            }, {
+                k: 'acc',
+                l: 'Account',
+                t: 'sel',
+                req: 1,
+                cls: 'form-field-pair',
+                placeholder: 'Choose account',
+                o: D.acc.map(account => [account.id, account.name])
+            }, {
+                k: 'date',
+                l: 'Date',
+                t: 'date',
+                req: 1,
+                cls: 'form-field-pair'
+            }, {
+                k: 'time',
+                l: 'Time',
+                t: 'time',
+                cls: 'form-field-pair'
+            }], {
+                amount: '',
+                cat: shoppingCategory?.id || '',
+                acc: '',
+                date: today(),
+                time: ''
+            }, value => {
+                const currentList = D.shoppingLists.find(item => item.id === listId);
+                if (!currentList) return 'This shopping list could not be found.';
+                if (D.tx.some(transaction =>
+                    transaction.id === currentList.expenseTransactionId && transaction.type === 'expense'
+                )) return 'This shopping list already has a linked expense.';
+                if (!C(value.cat) || C(value.cat).g === 'Income') return 'Choose an expense category';
+                if (!A(value.acc)) return 'Choose an account';
+                const transaction = {
+                    id: uid(),
+                    type: 'expense',
+                    title: currentList.name,
+                    amount: +value.amount,
+                    cat: value.cat,
+                    acc: value.acc,
+                    to: null,
+                    date: value.date,
+                    time: value.time,
+                    note: ''
+                };
+                D.tx.push(transaction);
+                currentList.expenseTransactionId = transaction.id;
+            }, null, 'Record expense');
+        }
         function openShoppingList(id) {
             selectedShoppingListId = id;
             render();
@@ -1720,7 +1795,13 @@ ${summaryWidget}${shortcutsWidget}${actionsWidget}${accountsWidget}${transaction
                 const items = selectedList.items.length ? selectedList.items.map(item =>
                     `<div class="shopping-list-item${item.checked ? ' is-checked' : ''}"><label><input type="checkbox"${item.checked ? ' checked' : ''} onchange="toggleShoppingItem('${selectedList.id}','${item.id}')"><span>${esc(item.name)}</span></label><b class="shopping-list-item-amount">${peso(item.estimatedAmount || 0)}</b><button type="button" class="ib" aria-label="Edit ${esc(item.name)}" onclick="shoppingItemForm('${selectedList.id}','${item.id}')">${ic('pencil')}</button><button type="button" class="ib" aria-label="Remove ${esc(item.name)}" onclick="deleteShoppingItem('${selectedList.id}','${item.id}')">${ic('trash-2')}</button></div>`
                 ).join('') : '<div class="empty shopping-list-empty">No items yet. Add something you need.</div>';
-                return `<div class="row sp"><div><h2>Shopping List</h2></div><button type="button" class="chip" onclick="closeShoppingList()">All lists</button></div><section class="card shopping-list-detail"><div class="shopping-list-heading"><div class="gr"><h3>${esc(selectedList.name)}</h3></div><button type="button" class="ib" aria-label="Rename ${esc(selectedList.name)}" onclick="shoppingListForm('${selectedList.id}')">${ic('pencil')}</button><button type="button" class="ib" aria-label="Delete ${esc(selectedList.name)}" onclick="deleteShoppingList('${selectedList.id}')">${ic('trash-2')}</button></div><div class="row sp shopping-list-total"><span>Estimated amount</span><b>${peso(shoppingListEstimate(selectedList))}</b></div><div class="shopping-list-items">${items}</div></section>`
+                const linkedExpense = D.tx.find(transaction =>
+                    transaction.id === selectedList.expenseTransactionId && transaction.type === 'expense'
+                );
+                const expenseAction = linkedExpense
+                    ? `<div class="row sp shopping-list-expense"><small>Recorded expense: ${peso(linkedExpense.amount)} · ${fd(linkedExpense.date)}</small><button type="button" class="chip" onclick="editTx('${linkedExpense.id}')">Edit expense</button></div>`
+                    : `<div class="row sp shopping-list-expense"><small>No expense recorded for this list yet.</small><button type="button" class="b1" onclick="recordShoppingListExpense('${selectedList.id}')">Record as expense</button></div>`;
+                return `<div class="row sp"><div><h2>Shopping List</h2></div><button type="button" class="chip" onclick="closeShoppingList()">All lists</button></div><section class="card shopping-list-detail"><div class="shopping-list-heading"><div class="gr"><h3>${esc(selectedList.name)}</h3></div><button type="button" class="ib" aria-label="Rename ${esc(selectedList.name)}" onclick="shoppingListForm('${selectedList.id}')">${ic('pencil')}</button><button type="button" class="ib" aria-label="Delete ${esc(selectedList.name)}" onclick="deleteShoppingList('${selectedList.id}')">${ic('trash-2')}</button></div><div class="row sp shopping-list-total"><span>Estimated amount</span><b>${peso(shoppingListEstimate(selectedList))}</b></div>${expenseAction}<div class="shopping-list-items">${items}</div></section>`
             }
             const lists = D.shoppingLists.map(list => {
                 const estimate = shoppingListEstimate(list);
@@ -2739,6 +2820,9 @@ ${chartCard('Cash Flow', cashFlowChart)}
         function clean(d) {
             if (!d || !Array.isArray(d.acc) || !Array.isArray(d.tx) || !Array.isArray(d.cats)) return null;
             const dashboardWidgets = d.dashboardWidgets && typeof d.dashboardWidgets === 'object' ? d.dashboardWidgets : {};
+            const expenseIds = new Set(d.tx.filter(t =>
+                t && okId(t.id) && okD(t.date) && t.type === 'expense'
+            ).map(t => t.id));
             return {
                 name: sx(d.name, 32).trim(),
                 profileAccent: PROFILE_COLORS.some(([, color]) => color === d.profileAccent) ? d.profileAccent : PROFILE_COLORS[0][1],
@@ -2839,6 +2923,9 @@ ${chartCard('Cash Flow', cashFlowChart)}
                         id: list.id,
                         name: sx(list.name, 100),
                         created: okD(list.created) ? list.created : today(),
+                        ...(expenseIds.has(list.expenseTransactionId) ? {
+                            expenseTransactionId: list.expenseTransactionId
+                        } : {}),
                         items: (Array.isArray(list.items) ? list.items : [])
                             .filter(item => item && okId(item.id) && typeof item.name === 'string')
                             .map(item => ({
