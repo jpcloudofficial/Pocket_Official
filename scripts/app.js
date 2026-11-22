@@ -1054,13 +1054,68 @@ function syncDateInput(input) {
                 }
             })
         }
-        const alerts = () => bstat().filter(x => x.msg).sort((first, second) =>
-            (C(first.id)?.name || '').localeCompare(C(second.id)?.name || '', undefined, { sensitivity: 'base' }) ||
-            first.id.localeCompare(second.id)
-        ).map(x =>
-            `<div class="warn">${ic('alert-triangle')} ${esc(C(x.id)?.name)} ${x.msg} (${Math.round(x.p)}% of ${peso(x.b)})</div>`
-        ).join('');
+        const DISMISSED_BUDGET_ALERTS_KEY = 'pocket.monthlyBudgetAlerts.dismissed';
+        function readDismissedBudgetAlerts() {
+            try {
+                const value = JSON.parse(localStorage.getItem(DISMISSED_BUDGET_ALERTS_KEY) || '{}');
+                return value && typeof value === 'object' && !Array.isArray(value) ? value : {}
+            } catch (error) {
+                console.warn('Unable to read dismissed budget alerts', error);
+                return {}
+            }
+        }
+        function dismissBudgetAlert(id, alert, direction = 1) {
+            const dismissed = readDismissedBudgetAlerts();
+            dismissed[id] = true;
+            try {
+                localStorage.setItem(DISMISSED_BUDGET_ALERTS_KEY, JSON.stringify(dismissed))
+            } catch (error) {
+                console.warn('Unable to save dismissed budget alerts', error)
+            }
+            if (!alert) return;
+            alert.style.setProperty('--warn-dismiss-x', `${direction * 110}%`);
+            alert.classList.add('is-dismissing');
+            window.setTimeout(() => alert.remove(), 180)
+        }
+        function wireBudgetAlertDismissal() {
+            const main = $('#m');
+            if (main.dataset.budgetAlertDismissReady) return;
+            main.dataset.budgetAlertDismissReady = '1';
+            let gesture = null;
+            main.addEventListener('click', event => {
+                const button = event.target.closest('[data-dismiss-budget-alert]');
+                if (button) dismissBudgetAlert(button.dataset.dismissBudgetAlert, button.closest('.warn'))
+            });
+            main.addEventListener('pointerdown', event => {
+                if (!event.isPrimary || event.button !== 0 || event.target.closest('button,a,input,select,textarea')) return;
+                const alert = event.target.closest('.warn[data-budget-alert-id]');
+                if (alert) gesture = { alert, id: alert.dataset.budgetAlertId, x: event.clientX, y: event.clientY }
+            });
+            main.addEventListener('pointerup', event => {
+                if (!gesture) return;
+                const current = gesture,
+                    dx = event.clientX - current.x,
+                    dy = event.clientY - current.y;
+                gesture = null;
+                if (Math.abs(dx) < 64 || Math.abs(dx) < Math.abs(dy) * 1.25) return;
+                dismissBudgetAlert(current.id, current.alert, Math.sign(dx))
+            });
+            main.addEventListener('pointercancel', () => { gesture = null })
+        }
+        const alerts = () => {
+            const dismissed = readDismissedBudgetAlerts();
+            return bstat().filter(x => x.msg).sort((first, second) =>
+                (C(first.id)?.name || '').localeCompare(C(second.id)?.name || '', undefined, { sensitivity: 'base' }) ||
+                first.id.localeCompare(second.id)
+            ).map(x => {
+                const level = x.p > 100 ? 'over' : x.p >= 100 ? 'reached' : 'near',
+                    alertId = `${ym(today())}:${x.id}:${level}`;
+                if (dismissed[alertId]) return '';
+                return `<div class="warn" role="alert" data-budget-alert-id="${esc(alertId)}">${ic('alert-triangle')}<span class="warn-copy">${esc(C(x.id)?.name)} ${x.msg} (${Math.round(x.p)}% of ${peso(x.b)})</span><button type="button" class="warn-dismiss" data-dismiss-budget-alert="${esc(alertId)}" aria-label="Dismiss ${esc(C(x.id)?.name)} budget alert">×</button></div>`
+            }).join('')
+        };
         const V = {};
+        wireBudgetAlertDismissal();
         let selectedShoppingListId = '';
         function accountPageChanged(carousel) {
             const indicator = $('#account-page-indicator'),
