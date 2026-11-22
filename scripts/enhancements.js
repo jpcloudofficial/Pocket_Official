@@ -279,7 +279,12 @@
         pageSwipeStart = null;
         return;
       }
-      pageSwipeStart = { x: event.touches[0].clientX, y: event.touches[0].clientY };
+      const x = event.touches[0].clientX;
+      if (x <= 28 || x >= window.innerWidth - 28) {
+        pageSwipeStart = null;
+        return;
+      }
+      pageSwipeStart = { x, y: event.touches[0].clientY };
     }, { passive: true });
     main.addEventListener('touchmove', event => {
       if (event.touches.length !== 1) pageSwipeStart = null;

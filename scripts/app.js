@@ -966,11 +966,9 @@ function syncDateInput(input) {
             const transaction = D.tx.find(item => item.id === id);
             if (!transaction) return;
             txPageLimit = TRANSACTION_PAGE_SIZE;
-            U.v = 'tx';
             U.q = '';
             U.c = U.a = U.ty = U.tf = U.tt = '';
-            render();
-            scrollTo(0, 0)
+            go('tx')
         }
 
         function row(t, act, recentLink = false) {
@@ -2208,7 +2206,6 @@ ${summaryWidget}${shortcutsWidget}${actionsWidget}${accountsWidget}${transaction
             return Math.round(total * 100) / 100
         }
         function openReportTransactions(from, to, type, category, account) {
-            U.v = 'tx';
             U.tf = from;
             U.tt = to;
             U.ty = type || '';
@@ -2216,8 +2213,7 @@ ${summaryWidget}${shortcutsWidget}${actionsWidget}${accountsWidget}${transaction
             U.a = account || '';
             U.q = '';
             txPageLimit = TRANSACTION_PAGE_SIZE;
-            render();
-            window.scrollTo(0, 0)
+            go('tx')
         }
         V.rep = () => {
             const period = reportPeriod(),
@@ -2709,11 +2705,32 @@ ${chartCard('Cash Flow', cashFlowChart)}
             }
         }
 
+        function updateViewHistory(view, replace = false) {
+            const currentState = history.state,
+                state = currentState && typeof currentState === 'object' && !Array.isArray(currentState)
+                    ? { ...currentState, pocketView: view }
+                    : { pocketView: view };
+            if (replace) history.replaceState(state, '', location.href);
+            else history.pushState(state, '', location.href);
+        }
+
+        function restoreViewFromHistory(event) {
+            const view = event.state?.pocketView;
+            if (!view || !Object.prototype.hasOwnProperty.call(V, view) || view === U.v) return;
+            const previousView = U.v;
+            if (view === 'shop') selectedShoppingListId = '';
+            if (view === 'tx' && previousView !== 'tx') txPageLimit = TRANSACTION_PAGE_SIZE;
+            U.v = view;
+            render();
+            window.scrollTo(0, 0)
+        }
+
         function go(v) {
             const previousView = U.v;
             closeTitleMenu();
             if (v === 'shop') selectedShoppingListId = '';
             if (v === 'tx' && previousView !== 'tx') txPageLimit = TRANSACTION_PAGE_SIZE;
+            if (v !== previousView) updateViewHistory(v);
             U.v = v;
             render();
             if (v === 'prof') window.scrollTo(0, 0);
@@ -2975,6 +2992,8 @@ ${chartCard('Cash Flow', cashFlowChart)}
             if (e.target.id === 'ov') cl()
         };
         restoreCurrentView();
+        updateViewHistory(U.v, true);
+        window.addEventListener('popstate', restoreViewFromHistory);
         render();
         const runDueRecurring = () => {
             if (processRecurring()) {
