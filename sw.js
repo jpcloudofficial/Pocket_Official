@@ -1,9 +1,9 @@
-const CACHE = 'pera-v106';
+const CACHE = 'pera-v111';
 const FILES = [
   './',
   'index.html',
   'manifest.webmanifest',
-  'styles/app.css',
+  'styles/app.css?v=20261122-sticky-actions-1',
   'vendor/chartjs/chart.umd.min.js',
   'scripts/app.js',
   'scripts/enhancements.js?v=20261121-shopping-fab-1',
