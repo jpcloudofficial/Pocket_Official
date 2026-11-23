@@ -78,7 +78,8 @@ function syncDateInput(input) {
         const defaultDashboardWidgets = () => Object.fromEntries(DASHBOARD_WIDGETS.map(([id, , enabled]) => [id, enabled]));
         let D, onboardingState = null, onboardingActive = false, onboardingPersistenceError = false,
             demoMode = false, demoReturnData = null, demoReturnView = 'dash', demoReturnOnboarding = false,
-            accountStackOrder = [], accountStackSignature = '', accountStackExpanded = false, U = {
+            accountStackOrder = [], accountStackSignature = '', accountStackExpanded = false,
+            accountViewMode = 'list', U = {
             v: 'dash',
             ra: '',
             rc: '',
@@ -435,6 +436,11 @@ function syncDateInput(input) {
                 calendar: '<rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/>',
                 'rotate-ccw': '<path d="M4 12a8 8 0 1 0 2.5-5.8M4 4v4.5h4.5"/>',
                 'arrow-left-right': '<path d="M4 8h16l-3.5-3.5M20 16H4l3.5 3.5"/>',
+                'arrow-left': '<path d="M19 12H5M12 19l-7-7 7-7"/>',
+                'arrow-up-right': '<path d="M7 17 17 7M8 7h9v9"/>',
+                'arrow-down-left': '<path d="M17 7 7 17M16 17H7V8"/>',
+                'chevron-right': '<path d="m9 18 6-6-6-6"/>',
+                settings: '<circle cx="12" cy="12" r="3"/><path d="m19.4 15 .1.1 1.4 1.1-1.4 2.4-1.7-.7a8 8 0 0 1-1.7 1l-.3 1.8h-2.8l-.3-1.8a8 8 0 0 1-1.7-1l-1.7.7-1.4-2.4 1.4-1.1a7 7 0 0 1 0-2l-1.4-1.1 1.4-2.4 1.7.7a8 8 0 0 1 1.7-1l.3-1.8h2.8l.3 1.8a8 8 0 0 1 1.7 1l1.7-.7 1.4 2.4-1.4 1.1a7 7 0 0 1 0 2z"/>',
                 car: '<path d="M4 16v-4l2-5h12l2 5v4M4 16h16M4 16v2.5M20 16v2.5"/><circle cx="7.5" cy="13.3" r=".7"/><circle cx="16.5" cy="13.3" r=".7"/>',
                 book: '<path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3V4z"/><path d="M5 17a3 3 0 0 1 3-3h11"/>',
                 plane: '<path d="M3 13l18-9-5 17-4-7-9-1z"/>',
@@ -484,7 +490,7 @@ function syncDateInput(input) {
             document.querySelectorAll('.pocket-select-overlay').forEach(menu =>
                 menu.closePicker ? menu.closePicker(false) : menu.remove());
             $('#ov').style.display = 'none';
-            $('#ov').classList.remove('form-open', 'report-filter-open');
+            $('#ov').classList.remove('form-open', 'report-filter-open', 'quick-add-open');
             const wasLocked = document.body.classList.contains('pocket-modal-open');
             document.body.classList.remove('pocket-modal-open');
             document.body.style.removeProperty('--pocket-modal-scroll-top');
@@ -614,6 +620,38 @@ function syncDateInput(input) {
 
         function openForm(title, fn, vals, submit, rr, saveLabel = 'Save') {
             const f = fn(vals).filter(Boolean);
+            const formCopy = {
+                'Add account': ['EVERY BALANCE, TOGETHER', 'Add an account to keep your money organized.'],
+                'Edit account': ['EVERY BALANCE, TOGETHER', 'Update your account details.'],
+                'Set budget': ['GIVE YOUR SPENDING A LIMIT', 'Choose a category and decide how much to set aside each month.'],
+                'Edit budget': ['GIVE YOUR SPENDING A LIMIT', 'Update your monthly category limit.'],
+                'New recurring transaction': ['SET IT ONCE. STAY ON TRACK.', 'Schedule a regular transaction.'],
+                'Edit recurring transaction': ['SET IT ONCE. STAY ON TRACK.', 'Update this recurring schedule.'],
+                'New savings goal': ['MAKE ROOM FOR WHAT MATTERS', 'Give your goal a name, target, and timeline.'],
+                'Edit goal': ['MAKE ROOM FOR WHAT MATTERS', 'Update your goal and its timeline.'],
+                'Add money to goal': ['A LITTLE CLOSER EACH TIME', 'Choose how much to add to your savings goal.'],
+                'Name your list': ['BUY WITH A PLAN', 'Create a list for your next shopping trip.'],
+                'Edit shopping list': ['BUY WITH A PLAN', 'Update the name of this shopping list.'],
+                'Add item': ['CHECK IT OFF AS YOU GO', 'Add an item and its estimated cost.'],
+                'Edit item': ['CHECK IT OFF AS YOU GO', 'Update this shopping list item.'],
+                'Record shopping expense': ['CLOSE THE LOOP', 'Record what you spent on this shopping list.'],
+                'New category': ['MAKE IT YOURS', 'Add a category to organize your transactions.'],
+                'Edit category': ['MAKE IT YOURS', 'Update this transaction category.'],
+                'Add transaction': ['KEEP YOUR MONEY UP TO DATE', 'Enter the details of this transaction.'],
+                'Edit transaction': ['KEEP YOUR MONEY UP TO DATE', 'Update the transaction details.'],
+                'Track cashback': ['EVERY PESO COMES BACK', 'Track the cashback you expect to receive.']
+            }[title] || ['MAKE IT YOURS', 'Enter the details below.'];
+            let displayTitle = title,
+                displayEyebrow = formCopy[0],
+                displayDescription = formCopy[1],
+                displaySaveLabel = saveLabel;
+            if (title === 'Add transaction' || title === 'Edit transaction') {
+                const transactionType = vals?.type || 'expense';
+                displayTitle = transactionType === 'income' ? 'Add income' : transactionType === 'transfer' ? 'Transfer money' : 'Add expense';
+                displayEyebrow = transactionType === 'income' ? 'SOMETHING GOOD CAME IN' : transactionType === 'transfer' ? 'SAME MONEY, A NEW PLACE' : 'TRACK YOUR SPENDING';
+                displayDescription = '';
+                displaySaveLabel = transactionType === 'income' ? 'Save income' : transactionType === 'transfer' ? 'Save transfer' : 'Save expense';
+            }
             const fld = x => {
                 const v = vals[x.k] ?? '',
                     selectedOption = x.t === 'sel' && x.o.find(o => o[0] == v),
@@ -623,6 +661,10 @@ function syncDateInput(input) {
                     optionSelected = option => selectedOption ? option[0] == v : !placeholder && option[0] === '';
                 const i = x.t === 'icons' ?
                     `<input type="hidden" name="${x.k}" value="${esc(v)}"><button type="button" class="b2 it" onclick="tg(this)"><span>${ic(v||'tag')}</span> Change icon</button><div class="ip" hidden>${ICONS.map(o=>`<button type="button" class="ib${o[0]==v?' sel':''}" onclick="pick(this,'${o[0]}')">${ic(o[0])}</button>`).join('')}</div>` :
+                    x.t === 'direction' ?
+                    `<div class="transfer-direction" aria-hidden="true"><span>Move to</span>${ic('repeat')}</div>` :
+                    x.t === 'sel' && x.k === 'type' && (title === 'Add transaction' || title === 'Edit transaction') ?
+                    `<select name="${x.k}" hidden aria-hidden="true" tabindex="-1">${x.o.map(o=>`<option value="${o[0]}"${o[0]==v?' selected':''}>${esc(o[1])}</option>`).join('')}</select><div class="form-type-tabs" role="tablist" aria-label="Transaction type">${x.o.map(o=>`<button type="button" role="tab" aria-selected="${o[0]==v}" class="${o[0]==v?'is-active':''}" onclick="switchTransactionType('${o[0]}')">${esc(o[1])}</button>`).join('')}</div>` :
                     x.t === 'sel' ?
                     `<select name="${x.k}"${x.req?' required':''} hidden aria-hidden="true" tabindex="-1">${placeholder?`<option value=""${!selectedOption?' selected':''}${x.req?' disabled':''}>${esc(placeholder)}</option>`:''}${x.o.map(o=>`<option value="${o[0]}"${optionSelected(o)?' selected':''}>${esc(o[1])}</option>`).join('')}</select><button type="button" class="form-select-trigger" data-select-name="${x.k}" data-select-label="${esc(x.l)}" aria-label="${esc(x.l)}: ${esc(selectedOption?.[1] || (emptyOption && !placeholder ? emptyOption[1] : placeholder) || '')}" aria-haspopup="listbox" aria-expanded="false">${esc(selectedOption?.[1] || (emptyOption && !placeholder ? emptyOption[1] : placeholder) || '')}</button>` :
                     x.t === 'color' ?
@@ -630,11 +672,13 @@ function syncDateInput(input) {
                     x.t === 'date' ?
                     `<span class="date-input-wrap${v ? '' : ' is-empty'}"><input name="${x.k}" type="date" value="${esc(v)}" onchange="syncDateInput(this)"><span class="date-input-value">${esc(fd(v))}</span><span class="date-input-placeholder">${esc(x.placeholder || 'Choose date')}</span></span>` :
                     x.t === 'area' ? `<textarea name="${x.k}" rows="2">${esc(v)}</textarea>` :
-                    `<input name="${x.k}" type="${x.t||'text'}" value="${esc(v)}" ${x.t==='number'?'step="0.01"':''}>`;
-                return `<label${x.cls?` class="${esc(x.cls)}"`:''}>${x.l}${x.req?' *':''}${i}</label>`
+                    x.k === 'amount' ?
+                    `<span class="amount-input-wrap"><span class="amount-currency">₱</span><input name="${x.k}" type="text" inputmode="decimal" value="${esc(v)}" placeholder="0.00"></span>` :
+                    `<input name="${x.k}" type="${x.t||'text'}" value="${esc(v)}" ${x.t==='number'?'step="0.01"':''}${x.k==='title'?(vals.type==='income'?' placeholder="Where did it come from?"':vals.type==='transfer'?' placeholder="Name this transfer"':' placeholder="What was it for?"'):''}${x.k==='note'?' placeholder="Add a note..."':''}>`;
+                return `<label data-field="${esc(x.k)}"${x.cls?` class="${esc(x.cls)}"`:''}>${x.l}${x.req?' *':''}${i}</label>`
             };
             ov(
-            `<div id="f"${title === 'Add transaction' || title === 'Edit transaction' || title === 'Record shopping expense' ? ' class="pocket-transaction-form"' : ''}><h3>${title}</h3><div class="form-fields">${f.map(fld).join('')}</div><p class="er" id="er"></p><div class="row end"><button type="button" class="b2" onclick="cl()">Cancel</button><button type="button" class="b1" id="sv">${esc(saveLabel)}</button></div></div>`);
+            `<div id="f"${title === 'Add transaction' || title === 'Edit transaction' || title === 'Record shopping expense' ? ' class="pocket-transaction-form"' : ''}><div class="form-screen-header"><button type="button" class="form-screen-back" aria-label="Back" onclick="cl()">${ic('arrow-left')}</button><span>Pocket</span><button type="button" class="form-screen-close" aria-label="Close" onclick="cl()">${ic('x')}</button></div><div class="form-screen-intro"><small class="form-eyebrow">${esc(displayEyebrow)}</small><h3>${esc(displayTitle)}</h3>${displayDescription?`<p>${esc(displayDescription)}</p>`:''}</div><div class="form-fields">${f.map(fld).join('')}</div><p class="er" id="er"></p><div class="row end"><button type="button" class="b2" onclick="cl()">Cancel</button><button type="button" class="b1" id="sv">${esc(displaySaveLabel)}</button></div></div>`);
             $('#ov').classList.add('form-open');
             const F = $('#f'),
                 el = k => F.querySelector('[name="' + k + '"]'),
@@ -713,31 +757,42 @@ function syncDateInput(input) {
                                 ['transfer', 'Transfer']
                             ]
                         }, {
-                            k: 'title',
-                            l: 'Title',
-                            cls: 'form-field-full',
-                            req: !tr
-                        }, {
                             k: 'amount',
                             l: 'Amount (₱)',
                             t: 'number',
                             req: 1,
                             pos: 1,
-                            cls: v.type === 'income' ? 'form-field-full' : 'form-field-pair'
+                            cls: 'form-field-full'
                         }, ...((v.type === 'expense' || v.type === 'transfer') ? [{
+                            k: 'title',
+                            l: 'Title',
+                            cls: 'form-field-full',
+                            req: v.type === 'expense'
+                        }, {
                             k: 'cashbackAmount',
                             l: 'Cashback',
                             t: 'number',
                             pos: 1,
-                            cls: 'form-field-pair'
-                        }] : []),
+                            cls: 'form-field-full'
+                        }] : [{
+                            k: 'title',
+                            l: 'Title',
+                            cls: 'form-field-full',
+                            req: true
+                        }]),
                         tr ? {
                             k: 'acc',
                             l: 'From account',
                             t: 'sel',
                             req: 1,
-                            cls: 'form-field-pair',
+                            cls: 'form-field-full',
                             o: ac
+                        } : null,
+                        tr ? {
+                            k: 'transferDirection',
+                            l: '',
+                            t: 'direction',
+                            cls: 'form-field-full'
                         } : {
                             k: 'cat',
                             l: 'Category',
@@ -753,7 +808,7 @@ function syncDateInput(input) {
                             l: 'To account',
                             t: 'sel',
                             req: 1,
-                            cls: 'form-field-pair',
+                            cls: 'form-field-full',
                             o: ac
                         } : {
                             k: 'acc',
@@ -856,10 +911,22 @@ function syncDateInput(input) {
             }
         }
 
+        function switchTransactionType(type) {
+            const select = document.querySelector('#f [name="type"]');
+            if (!select) return;
+            select.value = type;
+            select.onchange && select.onchange();
+        }
+
+        function quickAddChooser() {
+            ov(`<div class="quick-add-screen"><div class="form-screen-header"><button type="button" class="form-screen-back" aria-label="Back" onclick="cl()">${ic('arrow-left')}</button><span>Pocket</span><button type="button" class="form-screen-close" aria-label="Close" onclick="cl()">${ic('x')}</button></div><div class="form-screen-intro"><small class="form-eyebrow">A QUICK WAY TO LOG IT</small><h3>Quick add</h3><p>What would you like to add?</p></div><div class="quick-add-options"><button type="button" onclick="cl();quickAdd('expense')"><span class="quick-add-icon expense">${ic('arrow-up-right')}</span><span><b>Expense</b><small>Record money you spent</small></span>${ic('chevron-right')}</button><button type="button" onclick="cl();quickAdd('income')"><span class="quick-add-icon income">${ic('arrow-down-left')}</span><span><b>Income</b><small>Record money you received</small></span>${ic('chevron-right')}</button><button type="button" onclick="cl();quickAdd('transfer')"><span class="quick-add-icon transfer">${ic('arrow-left-right')}</span><span><b>Transfer</b><small>Move money between accounts</small></span>${ic('chevron-right')}</button></div></div>`);
+            $('#ov').classList.add('quick-add-open')
+        }
+
         function primaryAdd() {
             if (U.v === 'acc') accForm();
             else if (U.v === 'shop') shoppingListForm();
-            else txForm()
+            else quickAddChooser()
         }
 
         function dashboardSettingsForm() {
@@ -1346,6 +1413,10 @@ function syncDateInput(input) {
         }
         function toggleAccountStackExpanded() {
             setAccountStackExpanded(!accountStackExpanded)
+        }
+        function toggleAccountViewMode() {
+            accountViewMode = accountViewMode === 'list' ? 'cards' : 'list';
+            render()
         }
         function wireAccountStack() {
             const stack = $('#m .account-stack');
@@ -2007,8 +2078,9 @@ function syncDateInput(input) {
                     : '';
                 return `<article class="card cashback-card"><div class="cashback-card-heading"><span class="dot" style="background:#0891b222;color:#0891b2">${ic('coins')}</span><div class="cashback-card-title"><b>${esc(claim.expenseTitle || expense?.title || 'Linked transaction')}</b><small>${transactionType} · ${fd(claim.expenseDate || expense?.date || claim.created)}</small></div><b class="cashback-amount">${peso(claim.amount)}</b></div><div class="cashback-card-meta"><span><small>Deposit account</small><b>${esc(A(claim.account)?.name || 'Unknown account')}</b></span><span><small>${timingLabel}</small><b>${fd(timingDate)}</b></span>${claim.status === 'received' ? deleteButton : ''}</div>${actions}</article>`
             };
-            const receivedTotal = received.reduce((total, claim) => total + claim.amount, 0);
-            return `<div class="cashback-header"><div><h2>Cashback</h2><small>Track pending and received cashback.</small></div></div><h3 class="sec cashback-subtitle"><span>Pending</span><span class="cashback-count">${pending.length}</span></h3><div class="g g2 cashback-list">${pending.length ? pending.map(claimCard).join('') : '<div class="empty card cashback-empty">Add a claim from an expense or transfer in Transactions.</div>'}</div><div class="cashback-section-heading"><h3 class="sec cashback-subtitle"><span>Received</span><span class="cashback-count">${received.length}</span></h3><div class="cashback-total"><small>Total received</small><b>${peso(receivedTotal)}</b></div></div><div class="g g2 cashback-list">${received.length ? received.map(claimCard).join('') : '<div class="empty card cashback-empty">Cashback marked received will appear here as income.</div>'}</div>`
+            const receivedTotal = received.reduce((total, claim) => total + claim.amount, 0),
+                pendingTotal = pending.reduce((total, claim) => total + claim.amount, 0);
+            return `<div class="cashback-header"><div><h2>Cashback</h2><small>Track pending and received cashback.</small></div></div><section class="card cashback-summary"><div class="cashback-summary-icon">${ic('coins')}</div><small>Total received</small><b>${peso(receivedTotal)}</b><span>${peso(pendingTotal)} pending</span></section><h3 class="sec cashback-subtitle"><span>Pending</span><span class="cashback-count">${pending.length}</span></h3><div class="g g2 cashback-list">${pending.length ? pending.map(claimCard).join('') : '<div class="empty card cashback-empty">Add a claim from an expense or transfer in Transactions.</div>'}</div><div class="cashback-section-heading"><h3 class="sec cashback-subtitle"><span>Received</span><span class="cashback-count">${received.length}</span></h3></div><div class="g g2 cashback-list">${received.length ? received.map(claimCard).join('') : '<div class="empty card cashback-empty">Cashback marked received will appear here as income.</div>'}</div>`
         };
         V.tx = () => {
             const options = (items, selected, allLabel) =>
@@ -2182,6 +2254,10 @@ function syncDateInput(input) {
                 totalBalance = D.acc.filter(account => !isSav(account)).reduce((total, account) => total + bal(account), 0),
                 savingsBalance = D.acc.filter(isSav).reduce((total, account) => total + bal(account), 0);
             const visibleAccounts = accounts;
+            const accountRows = accounts.map(account => {
+                const balance = bal(account);
+                return `<button type="button" class="accounts-list-row" onclick="accForm('${account.id}')" aria-label="Edit ${esc(account.name)}"><span class="accounts-list-icon">${ic(account.icon || 'wallet')}</span><span class="accounts-list-copy"><b>${esc(account.name)}</b><small>${esc(account.type)} · since ${fd(account.created)}</small></span><b class="accounts-list-balance${balance < 0 ? ' is-negative' : ''}">${pesoBalance(balance)}</b></button>`
+            }).join('');
             const cards = visibleAccounts.map((account, index) => {
                 const balance = bal(account);
                 const isFront = index === visibleAccounts.length - 1;
@@ -2193,10 +2269,16 @@ function syncDateInput(input) {
                     '';
                 return `<article class="account-stack-card${isFront ? ' is-front' : ''}${isNext ? ' is-next' : ''}" data-account-id="${esc(account.id)}" aria-hidden="${!isFront && !accountStackExpanded}" style="--account-accent:${esc(account.color)};--stack-offset:${index * stackGap}px;z-index:${index}"><div class="account-stack-card-heading"><div class="account-stack-name"><span class="account-stack-icon">${ic(account.icon || 'wallet')}</span><span class="account-stack-name-copy"><b>${esc(account.name)}</b><small>${esc(account.type)} · since ${fd(account.created)}</small></span></div><b class="account-stack-balance" style="color:${balance < 0 ? 'var(--ex)' : 'var(--tx)'}">${pesoBalance(balance)}</b></div><div class="account-stack-card-footer"><small>${balanceNote}</small>${actions}</div></article>`
             }).join('');
-            const accountCount = `<small class="account-stack-summary-count">${accounts.length} accounts</small>`;
-            const accountBalances = `<div class="account-stack-summary-balances"><small class="account-stack-summary-line"><span>Total Balance</span><b>${pesoBalance(totalBalance)}</b></small><small class="account-stack-summary-line"><span>Savings</span><b>${pesoBalance(savingsBalance)}</b></small></div>`;
+            const accountCount = `${accounts.length} ${accounts.length === 1 ? 'account' : 'accounts'}`;
             const accountOverview = `<div class="account-stack-overview" aria-label="Account summary"><div><b>${accounts.length}</b><small>Accounts</small></div><div><b>${pesoBalance(totalBalance)}</b><small>Total balance</small></div><div><b>${pesoBalance(savingsBalance)}</b><small>Savings</small></div></div>`;
-            return `<div class="row sp account-stack-summary"><div class="account-stack-summary-copy"><h2>Accounts</h2>${accounts.length ? '' : accountBalances}</div>${accounts.length ? '' : accountCount}</div>${accounts.length ? `<div class="account-stack-wrap">${accountOverview}<div class="account-stack-controls"><div class="account-stack-control-actions"><button type="button" class="chip" aria-label="Show next account" ${accounts.length < 2 ? 'disabled' : ''} onclick="sendAccountCardToBack()">Next account</button><button type="button" class="chip" aria-label="${accountStackExpanded ? 'Collapse account cards' : 'Show all account balances'}" aria-expanded="${accountStackExpanded}" ${accounts.length < 2 ? 'disabled' : ''} onclick="toggleAccountStackExpanded()">${accountStackExpanded ? 'Collapse cards' : 'Show balances'}</button></div></div><div class="${stackClass}" role="region" aria-expanded="${accountStackExpanded}" aria-label="Account cards. Swipe sideways to switch accounts, or use Show balances to expand." tabindex="0" style="height:${stackHeight}px">${cards}</div><div class="account-stack-footer"><small>Swipe sideways to switch accounts.</small></div></div>` : '<div class="empty">No accounts yet.</div>'}`
+            const stackView = accounts.length ?
+                `<div class="account-stack-wrap">${accountOverview}<div class="account-stack-controls"><div class="account-stack-control-actions"><button type="button" class="chip" aria-label="Show next account" ${accounts.length < 2 ? 'disabled' : ''} onclick="sendAccountCardToBack()">${ic('repeat')} Next account</button><button type="button" class="chip" aria-label="${accountStackExpanded ? 'Collapse account cards' : 'Show all account balances'}" aria-expanded="${accountStackExpanded}" ${accounts.length < 2 ? 'disabled' : ''} onclick="toggleAccountStackExpanded()">${accountStackExpanded ? 'Collapse cards' : 'Show balances'}</button></div></div><div class="${stackClass}" role="region" aria-expanded="${accountStackExpanded}" aria-label="Account cards. Swipe sideways to switch accounts, or use Show balances to expand." tabindex="0" style="height:${stackHeight}px">${cards}</div><div class="account-stack-footer"><small>Swipe sideways to switch accounts.</small></div></div>` :
+                '<div class="empty accounts-empty">No accounts yet. Add one to get started.</div>';
+            const accountContent = accountViewMode === 'list' ?
+                accounts.length ? `<div class="accounts-list">${accountRows}</div>` :
+                    '<div class="empty accounts-empty">No accounts yet. Add one to get started.</div>' :
+                stackView;
+            return `<div class="accounts-page"><div class="row sp accounts-heading"><div class="accounts-heading-copy"><small class="accounts-eyebrow">EVERY BALANCE, TOGETHER</small><h2>Accounts</h2></div></div><section class="accounts-balance-card" aria-label="Account balance summary"><small>Total balance · ${accountCount}</small><strong>${pesoBalance(totalBalance)}</strong><div><span>Savings</span><b>${pesoBalance(savingsBalance)}</b></div></section><div class="accounts-list-heading"><h3>Your accounts</h3><button type="button" class="accounts-view-toggle" onclick="toggleAccountViewMode()" aria-label="Switch to ${accountViewMode === 'list' ? 'card' : 'list'} view">${accountViewMode === 'list' ? 'List view' : 'Card view'}<span aria-hidden="true">⌄</span></button></div>${accountContent}</div>`
         };
 
         function budForm(id) {
@@ -2460,8 +2542,9 @@ function syncDateInput(input) {
                 return `<div class="row sp"><div><h2>Shopping List</h2></div><button type="button" class="chip" onclick="closeShoppingList()">All lists</button></div><section class="card shopping-list-detail"><div class="shopping-list-heading"><div class="gr"><h3>${esc(selectedList.name)}</h3></div><button type="button" class="ib" aria-label="Rename ${esc(selectedList.name)}" onclick="shoppingListForm('${selectedList.id}')">${ic('pencil')}</button><button type="button" class="ib" aria-label="Delete ${esc(selectedList.name)}" onclick="deleteShoppingList('${selectedList.id}')">${ic('trash-2')}</button></div><div class="row sp shopping-list-total"><span>Estimated amount</span><b>${peso(shoppingListEstimate(selectedList))}</b></div>${expenseAction}<div class="shopping-list-items">${items}</div></section>`
             }
             const lists = D.shoppingLists.map(list => {
-                const estimate = shoppingListEstimate(list);
-                return `<button type="button" class="shopping-list-summary" aria-label="Open ${esc(list.name)}, estimated amount ${peso(estimate)}" onclick="openShoppingList('${list.id}')"><span>${esc(list.name)}</span><b>${peso(estimate)}</b></button>`
+                const estimate = shoppingListEstimate(list),
+                    remaining = list.items.filter(item => !item.checked).length;
+                return `<button type="button" class="shopping-list-summary" aria-label="Open ${esc(list.name)}, ${remaining} item${remaining === 1 ? '' : 's'} remaining, estimated amount ${peso(estimate)}" onclick="openShoppingList('${list.id}')"><span class="shopping-list-summary-icon">${ic('shopping-bag')}</span><span class="shopping-list-summary-copy"><b>${esc(list.name)}</b><small>${remaining} item${remaining === 1 ? '' : 's'} remaining</small></span><b class="shopping-list-summary-amount">${peso(estimate)}</b>${ic('chevron-right')}</button>`
             }).join('');
             return `<div class="row sp"><div><h2>Shopping List</h2><small>Organize what you need to buy.</small></div></div><div class="g g2 shopping-lists">${lists || '<div class="empty card">No shopping lists yet. Tap “Add list” to create one.</div>'}</div>`
         };
@@ -2472,7 +2555,8 @@ function syncDateInput(input) {
                 : `${esc(C(rule.cat)?.name || 'Uncategorized')} · ${esc(A(rule.acc)?.name || 'Unknown account')}`;
             const waitingForFunds = rule => rule.active && rule.type === 'transfer' && rule.next <= today() &&
                 A(rule.acc) && !od(A(rule.acc)) && bal(A(rule.acc)) < rule.amount;
-            return `<div class="row"><div class="gr"><h2>Recurring transactions</h2><small>Due items are added while Pocket is open; missed items catch up next time.</small></div></div><div class="g g2">${D.recurring.length ? D.recurring.map(rule => `<div class="card"><div class="row"><span class="dot" style="background:var(--sq);color:${rule.type==='income'?'var(--in)':rule.type==='expense'?'var(--ex)':'var(--tr)'}">${ic(rule.type==='transfer'?'arrow-left-right':rule.type==='income'?'wallet':'zap')}</span><div class="gr"><b>${esc(rule.title || 'Transfer')}</b><br><small>${frequencyName(rule.frequency)} · ${details(rule)}</small></div><button class="ib" onclick="recurringForm('${rule.id}')" aria-label="Edit schedule">${ic('pencil')}</button><button class="ib" onclick="deleteRecurring('${rule.id}')" aria-label="Delete schedule">${ic('trash-2')}</button></div><div class="row sp" style="margin-top:10px"><b style="color:${rule.type==='income'?'var(--in)':rule.type==='expense'?'var(--ex)':'var(--tr)'}">${rule.type==='expense'?'−':rule.type==='income'?'+':''}${peso(rule.amount)}</b><small>${rule.active ? waitingForFunds(rule) ? 'Waiting for sufficient funds' : `Next: ${fd(rule.next)}` : 'Paused'}</small></div><div class="row sp" style="margin-top:10px"><small>${rule.next < today() && !rule.active ? `Paused · next due ${fd(rule.next)}` : `Starts ${fd(rule.start)}`}</small><button class="chip" onclick="toggleRecurring('${rule.id}')">${rule.active?'Pause':'Resume'}</button></div></div>`).join('') : '<div class="empty card">No recurring schedules yet. Add one for a regular bill, subscription, salary, or transfer.</div>'}</div>`
+            const activeCount = D.recurring.filter(rule => rule.active).length;
+            return `<div class="row"><div class="gr"><h2>Recurring transactions</h2><small>Due items are added while Pocket is open; missed items catch up next time.</small></div></div><div class="recurring-section-heading"><b>Active schedules</b><small>${activeCount} active</small></div><div class="g g2">${D.recurring.length ? D.recurring.map(rule => `<div class="card"><div class="row"><span class="dot" style="background:var(--sq);color:${rule.type==='income'?'var(--in)':rule.type==='expense'?'var(--ex)':'var(--tr)'}">${ic(rule.type==='transfer'?'arrow-left-right':rule.type==='income'?'wallet':'zap')}</span><div class="gr"><b>${esc(rule.title || 'Transfer')}</b><br><small>${frequencyName(rule.frequency)} · ${details(rule)}</small></div><button class="ib" onclick="recurringForm('${rule.id}')" aria-label="Edit schedule">${ic('pencil')}</button><button class="ib" onclick="deleteRecurring('${rule.id}')" aria-label="Delete schedule">${ic('trash-2')}</button></div><div class="row sp" style="margin-top:10px"><b style="color:${rule.type==='income'?'var(--in)':rule.type==='expense'?'var(--ex)':'var(--tr)'}">${rule.type==='expense'?'−':rule.type==='income'?'+':''}${peso(rule.amount)}</b><small>${rule.active ? waitingForFunds(rule) ? 'Waiting for sufficient funds' : `Next: ${fd(rule.next)}` : 'Paused'}</small></div><div class="row sp" style="margin-top:10px"><small>${rule.next < today() && !rule.active ? `Paused · next due ${fd(rule.next)}` : `Starts ${fd(rule.start)}`}</small><button class="chip" onclick="toggleRecurring('${rule.id}')">${rule.active?'Pause':'Resume'}</button></div></div>`).join('') : '<div class="empty card">No recurring schedules yet. Add one for a regular bill, subscription, salary, or transfer.</div>'}</div>`
         };
         const REPORT_COLORS = ['#16a34a', '#ea580c', '#2563eb'],
             REPORT_RANGES = [['weekly', 'Weekly'], ['monthly', 'Monthly'], ['yearly', 'Yearly'], ['custom', 'Custom']];
@@ -2926,8 +3010,6 @@ function syncDateInput(input) {
         }
         V.rep = () => {
             const period = reportPeriod(),
-                option = (value, label, selected) => `<option value="${esc(value)}"${selected ? ' selected' : ''}>${esc(label)}</option>`,
-                rangeOptions = REPORT_RANGES,
                 rangeTransactions = period.valid ? reportRangeTransactions(D.tx, period.start, period.end) : [],
                 transactions = rangeTransactions.filter(transaction =>
                     transaction.type !== 'transfer' && (!U.ra || transaction.acc === U.ra) &&
@@ -2987,24 +3069,12 @@ function syncDateInput(input) {
                 { name: 'Net cash flow', type: 'flow', color: REPORT_COLORS[2], values: incomeSeries.values.map((value, index) => value - expenseSeries.values[index]) }
             ],
                 cashFlowChart = reportLineChart(buckets, cashFlowSeries),
-                customRange = U.reportRange === 'custom',
-                startValue = U.reportFrom || iso(new Date(new Date().getFullYear(), new Date().getMonth(), 1)),
-                endValue = U.reportTo || today(),
                 rangeLabel = REPORT_RANGES.find(([value]) => value === U.reportRange)?.[1] || 'Monthly',
                 selectedReportFilters = [U.ra ? A(U.ra)?.name : '', U.rc ? C(U.rc)?.name : ''].filter(Boolean),
-                activeReportFilterCount = Number(!!U.ra) + Number(!!U.rc),
-                accountOptions = [option('', 'All accounts', !U.ra), ...D.acc.map(account => option(account.id, account.name, U.ra === account.id))],
-                categoryOptions = [option('', 'All categories', !U.rc), ...D.cats.map(category => option(category.id, category.name, U.rc === category.id))];
+                activeReportFilterCount = Number(!!U.ra) + Number(!!U.rc);
             const chartCard = (title, chart) => `<section class="card report-card"><h3>${title}</h3>${chart}</section>`;
             return `<div class="row sp"><h2>Reports</h2></div>
-<div class="card report-filters">
-<label><span>Date range</span><select aria-label="Report date range" onchange="U.reportRange=this.value;render()">${rangeOptions.map(([value,label]) => option(value,label,U.reportRange === value)).join('')}</select></label>
-<label><span>Account</span><select aria-label="Filter reports by account" onchange="U.ra=this.value;render()">${accountOptions.join('')}</select></label>
-<label><span>Category</span><select aria-label="Filter reports by category" onchange="U.rc=this.value;render()">${categoryOptions.join('')}</select></label>
-${customRange ? `<label><span>From</span><input type="date" aria-label="Report start date" value="${esc(startValue)}" onchange="U.reportFrom=this.value;render()"></label><label><span>To</span><input type="date" aria-label="Report end date" value="${esc(endValue)}" onchange="U.reportTo=this.value;render()"></label>` : ''}
-<small class="report-period-label">${period.valid ? `${fd(period.start)} – ${fd(period.end)}` : 'Choose a valid date range.'}</small>
-</div>
-<div class="card report-filter-toolbar"><div class="report-filter-toolbar-copy"><small>${rangeLabel}${selectedReportFilters.length ? ` · ${selectedReportFilters.map(esc).join(' · ')}` : ''}</small><b>${period.valid ? `${fd(period.start)} – ${fd(period.end)}` : 'Choose a valid date range.'}</b></div><button type="button" class="b2" onclick="openReportFilters()">${ic('settings')} Filters${activeReportFilterCount ? `<span class="report-filter-count">${activeReportFilterCount}</span>` : ''}</button></div>
+<div class="card report-filter-toolbar"><div class="report-filter-toolbar-copy"><small>${rangeLabel} overview${selectedReportFilters.length ? ` · ${selectedReportFilters.map(esc).join(' · ')}` : ''}</small><b>${period.valid ? `${fd(period.start)} – ${fd(period.end)}` : 'Choose a valid date range.'}</b></div><button type="button" class="b2" onclick="openReportFilters()">${ic('settings')} Filters${activeReportFilterCount ? `<span class="report-filter-count">${activeReportFilterCount}</span>` : ''}</button></div>
 ${period.valid ? `<div class="g g2 report-grid">
 ${chartCard('Income vs. Expenses', incomeExpenses)}
 ${chartCard('Expense Breakdown', expenseBreakdown)}
@@ -3527,7 +3597,7 @@ ${chartCard('Cash Flow', cashFlowChart)}
             persistCurrentView();
             document.documentElement.dataset.theme = D.theme;
             document.documentElement.dataset.view = U.v;
-            document.querySelector('meta[name=theme-color]').content = (U.v === 'dash' || U.v === 'tx') && D.theme === 'dark'
+            document.querySelector('meta[name=theme-color]').content = (U.v === 'dash' || U.v === 'tx' || U.v === 'acc') && D.theme === 'dark'
                 ? '#0b100e'
                 : D.theme === 'dark' ? '#000000' : '#f5f5f4';
             syncNavbar();
