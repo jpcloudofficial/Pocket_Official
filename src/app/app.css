@@ -17,26 +17,26 @@
 
         :root[data-theme=dark] {
             color-scheme: dark;
-            --bg: #000;
-            --cd: #141414;
-            --tx: #f5f5f5;
-            --mu: #9a9a9a;
-            --bd: #2a2a2a;
-            --sq: #262626;
-            --in: #4caf50;
-            --ex: #e5483d
+            --bg: #0b100e;
+            --cd: #142019;
+            --tx: #f2f6f3;
+            --mu: #a8b8af;
+            --bd: #263a28;
+            --sq: #223329;
+            --in: #b8ef76;
+            --ex: #ffa899
         }
 
         @media(prefers-color-scheme:dark) {
             :root:not([data-theme=light]) {
-                --bg: #000;
-                --cd: #141414;
-                --tx: #f5f5f5;
-                --mu: #9a9a9a;
-                --bd: #2a2a2a;
-                --sq: #262626;
-                --in: #4caf50;
-                --ex: #e5483d
+                --bg: #0b100e;
+                --cd: #142019;
+                --tx: #f2f6f3;
+                --mu: #a8b8af;
+                --bd: #263a28;
+                --sq: #223329;
+                --in: #b8ef76;
+                --ex: #ffa899
             }
         }
 
@@ -4540,5 +4540,1066 @@
                 border-radius: 999px;
                 background: #142019;
                 overflow: hidden
+            }
+        }
+
+        :root[data-theme="dark"][data-view="acc"] {
+            color-scheme: dark;
+            --bg: #0b100e;
+            --cd: #142019;
+            --tx: #f2f6f3;
+            --mu: #a8b8af;
+            --bd: #263a28;
+            --sq: #142019;
+            --in: #b8ef76;
+            --ex: #ffa899;
+            --accounts-icon-bg: #223329
+        }
+
+        :root[data-view="acc"] {
+            --accounts-icon-bg: var(--sq)
+        }
+
+        #m[data-view="acc"] {
+            font-family: Inter, 'Plus Jakarta Sans', system-ui, sans-serif
+        }
+
+        #m[data-view="acc"] > .accounts-page {
+            width: min(100%, 520px);
+            margin: 0 auto
+        }
+
+        #m[data-view="acc"] > .accounts-page > .accounts-heading {
+            align-items: center;
+            gap: 12px;
+            margin-top: -24px;
+            padding: 20px 0 18px
+        }
+
+        #m[data-view="acc"] .accounts-heading-copy {
+            display: grid;
+            order: 1;
+            gap: 5px;
+            min-width: 0
+        }
+
+        #m[data-view="acc"] .accounts-eyebrow {
+            color: var(--in);
+            font-size: 9px;
+            font-weight: 700;
+            letter-spacing: .06em;
+            line-height: 1.2
+        }
+
+        #m[data-view="acc"] .accounts-heading h2 {
+            overflow: hidden;
+            font-size: 24px !important;
+            line-height: 1.2;
+            text-overflow: ellipsis;
+            white-space: nowrap
+        }
+
+        #m[data-view="acc"] .accounts-heading .page-menu-toggle {
+            display: grid;
+            width: 32px;
+            height: 32px;
+            flex: none;
+            order: 2;
+            place-content: center;
+            gap: 3px;
+            margin-left: auto;
+            border: 0;
+            border-radius: 8px;
+            background: transparent;
+            color: var(--mu);
+            cursor: pointer
+        }
+
+        #m[data-view="acc"] .accounts-heading .page-menu-toggle span {
+            display: block;
+            width: 3px;
+            height: 3px;
+            border-radius: 50%;
+            background: currentColor
+        }
+
+        #m[data-view="acc"] .accounts-heading .page-menu-toggle:focus-visible,
+        #m[data-view="acc"] .accounts-view-toggle:focus-visible,
+        #m[data-view="acc"] .accounts-list-row:focus-visible,
+        html[data-view="acc"] .fab:focus-visible,
+        html[data-view="acc"] .pocket-account-transfer:focus-visible {
+            outline: 2px solid var(--in);
+            outline-offset: 3px
+        }
+
+        #m[data-view="acc"] .accounts-balance-card {
+            display: grid;
+            gap: 12px;
+            margin-bottom: 24px;
+            padding: 24px 20px;
+            border-radius: 18px;
+            background: #e8f4e8
+        }
+
+        #m[data-view="acc"] .accounts-balance-card > small {
+            color: var(--mu);
+            font-size: 12px
+        }
+
+        #m[data-view="acc"] .accounts-balance-card > strong {
+            overflow: hidden;
+            font-size: 36px;
+            line-height: 1.2;
+            text-overflow: ellipsis;
+            white-space: nowrap
+        }
+
+        #m[data-view="acc"] .accounts-balance-card > div {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-top: 2px;
+            color: var(--mu);
+            font-size: 12px
+        }
+
+        #m[data-view="acc"] .accounts-balance-card > div b {
+            color: var(--in);
+            font-size: 12px
+        }
+
+        :root[data-theme="dark"][data-view="acc"] #m .accounts-balance-card {
+            background: #203b29;
+            color: #f2f6f3
+        }
+
+        :root[data-theme="dark"][data-view="acc"] #m .accounts-balance-card > small {
+            color: #a8b8af
+        }
+
+        :root[data-theme="dark"][data-view="acc"] #m .accounts-balance-card > div {
+            color: #d3ded5
+        }
+
+        #m[data-view="acc"] .accounts-list-heading {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin: 0 0 10px
+        }
+
+        #m[data-view="acc"] .accounts-list-heading h3 {
+            margin: 0;
+            font-size: 16px
+        }
+
+        #m[data-view="acc"] .accounts-view-toggle {
+            display: inline-flex;
+            min-height: 32px;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 0 4px 8px;
+            border: 0;
+            background: transparent;
+            color: var(--in);
+            font: inherit;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer
+        }
+
+        #m[data-view="acc"] .accounts-view-toggle span {
+            font-size: 14px
+        }
+
+        #m[data-view="acc"] .accounts-list {
+            padding: 18px 20px;
+            overflow: hidden;
+            border-radius: 18px;
+            background: var(--cd)
+        }
+
+        #m[data-view="acc"] .accounts-list-row {
+            display: grid;
+            width: 100%;
+            min-height: 62px;
+            grid-template-columns: 42px minmax(0, 1fr) auto;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 0;
+            border: 0;
+            border-bottom: 1px solid var(--bd);
+            background: transparent;
+            color: var(--tx);
+            text-align: left;
+            cursor: pointer
+        }
+
+        #m[data-view="acc"] .accounts-list-row:last-child {
+            border-bottom: 0
+        }
+
+        #m[data-view="acc"] .accounts-list-icon {
+            display: grid;
+            width: 42px;
+            height: 42px;
+            place-items: center;
+            border-radius: 12px;
+            background: var(--accounts-icon-bg);
+            color: var(--in)
+        }
+
+        #m[data-view="acc"] .accounts-list-icon .ic {
+            width: 20px;
+            height: 20px
+        }
+
+        #m[data-view="acc"] .accounts-list-copy {
+            display: grid;
+            min-width: 0;
+            gap: 3px
+        }
+
+        #m[data-view="acc"] .accounts-list-copy b {
+            overflow: hidden;
+            font-size: 14px;
+            font-weight: 500;
+            text-overflow: ellipsis;
+            white-space: nowrap
+        }
+
+        #m[data-view="acc"] .accounts-list-copy small {
+            overflow: hidden;
+            color: var(--mu);
+            font-size: 12px;
+            text-overflow: ellipsis;
+            white-space: nowrap
+        }
+
+        #m[data-view="acc"] .accounts-list-balance {
+            max-width: 120px;
+            overflow: hidden;
+            font-size: 14px;
+            font-weight: 600;
+            text-overflow: ellipsis;
+            white-space: nowrap
+        }
+
+        #m[data-view="acc"] .accounts-list-balance.is-negative {
+            color: var(--ex)
+        }
+
+        #m[data-view="acc"] .accounts-empty {
+            padding: 20px;
+            border: 1px solid var(--bd);
+            border-radius: 18px;
+            background: var(--cd);
+            color: var(--mu);
+            text-align: center
+        }
+
+        html[data-view="acc"] .fab.pocket-fab-labeled {
+            color: #102015
+        }
+
+        html[data-view="acc"] .pocket-fab-menu {
+            display: none !important
+        }
+
+        @media (max-width: 760px) {
+            #m[data-view="acc"] {
+                padding: 20px 24px 132px
+            }
+
+            #m[data-view="acc"] > .accounts-page > .accounts-heading {
+                top: env(safe-area-inset-top, 0px);
+                margin-top: -20px;
+                padding: 20px 0 18px
+            }
+
+            html[data-view="acc"] .fab.pocket-fab-labeled,
+            html[data-view="acc"] .pocket-account-transfer {
+                bottom: calc(104px + env(safe-area-inset-bottom, 0px));
+                width: calc(50vw - 21px);
+                height: 52px;
+                border-radius: 28px
+            }
+
+            html[data-view="acc"] .fab.pocket-fab-labeled {
+                right: 14px;
+                min-width: 0;
+                justify-content: center;
+                padding: 0 10px
+            }
+
+            html[data-view="acc"] .pocket-account-transfer {
+                right: auto;
+                left: 14px;
+                padding: 0 10px
+            }
+        }
+
+        @keyframes accounts-fab-slide-up {
+            from {
+                opacity: 0;
+                transform: translateY(32px)
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0)
+            }
+        }
+
+        @media (prefers-reduced-motion: no-preference) {
+            html[data-view="acc"] body:not(.pocket-actions-scroll-hidden) .fab.pocket-fab-labeled,
+            html[data-view="acc"] body:not(.pocket-actions-scroll-hidden) .pocket-account-transfer {
+                animation: accounts-fab-slide-up .48s cubic-bezier(.22, .68, 0, 1)
+            }
+
+            html[data-view="acc"] body:not(.pocket-actions-scroll-hidden) .pocket-account-transfer {
+                animation-delay: .08s
+            }
+        }
+
+        :root[data-theme=dark] {
+            --tr: #91c6af
+        }
+
+        @media(prefers-color-scheme:dark) {
+            :root:not([data-theme=light]) {
+                --tr: #91c6af
+            }
+        }
+
+        html[data-view="bud"] #m .card,
+        html[data-view="goal"] #m .card,
+        html[data-view="shop"] #m .card,
+        html[data-view="rec"] #m .card,
+        html[data-view="cash"] #m .card,
+        html[data-view="rep"] #m .card,
+        html[data-view="set"] #m .card,
+        html[data-view="prof"] #m .card {
+            border-color: transparent;
+            box-shadow: none
+        }
+
+        html[data-view="bud"] #m > .row:first-child,
+        html[data-view="goal"] #m > .row:first-child,
+        html[data-view="shop"] #m > .row:first-child,
+        html[data-view="rec"] #m > .row:first-child,
+        html[data-view="cash"] #m > .row:first-child,
+        html[data-view="rep"] #m > .row:first-child,
+        html[data-view="set"] #m > .row:first-child,
+        html[data-view="prof"] #m > .row:first-child {
+            align-items: flex-start
+        }
+
+        html[data-view="bud"] #m > .row:first-child h2,
+        html[data-view="goal"] #m > .row:first-child h2,
+        html[data-view="shop"] #m > .row:first-child h2,
+        html[data-view="rec"] #m > .row:first-child h2,
+        html[data-view="cash"] #m > .row:first-child h2,
+        html[data-view="rep"] #m > .row:first-child h2,
+        html[data-view="set"] #m > .row:first-child h2,
+        html[data-view="prof"] #m > .row:first-child h2 {
+            margin: 0;
+            font-size: 24px;
+            letter-spacing: -.04em
+        }
+
+        html[data-view="rep"] #m .report-filter-toolbar {
+            display: flex;
+            min-height: 84px;
+            margin: 8px 0 18px;
+            padding: 18px;
+            border: 0;
+            border-radius: 20px;
+            background: var(--cd)
+        }
+
+        html[data-view="rep"] #m .report-filter-toolbar-copy small {
+            font-size: 12px
+        }
+
+        html[data-view="rep"] #m .report-filter-toolbar-copy b {
+            font-size: 15px
+        }
+
+        html[data-view="rep"] #m .report-card {
+            padding: 18px;
+            border-radius: 20px
+        }
+
+        html[data-view="rep"] #m .report-card h3 {
+            margin-top: 0;
+            font-size: 15px
+        }
+
+        html[data-view="rep"] #m .report-filter-toolbar .b2 {
+            min-height: 42px;
+            padding: 0 13px;
+            border: 0;
+            border-radius: 14px
+        }
+
+        html[data-view="cash"] #m .cashback-summary {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            align-items: center;
+            gap: 5px 13px;
+            margin: 20px 0 22px;
+            padding: 22px;
+            border-radius: 22px
+        }
+
+        html[data-view="cash"] #m .cashback-summary-icon {
+            display: grid;
+            grid-row: span 3;
+            width: 48px;
+            height: 48px;
+            place-items: center;
+            border-radius: 16px;
+            background: var(--sq);
+            color: var(--in)
+        }
+
+        html[data-view="cash"] #m .cashback-summary-icon svg {
+            width: 23px;
+            height: 23px
+        }
+
+        html[data-view="cash"] #m .cashback-summary small,
+        html[data-view="cash"] #m .cashback-summary span {
+            color: var(--mu);
+            font-size: 12px
+        }
+
+        html[data-view="cash"] #m .cashback-summary b {
+            font-size: 25px;
+            letter-spacing: -.04em
+        }
+
+        html[data-view="cash"] #m .cashback-subtitle {
+            margin: 22px 0 12px;
+            font-size: 16px
+        }
+
+        html[data-view="cash"] #m .cashback-list {
+            grid-template-columns: minmax(0, 1fr)
+        }
+
+        html[data-view="shop"] #m .shopping-lists {
+            grid-template-columns: minmax(0, 1fr)
+        }
+
+        html[data-view="shop"] #m .shopping-list-summary {
+            justify-content: flex-start;
+            gap: 13px;
+            min-height: 82px;
+            padding: 15px 16px;
+            border: 0;
+            border-radius: 18px;
+            background: var(--cd)
+        }
+
+        html[data-view="shop"] #m .shopping-list-summary-icon {
+            display: grid;
+            flex: 0 0 46px;
+            width: 46px;
+            height: 46px;
+            place-items: center;
+            border-radius: 15px;
+            background: var(--sq);
+            color: var(--in)
+        }
+
+        html[data-view="shop"] #m .shopping-list-summary-icon svg,
+        html[data-view="shop"] #m .shopping-list-summary > svg {
+            width: 19px;
+            height: 19px
+        }
+
+        html[data-view="shop"] #m .shopping-list-summary-copy {
+            display: grid;
+            flex: 1;
+            gap: 3px;
+            font-weight: 400
+        }
+
+        html[data-view="shop"] #m .shopping-list-summary-copy b {
+            overflow-wrap: anywhere;
+            color: var(--tx);
+            font-size: 14px
+        }
+
+        html[data-view="shop"] #m .shopping-list-summary-copy small {
+            color: var(--mu);
+            font-size: 11px
+        }
+
+        html[data-view="shop"] #m .shopping-list-summary .shopping-list-summary-amount {
+            color: var(--in);
+            font-size: 14px
+        }
+
+        html[data-view="shop"] #m .shopping-list-summary > svg {
+            flex: none;
+            color: var(--mu)
+        }
+
+        html[data-view="shop"] #m .shopping-list-detail {
+            gap: 16px;
+            padding: 18px;
+            border-radius: 20px
+        }
+
+        html[data-view="shop"] #m .shopping-list-total {
+            padding: 16px;
+            border-radius: 15px;
+            background: var(--sq)
+        }
+
+        html[data-view="shop"] #m .shopping-list-total b {
+            color: var(--in);
+            font-size: 19px
+        }
+
+        html[data-view="shop"] #m .shopping-list-expense {
+            flex-wrap: wrap;
+            gap: 10px
+        }
+
+        html[data-view="rec"] #m .recurring-section-heading {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin: 22px 0 12px
+        }
+
+        html[data-view="rec"] #m .recurring-section-heading small {
+            color: var(--mu)
+        }
+
+        html[data-view="rec"] #m > .g {
+            grid-template-columns: minmax(0, 1fr)
+        }
+
+        html[data-view="rec"] #m > .g > .card {
+            padding: 18px;
+            border-radius: 19px
+        }
+
+        #ov.form-open {
+            background: var(--bg)
+        }
+
+        #ov.form-open > div {
+            display: flex;
+            flex-direction: column;
+            width: min(100%, 520px);
+            height: min(88vh, 760px);
+            max-height: 92vh;
+            padding: 0;
+            border: 0;
+            border-radius: 28px;
+            background: var(--bg)
+        }
+
+        #f {
+            width: 100%;
+            max-height: none;
+            gap: 0
+        }
+
+        .form-screen-header {
+            display: flex;
+            flex: none;
+            align-items: center;
+            justify-content: space-between;
+            min-height: 58px;
+            padding: 8px 24px;
+            border-bottom: 0;
+            font-weight: 700
+        }
+
+        .form-screen-header button {
+            display: grid;
+            width: 24px;
+            height: 24px;
+            place-items: center;
+            border: 0;
+            border-radius: 0;
+            background: transparent;
+            color: var(--tx);
+            cursor: pointer
+        }
+
+        .form-screen-header svg {
+            width: 19px;
+            height: 19px
+        }
+
+        .form-screen-intro {
+            flex: none;
+            padding: 14px 24px 16px
+        }
+
+        .form-eyebrow {
+            color: var(--in);
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: .12em
+        }
+
+        .form-screen-intro h3 {
+            margin: 5px 0 6px;
+            font-size: 28px;
+            letter-spacing: -.04em
+        }
+
+        .form-screen-intro p {
+            margin: 0;
+            color: var(--mu);
+            font-size: 12px
+        }
+
+        #f .form-fields {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr);
+            align-content: start;
+            gap: 20px;
+            padding: 8px 24px 20px
+        }
+
+        #f .form-fields > label {
+            display: grid;
+            gap: 7px;
+            min-width: 0;
+            margin: 0;
+            color: var(--mu);
+            font-size: 12px;
+            font-weight: 600
+        }
+
+        #f .form-fields input:not([type="hidden"]):not([type="checkbox"]):not([type="color"]),
+        #f .form-fields textarea,
+        #f .form-fields .form-select-trigger {
+            width: 100%;
+            min-height: 52px;
+            padding: 14px;
+            border: 1px solid var(--bd);
+            border-radius: 12px;
+            background-color: var(--sq);
+            color: var(--tx);
+            font: inherit;
+            font-size: 14px
+        }
+
+        #f .form-fields textarea {
+            resize: vertical
+        }
+
+        #f.pocket-transaction-form label[data-field="amount"] {
+            padding: 20px;
+            border: 1px solid var(--bd);
+            border-radius: 20px;
+            background: var(--cd)
+        }
+
+        #f.pocket-transaction-form label[data-field="amount"] input {
+            min-height: 54px;
+            padding: 0;
+            border: 0;
+            background: transparent;
+            font-size: 40px;
+            font-weight: 750;
+            letter-spacing: -.04em;
+            cursor: text
+        }
+
+        #f.pocket-transaction-form .amount-input-wrap {
+            display: flex;
+            align-items: center;
+            gap: 2px
+        }
+
+        #f.pocket-transaction-form .amount-currency {
+            flex: none;
+            color: var(--tx);
+            font-size: 30px;
+            font-weight: 750;
+            line-height: 54px
+        }
+
+        #f.pocket-transaction-form label[data-field="type"] {
+            display: block;
+            font-size: 0
+        }
+
+        #f.pocket-transaction-form label[data-field="type"] > .form-type-tabs {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 8px
+        }
+
+        .form-type-tabs button {
+            min-height: 50px;
+            border: 0;
+            border-radius: 14px;
+            background: var(--sq);
+            color: var(--mu);
+            font: inherit;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer
+        }
+
+        .form-type-tabs button.is-active {
+            background: #b8ef76;
+            color: #122016
+        }
+
+        #f.pocket-transaction-form label[data-field="amount"] input {
+            line-height: 1
+        }
+
+        #f.pocket-transaction-form .transfer-direction {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            min-height: 24px;
+            color: var(--mu);
+            font-size: 12px;
+            font-weight: 400
+        }
+
+        #f.pocket-transaction-form .transfer-direction svg {
+            width: 24px;
+            height: 24px
+        }
+
+        #f.pocket-transaction-form label[data-field="acc"],
+        #f.pocket-transaction-form label[data-field="to"] {
+            margin: 0
+        }
+
+        #f.pocket-transaction-form label[data-field="amount"] input::placeholder {
+            color: var(--tx);
+            opacity: 1
+        }
+
+        #f > .row.end {
+            display: flex;
+            flex: none;
+            flex-direction: column;
+            gap: 10px;
+            padding: 14px 24px 20px;
+            border-top: 1px solid var(--bd)
+        }
+
+        #f > .row.end button {
+            width: 100%;
+            min-height: 48px;
+            border-radius: 15px
+        }
+
+        #f > .row.end .b1 {
+            order: 0
+        }
+
+        #f > .row.end .b2 {
+            order: 1
+        }
+
+        #ov.quick-add-open {
+            background: var(--bg)
+        }
+
+        #ov.quick-add-open > div {
+            display: flex;
+            flex-direction: column;
+            width: min(100%, 520px);
+            height: min(88vh, 760px);
+            max-height: 92vh;
+            padding: 0;
+            border: 1px solid var(--bd);
+            border-radius: 24px;
+            background: var(--bg)
+        }
+
+        .quick-add-screen {
+            min-height: 0
+        }
+
+        .quick-add-options {
+            display: grid;
+            gap: 12px;
+            padding: 10px 24px 24px
+        }
+
+        .quick-add-options > button {
+            display: flex;
+            align-items: center;
+            gap: 13px;
+            width: 100%;
+            min-height: 78px;
+            padding: 14px;
+            border: 1px solid var(--bd);
+            border-radius: 17px;
+            background: var(--cd);
+            color: var(--tx);
+            text-align: left;
+            cursor: pointer
+        }
+
+        .quick-add-options > button > span:nth-child(2) {
+            display: grid;
+            flex: 1;
+            gap: 3px
+        }
+
+        .quick-add-options > button small {
+            color: var(--mu);
+            font-size: 11px
+        }
+
+        .quick-add-options > button > svg {
+            width: 18px;
+            height: 18px;
+            color: var(--mu)
+        }
+
+        .quick-add-icon {
+            display: grid;
+            flex: none;
+            width: 46px;
+            height: 46px;
+            place-items: center;
+            border-radius: 15px;
+            background: var(--sq);
+            color: var(--in)
+        }
+
+        .quick-add-icon.expense {
+            color: var(--ex)
+        }
+
+        .quick-add-icon svg {
+            width: 20px;
+            height: 20px
+        }
+
+        @media(max-width:760px) {
+            #ov.form-open,
+            #ov.quick-add-open {
+                align-items: stretch;
+                padding: 0
+            }
+
+            #ov.form-open > div,
+            #ov.quick-add-open > div {
+                width: 100%;
+                height: 100%;
+                max-height: none;
+                border: 0;
+                border-radius: 0
+            }
+
+            #f {
+                padding-bottom: env(safe-area-inset-bottom, 0px)
+            }
+
+            .form-screen-header {
+                padding-top: calc(8px + env(safe-area-inset-top, 0px))
+            }
+
+            #f > .row.end {
+                padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px))
+            }
+
+            .quick-add-options {
+                padding-top: 16px
+            }
+        }
+
+        :root[data-theme=dark] #f > .row.end .b1,
+        :root[data-theme=dark] #ov.quick-add-open .quick-add-options > button:hover,
+        html[data-theme=dark][data-view="rep"] #m .report-filter-toolbar .b2 {
+            border-color: transparent;
+            background: #b8ef76;
+            color: #122016
+        }
+
+        :root[data-theme=dark] #f > .row.end .b2,
+        :root[data-theme=dark] .form-screen-header button,
+        :root[data-theme=dark] .quick-add-options > button {
+            border-color: transparent;
+            background: #203329;
+            color: #f2f6f3
+        }
+
+        @media(prefers-color-scheme:dark) {
+            :root:not([data-theme=light]) #f > .row.end .b1,
+            :root:not([data-theme=light]) #ov.quick-add-open .quick-add-options > button:hover,
+            html:not([data-theme=light])[data-view="rep"] #m .report-filter-toolbar .b2 {
+                border-color: transparent;
+                background: #b8ef76;
+                color: #122016
+            }
+
+            :root:not([data-theme=light]) #f > .row.end .b2,
+            :root:not([data-theme=light]) .form-screen-header button,
+            :root:not([data-theme=light]) .quick-add-options > button {
+                border-color: transparent;
+                background: #203329;
+                color: #f2f6f3
+            }
+        }
+
+        html[data-view="bud"] #m > .g.g2,
+        html[data-view="goal"] #m > .g.g2,
+        html[data-view="set"] #m > .g.g2,
+        html[data-view="prof"] #m > .g.g2 {
+            align-items: start;
+            gap: 14px
+        }
+
+        html[data-view="bud"] #m > .g > .card,
+        html[data-view="goal"] #m .goal-card,
+        html[data-view="set"] #m > .g > .card,
+        html[data-view="prof"] #m .profile-layout > .card {
+            padding: 18px;
+            border-radius: 20px
+        }
+
+        html[data-view="bud"] #m .bar,
+        html[data-view="goal"] #m .bar {
+            height: 10px;
+            margin: 14px 0 10px;
+            background: var(--sq)
+        }
+
+        html[data-view="goal"] #m .goal-amount {
+            margin: 15px 0 0;
+            font-size: 28px;
+            font-weight: 750;
+            letter-spacing: -.04em
+        }
+
+        html[data-view="goal"] #m .goal-details-row {
+            margin-top: 12px
+        }
+
+        html[data-view="goal"] #m .goal-details-row .chip {
+            min-height: 38px;
+            padding: 8px 12px;
+            border: 0;
+            border-radius: 13px
+        }
+
+        html[data-view="goal"] #m .goal-estimate {
+            margin-top: 10px;
+            color: var(--mu)
+        }
+
+        html[data-view="set"] #m .card h3,
+        html[data-view="prof"] #m .card h3 {
+            margin-top: 0;
+            font-size: 15px
+        }
+
+        html[data-view="set"] #m .settings-preference-row {
+            min-height: 52px;
+            border-color: var(--bd)
+        }
+
+        html[data-view="set"] #m .settings-actions {
+            gap: 9px
+        }
+
+        html[data-view="set"] #m .settings-actions .b2 {
+            min-height: 46px;
+            border-radius: 14px
+        }
+
+        html[data-view="prof"] #m .profile-layout > .profile-card {
+            border-top: 0
+        }
+
+        @media(max-width:760px) {
+            html[data-view="bud"] #m > .g.g2,
+            html[data-view="goal"] #m > .g.g2,
+            html[data-view="set"] #m > .g.g2,
+            html[data-view="prof"] #m > .g.g2 {
+                grid-template-columns: minmax(0, 1fr)
+            }
+
+            html[data-view="set"] #m .settings-actions {
+                grid-template-columns: minmax(0, 1fr)
+            }
+        }
+
+        html[data-theme=dark][data-view="bud"] #m .b1,
+        html[data-theme=dark][data-view="goal"] #m .b1,
+        html[data-theme=dark][data-view="shop"] #m .b1,
+        html[data-theme=dark][data-view="rec"] #m .b1,
+        html[data-theme=dark][data-view="cash"] #m .b1,
+        html[data-theme=dark][data-view="rep"] #m .b1,
+        html[data-theme=dark][data-view="set"] #m .b1,
+        html[data-theme=dark][data-view="prof"] #m .b1,
+        html[data-theme=dark] .dashboard-add-button,
+        html[data-theme=dark] .transaction-add-button,
+        html[data-theme=dark] body > .fab,
+        html[data-theme=dark][data-view="onboarding"] #m .onboarding-primary {
+            border-color: transparent;
+            background: #b8ef76;
+            color: #122016
+        }
+
+        html[data-theme=dark][data-view="bud"] #m .b2,
+        html[data-theme=dark][data-view="goal"] #m .b2,
+        html[data-theme=dark][data-view="shop"] #m .b2,
+        html[data-theme=dark][data-view="rec"] #m .b2,
+        html[data-theme=dark][data-view="cash"] #m .b2,
+        html[data-theme=dark][data-view="rep"] #m .b2,
+        html[data-theme=dark][data-view="set"] #m .b2,
+        html[data-theme=dark][data-view="prof"] #m .b2 {
+            border-color: transparent;
+            background: #203329;
+            color: #f2f6f3
+        }
+
+        @media(prefers-color-scheme:dark) {
+            html:not([data-theme=light])[data-view="bud"] #m .b1,
+            html:not([data-theme=light])[data-view="goal"] #m .b1,
+            html:not([data-theme=light])[data-view="shop"] #m .b1,
+            html:not([data-theme=light])[data-view="rec"] #m .b1,
+            html:not([data-theme=light])[data-view="cash"] #m .b1,
+            html:not([data-theme=light])[data-view="rep"] #m .b1,
+            html:not([data-theme=light])[data-view="set"] #m .b1,
+            html:not([data-theme=light])[data-view="prof"] #m .b1,
+            html:not([data-theme=light]) .dashboard-add-button,
+            html:not([data-theme=light]) .transaction-add-button,
+            html:not([data-theme=light]) body > .fab,
+            html:not([data-theme=light])[data-view="onboarding"] #m .onboarding-primary {
+                border-color: transparent;
+                background: #b8ef76;
+                color: #122016
+            }
+
+            html:not([data-theme=light])[data-view="bud"] #m .b2,
+            html:not([data-theme=light])[data-view="goal"] #m .b2,
+            html:not([data-theme=light])[data-view="shop"] #m .b2,
+            html:not([data-theme=light])[data-view="rec"] #m .b2,
+            html:not([data-theme=light])[data-view="cash"] #m .b2,
+            html:not([data-theme=light])[data-view="rep"] #m .b2,
+            html:not([data-theme=light])[data-view="set"] #m .b2,
+            html:not([data-theme=light])[data-view="prof"] #m .b2 {
+                border-color: transparent;
+                background: #203329;
+                color: #f2f6f3
             }
         }

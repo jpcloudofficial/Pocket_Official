@@ -1,9 +1,9 @@
-const CACHE = 'pera-v128';
+const CACHE = 'pera-v135';
 const FILES = [
   './',
   'index.html',
   'manifest.webmanifest',
-  'src/app/app.css?v=20261123-modular-1',
+  'src/app/app.css?v=20261124-form-1',
   'src/app/app.js',
   'src/app/router.js',
   'src/app/component-loader.js',
@@ -18,12 +18,10 @@ const FILES = [
   'src/presentation/common/budget-alerts.js',
   'src/infrastructure/firebase/firebase-sync.js',
   'assets/icons/app-icon-dark.png',
-  'assets/icons/app-icon.svg',
-  'assets/icons/app-icon-maskable.svg',
-  'assets/icons/icon-192.png?v=20261123-pocket-icon-4',
-  'assets/icons/icon-512.png?v=20261123-pocket-icon-4',
-  'assets/icons/icon-maskable-512.png?v=20261123-pocket-icon-4',
-  'assets/icons/apple-touch-icon.png?v=20261123-pocket-icon-4',
+  'assets/icons/icon-192.png?v=20261123-pocket-icon-2',
+  'assets/icons/icon-512.png?v=20261123-pocket-icon-2',
+  'assets/icons/icon-maskable-512.png?v=20261123-pocket-icon-2',
+  'assets/icons/apple-touch-icon.png?v=20261123-pocket-icon-2',
   'assets/icons/pocket-mark.svg',
   'assets/dashboard-icons/settings.svg',
   'assets/dashboard-icons/chart.svg',
