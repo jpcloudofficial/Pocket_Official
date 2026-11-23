@@ -202,15 +202,12 @@
             position: fixed;
             inset: 0 auto 0 0;
             z-index: 40;
-            width: min(320px, 85vw);
+            width: min(236px, 85vw);
             max-height: 100vh;
             overflow-y: auto;
             overscroll-behavior: contain;
-            padding: calc(16px + env(safe-area-inset-top, 0px)) 12px calc(16px + env(safe-area-inset-bottom, 0px));
-            border-right: 1px solid var(--bd);
-            border-radius: 0 16px 16px 0;
-            background: var(--cd);
-            box-shadow: 12px 0 30px #0004;
+            padding: calc(12px + env(safe-area-inset-top, 0px)) 12px calc(16px + env(safe-area-inset-bottom, 0px));
+            background: var(--bg);
             transform: translateX(-100%);
             transition: transform .24s cubic-bezier(.22, .61, .36, 1)
         }
@@ -232,72 +229,92 @@
         .page-title-menu-header {
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            margin-bottom: 12px;
-            padding: 4px 4px 10px;
-            border-bottom: 1px solid var(--bd)
+            margin-bottom: 20px;
+            padding: 0
         }
 
         .page-title-menu-header strong {
-            font-size: 18px
-        }
-
-        .page-title-menu-close {
-            display: grid;
-            width: 36px;
-            height: 36px;
-            flex: none;
-            place-items: center;
-            padding: 0;
-            border: 0;
-            border-radius: 10px;
-            background: transparent;
-            color: var(--mu);
-            cursor: pointer
-        }
-
-        .page-title-menu-close svg {
-            width: 20px;
-            height: 20px;
-            fill: none;
-            stroke: currentColor;
-            stroke-width: 2;
-            stroke-linecap: round
+            font-size: 22px;
+            line-height: 1.2
         }
 
         .page-title-menu-group {
-            padding: 8px 0;
-            border-bottom: 1px solid var(--bd)
+            margin-bottom: 18px
+        }
+
+        .page-title-menu-group:last-child {
+            margin-bottom: 0
+        }
+
+        .page-title-menu-group-manage {
+            margin-bottom: 22px
         }
 
         .page-title-menu-label {
-            padding: 8px 8px 4px;
+            padding: 0 0 16px;
             color: var(--mu);
-            font-size: 11px;
-            font-weight: 700;
-            letter-spacing: .04em;
+            font-size: 9px;
+            font-weight: 500;
+            letter-spacing: .02em;
             text-transform: uppercase
         }
 
+        .page-title-menu-items {
+            display: grid;
+            padding: 8px 0;
+            border-radius: 16px;
+            background: var(--cd)
+        }
+
+        .page-title-menu-group-pages .page-title-menu-items {
+            padding: 9px 0
+        }
+
         .page-title-menu-group button {
-            display: block;
+            display: flex;
             width: 100%;
-            min-height: 44px;
-            padding: 10px 8px;
+            min-height: 40px;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 16px;
             border: 0;
             border-radius: 8px;
             background: transparent;
             color: var(--tx);
             text-align: left;
+            font-size: 12px;
             cursor: pointer
         }
 
-        .page-title-menu-group button:hover,
-        .page-title-menu-group button[aria-current="page"] {
-            background: var(--sq)
+        .page-title-menu-group-pages button {
+            min-height: 49px
         }
 
-        .page-title-menu-close:hover {
+        .page-title-menu-item-icon {
+            display: grid;
+            width: 18px;
+            height: 18px;
+            flex: none;
+            place-items: center;
+            color: var(--mu)
+        }
+
+        .page-title-menu-item-icon svg {
+            width: 18px;
+            height: 18px
+        }
+
+        .page-title-menu-group button[aria-current="page"] {
+            background: transparent;
+            color: var(--in);
+            font-weight: 600
+        }
+
+        .page-title-menu-group button[aria-current="page"] .page-title-menu-item-icon {
+            color: var(--in)
+        }
+
+        .page-title-menu-group button:hover {
             background: var(--sq)
         }
 
@@ -1565,39 +1582,6 @@
             margin: 16px auto 0
         }
 
-        .account-stack-overview {
-            display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-            padding: 12px 0;
-            border: 1px solid var(--bd);
-            border-radius: 14px;
-            background: var(--cd)
-        }
-
-        .account-stack-overview > div {
-            display: grid;
-            min-width: 0;
-            gap: 4px;
-            padding: 0 12px
-        }
-
-        .account-stack-overview > div + div {
-            border-left: 1px solid var(--bd)
-        }
-
-        .account-stack-overview b {
-            overflow: hidden;
-            font-size: 14px;
-            text-overflow: ellipsis;
-            white-space: nowrap
-        }
-
-        .account-stack-overview small {
-            color: var(--mu);
-            font-size: 11px;
-            white-space: nowrap
-        }
-
         .account-stack-summary {
             align-items: flex-start
         }
@@ -1634,7 +1618,6 @@
         .account-stack {
             position: relative;
             isolation: isolate;
-            margin-top: 10px;
             outline: none;
             touch-action: pan-y;
             user-select: none;
@@ -1673,35 +1656,10 @@
             pointer-events: none
         }
 
-        .account-stack-card:not(.is-front) > * {
-            visibility: hidden
-        }
-
-        .account-stack.is-expanded .account-stack-card:not(.is-front) > * {
-            visibility: visible
-        }
-
-        .account-stack.is-swiping .account-stack-card.is-next > * {
-            visibility: visible
-        }
-
-        .account-stack-controls {
-            display: flex;
-            justify-content: flex-end;
-            margin: 10px 0 8px
-        }
-
         .account-stack-summary-balances {
             display: grid;
             grid-template-columns: repeat(2, minmax(0, 1fr));
             gap: 12px
-        }
-
-        .account-stack-control-actions {
-            display: flex;
-            align-items: center;
-            justify-content: flex-end;
-            gap: 6px
         }
 
         .account-stack-summary-balances .account-stack-summary-line {
@@ -1804,25 +1762,14 @@
             gap: 6px
         }
 
-        @media (max-width: 400px) {
-            .account-stack-overview > div {
-                padding: 0 8px
-            }
-        }
-
         .account-stack-footer {
             justify-content: space-between;
             flex-wrap: wrap;
-            margin-top: 8px
+            margin: 0 0 8px
         }
 
         .account-stack-footer > small {
             flex: 1 1 120px
-        }
-
-        .account-stack-footer .chip:disabled {
-            cursor: default;
-            opacity: .5
         }
 
         .ag {
@@ -2314,7 +2261,7 @@
 
         #ov>div {
             background: var(--cd);
-            border-radius: 18px;
+            border-radius: 16px;
             padding: 20px;
             width: 100%;
             max-width: 440px;
@@ -2479,6 +2426,11 @@
             .pocket-select-menu.is-closing {
                 animation-duration: .01ms
             }
+
+            .pocket-select-menu.cashback-transaction-picker,
+            .pocket-select-menu.cashback-transaction-picker.is-closing {
+                animation-duration: .01ms
+            }
         }
 
         .pocket-select-menu::-webkit-scrollbar {
@@ -2502,6 +2454,176 @@
         .pocket-select-option[aria-selected="true"] {
             background: var(--sq);
             font-weight: 700
+        }
+
+        .pocket-select-overlay.cashback-transaction-overlay {
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px));
+            background: #0009
+        }
+
+        .pocket-select-menu.cashback-transaction-picker {
+            display: flex;
+            width: 100%;
+            max-width: 520px;
+            flex-direction: column;
+            gap: 12px;
+            overflow: hidden;
+            padding: 20px;
+            border-radius: 22px;
+            background: var(--cd);
+            box-shadow: 0 20px 60px #0008;
+            transform-origin: bottom center;
+            animation: cashback-transaction-picker-in .18s ease-out both
+        }
+
+        .pocket-select-menu.cashback-transaction-picker.is-closing {
+            animation: cashback-transaction-picker-out .12s ease-in both
+        }
+
+        .cashback-transaction-picker-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 12px
+        }
+
+        .cashback-transaction-picker-heading {
+            display: grid;
+            gap: 4px
+        }
+
+        .cashback-transaction-picker-heading small {
+            color: var(--in);
+            font-size: 10px;
+            font-weight: 650;
+            letter-spacing: .08em
+        }
+
+        .cashback-transaction-picker-heading h2 {
+            margin: 0;
+            color: var(--tx);
+            font-size: 20px;
+            line-height: 1.2
+        }
+
+        .cashback-transaction-picker-close {
+            display: grid;
+            flex: none;
+            width: 36px;
+            height: 36px;
+            place-items: center;
+            border: 0;
+            border-radius: 11px;
+            background: var(--sq);
+            color: var(--tx);
+            cursor: pointer
+        }
+
+        .cashback-transaction-picker-close .ic {
+            width: 19px;
+            height: 19px
+        }
+
+        .cashback-transaction-picker-close:focus-visible {
+            outline: 2px solid var(--in);
+            outline-offset: 2px
+        }
+
+        .cashback-transaction-picker-search {
+            display: flex;
+            min-height: 48px;
+            align-items: center;
+            gap: 9px;
+            padding: 0 13px;
+            border: 1px solid var(--bd);
+            border-radius: 14px;
+            background: var(--bg);
+            color: var(--mu)
+        }
+
+        .cashback-transaction-picker-search > span {
+            display: grid;
+            flex: none;
+            place-items: center
+        }
+
+        .cashback-transaction-picker-search .ic {
+            width: 18px;
+            height: 18px
+        }
+
+        .cashback-transaction-picker-search input {
+            width: 100%;
+            min-width: 0;
+            padding: 0;
+            border: 0;
+            outline: 0;
+            background: transparent;
+            color: var(--tx);
+            font: inherit;
+            font-size: 13px
+        }
+
+        .cashback-transaction-picker-search input::placeholder {
+            color: var(--mu);
+            opacity: 1
+        }
+
+        .cashback-transaction-picker-options {
+            min-height: 0;
+            flex: 1;
+            overflow-y: auto;
+            overscroll-behavior: contain;
+            border: 1px solid var(--bd);
+            border-radius: 14px;
+            background: var(--bg)
+        }
+
+        .cashback-transaction-picker-options .pocket-select-option {
+            min-height: 48px;
+            padding: 12px 14px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap
+        }
+
+        .cashback-transaction-picker-options .pocket-select-option[hidden] {
+            display: none
+        }
+
+        .cashback-transaction-picker-empty {
+            margin: 0;
+            padding: 22px 12px;
+            color: var(--mu);
+            font-size: 13px;
+            text-align: center
+        }
+
+        @keyframes cashback-transaction-picker-in {
+            from {
+                opacity: 0;
+                transform: translateY(12px)
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0)
+            }
+        }
+
+        @keyframes cashback-transaction-picker-out {
+            from {
+                opacity: 1;
+                transform: translateY(0)
+            }
+
+            to {
+                opacity: 0;
+                transform: translateY(12px)
+            }
         }
 
         .pocket-select-menu.transaction-filter-menu .pocket-select-option {
@@ -4801,7 +4923,14 @@
         }
 
         html[data-view="acc"] .fab.pocket-fab-labeled {
+            align-items: center;
+            justify-content: center;
             color: #102015
+        }
+
+        html[data-view="acc"] body.pocket-actions-scroll-hidden .fab.pocket-fab-labeled,
+        html[data-view="acc"] body.pocket-actions-scroll-hidden .pocket-account-transfer {
+            transform: none
         }
 
         html[data-view="acc"] .pocket-fab-menu {
@@ -4821,7 +4950,7 @@
 
             html[data-view="acc"] .fab.pocket-fab-labeled,
             html[data-view="acc"] .pocket-account-transfer {
-                bottom: calc(104px + env(safe-area-inset-bottom, 0px));
+                bottom: calc(82px + env(safe-area-inset-bottom, 0px));
                 width: calc(50vw - 21px);
                 height: 52px;
                 border-radius: 28px
@@ -4838,29 +4967,6 @@
                 right: auto;
                 left: 14px;
                 padding: 0 10px
-            }
-        }
-
-        @keyframes accounts-fab-slide-up {
-            from {
-                opacity: 0;
-                transform: translateY(32px)
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0)
-            }
-        }
-
-        @media (prefers-reduced-motion: no-preference) {
-            html[data-view="acc"] body:not(.pocket-actions-scroll-hidden) .fab.pocket-fab-labeled,
-            html[data-view="acc"] body:not(.pocket-actions-scroll-hidden) .pocket-account-transfer {
-                animation: accounts-fab-slide-up .48s cubic-bezier(.22, .68, 0, 1)
-            }
-
-            html[data-view="acc"] body:not(.pocket-actions-scroll-hidden) .pocket-account-transfer {
-                animation-delay: .08s
             }
         }
 
@@ -5099,12 +5205,12 @@
         #ov.form-open > div {
             display: flex;
             flex-direction: column;
-            width: min(100%, 520px);
-            height: min(88vh, 760px);
-            max-height: 92vh;
+            width: 100%;
+            height: 100%;
+            max-height: none;
             padding: 0;
             border: 0;
-            border-radius: 28px;
+            border-radius: 0;
             background: var(--bg)
         }
 
@@ -5115,14 +5221,39 @@
         }
 
         .form-screen-header {
-            display: flex;
+            display: grid;
+            grid-template-columns: 24px auto 24px;
             flex: none;
             align-items: center;
-            justify-content: space-between;
-            min-height: 58px;
-            padding: 8px 24px;
+            column-gap: 10px;
+            min-height: 52px;
+            padding: 6px 12px;
             border-bottom: 0;
             font-weight: 700
+        }
+
+        .form-screen-header > span:nth-child(2) {
+            justify-self: start
+        }
+
+        .form-screen-header .form-screen-close {
+            justify-self: end
+        }
+
+        .form-screen-arrow,
+        .form-screen-close {
+            display: grid;
+            width: 24px;
+            height: 24px;
+            place-items: center;
+            color: var(--tx);
+            cursor: pointer
+        }
+
+        .form-screen-arrow svg,
+        .form-screen-close svg {
+            width: 22px;
+            height: 22px
         }
 
         .form-screen-header button {
@@ -5134,29 +5265,42 @@
             border-radius: 0;
             background: transparent;
             color: var(--tx);
-            cursor: pointer
+            cursor: pointer;
+            padding: 0
         }
 
         .form-screen-header svg {
-            width: 19px;
-            height: 19px
+            width: 22px;
+            height: 22px
         }
 
         .form-screen-intro {
             flex: none;
-            padding: 14px 24px 16px
+            padding: 18px 12px 24px
+        }
+
+        .quick-add-intro {
+            position: relative;
+            padding-right: 56px
+        }
+
+        .quick-add-page-menu-toggle {
+            position: absolute;
+            top: 33px;
+            right: 24px
         }
 
         .form-eyebrow {
             color: var(--in);
-            font-size: 11px;
-            font-weight: 800;
+            font-size: 12px;
+            font-weight: 400;
             letter-spacing: .12em
         }
 
         .form-screen-intro h3 {
-            margin: 5px 0 6px;
-            font-size: 28px;
+            margin: 8px 0 0;
+            font-size: 34px;
+            line-height: 1.05;
             letter-spacing: -.04em
         }
 
@@ -5168,20 +5312,42 @@
 
         #f .form-fields {
             display: grid;
-            grid-template-columns: minmax(0, 1fr);
+            grid-template-columns: repeat(2, minmax(0, 1fr));
             align-content: start;
-            gap: 20px;
-            padding: 8px 24px 20px
+            column-gap: 14px;
+            row-gap: 14px;
+            padding: 6px 12px 12px
         }
 
         #f .form-fields > label {
             display: grid;
-            gap: 7px;
+            gap: 3px;
             min-width: 0;
             margin: 0;
             color: var(--mu);
             font-size: 12px;
             font-weight: 600
+        }
+
+        #f.pocket-transaction-form .form-field-full,
+        #f.pocket-transaction-form label[data-field="type"],
+        #f.pocket-transaction-form label[data-field="amount"],
+        #f.pocket-transaction-form label[data-field="title"],
+        #f.pocket-transaction-form label[data-field="cashbackAmount"],
+        #f.pocket-transaction-form label[data-field="to"],
+        #f.pocket-transaction-form label[data-field="note"],
+        #f.pocket-transaction-form label[data-field="transferDirection"] {
+            grid-column: 1 / -1
+        }
+
+        #f.pocket-transaction-form label[data-field="cashbackAmount"] input {
+            color: var(--tx);
+            font-size: 16px
+        }
+
+        #f.pocket-transaction-form label[data-field="cashbackAmount"] input::placeholder {
+            color: var(--tx);
+            opacity: 1
         }
 
         #f .form-fields input:not([type="hidden"]):not([type="checkbox"]):not([type="color"]),
@@ -5203,21 +5369,25 @@
         }
 
         #f.pocket-transaction-form label[data-field="amount"] {
-            padding: 20px;
+            min-height: 150px;
+            padding: 14px 18px 16px;
             border: 1px solid var(--bd);
             border-radius: 20px;
-            background: var(--cd)
+            background: var(--cd);
+            box-shadow: 0 12px 28px rgba(0, 0, 0, .20)
         }
 
         #f.pocket-transaction-form label[data-field="amount"] input {
-            min-height: 54px;
+            min-height: 52px;
+            width: 100%;
             padding: 0;
             border: 0;
             background: transparent;
-            font-size: 40px;
+            font-size: 44px;
             font-weight: 750;
             letter-spacing: -.04em;
-            cursor: text
+            cursor: text;
+            line-height: 1
         }
 
         #f.pocket-transaction-form .amount-input-wrap {
@@ -5229,9 +5399,14 @@
         #f.pocket-transaction-form .amount-currency {
             flex: none;
             color: var(--tx);
-            font-size: 30px;
+            font-size: 42px;
             font-weight: 750;
-            line-height: 54px
+            line-height: 52px
+        }
+
+        #f.pocket-transaction-form .amount-input-wrap {
+            width: 100%;
+            gap: 8px
         }
 
         #f.pocket-transaction-form label[data-field="type"] {
@@ -5242,24 +5417,30 @@
         #f.pocket-transaction-form label[data-field="type"] > .form-type-tabs {
             display: grid;
             grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 8px
+            column-gap: 16px
         }
 
         .form-type-tabs button {
-            min-height: 50px;
+            min-height: 40px;
             border: 0;
-            border-radius: 14px;
-            background: var(--sq);
-            color: var(--mu);
+            border-radius: 12px;
+            background: #b8ef76;
+            color: #122016;
             font: inherit;
-            font-size: 13px;
+            font-size: 16px;
             font-weight: 700;
             cursor: pointer
         }
 
         .form-type-tabs button.is-active {
             background: #b8ef76;
-            color: #122016
+            color: #122016;
+            box-shadow: 0 8px 18px rgba(184, 239, 118, .18)
+        }
+
+        .form-type-tabs button:not(.is-active) {
+            background: #263a28;
+            color: var(--tx)
         }
 
         #f.pocket-transaction-form label[data-field="amount"] input {
@@ -5296,18 +5477,32 @@
             flex: none;
             flex-direction: column;
             gap: 10px;
-            padding: 14px 24px 20px;
-            border-top: 1px solid var(--bd)
+            margin-top: auto;
+            padding: 12px 12px 12px;
+            border-top: 0;
+            box-shadow: 0 -12px 28px rgba(0, 0, 0, .12)
+        }
+
+        #f > .row.end .b1 {
+            box-shadow: 0 10px 24px rgba(184, 239, 118, .16)
         }
 
         #f > .row.end button {
             width: 100%;
-            min-height: 48px;
-            border-radius: 15px
+            min-height: 52px;
+            border-radius: 16px;
+            align-items: center;
+            justify-content: center;
+            text-align: center
+        }
+
+        #f > .er[hidden] {
+            display: none
         }
 
         #f > .row.end .b1 {
-            order: 0
+            order: 0;
+            min-height: 52px
         }
 
         #f > .row.end .b2 {
@@ -5318,26 +5513,34 @@
             background: var(--bg)
         }
 
+        #ov.quick-add-open .form-screen-header button {
+            background: transparent;
+            color: var(--tx)
+        }
+
         #ov.quick-add-open > div {
             display: flex;
             flex-direction: column;
             width: min(100%, 520px);
-            height: min(88vh, 760px);
-            max-height: 92vh;
+            height: 100%;
+            max-height: none;
             padding: 0;
-            border: 1px solid var(--bd);
-            border-radius: 24px;
+            border: 0;
+            border-radius: 0;
             background: var(--bg)
         }
 
         .quick-add-screen {
-            min-height: 0
+            display: flex;
+            min-height: 0;
+            flex-direction: column;
+            flex: 1
         }
 
         .quick-add-options {
             display: grid;
-            gap: 12px;
-            padding: 10px 24px 24px
+            gap: 14px;
+            padding: 18px 16px 24px
         }
 
         .quick-add-options > button {
@@ -5345,11 +5548,12 @@
             align-items: center;
             gap: 13px;
             width: 100%;
-            min-height: 78px;
-            padding: 14px;
+            min-height: 96px;
+            padding: 16px;
             border: 1px solid var(--bd);
-            border-radius: 17px;
+            border-radius: 16px;
             background: var(--cd);
+            box-shadow: 0 10px 24px rgba(0, 0, 0, .18);
             color: var(--tx);
             text-align: left;
             cursor: pointer
@@ -5361,9 +5565,13 @@
             gap: 3px
         }
 
+        .quick-add-options > button > span:nth-child(2) b {
+            font-size: 18px
+        }
+
         .quick-add-options > button small {
             color: var(--mu);
-            font-size: 11px
+            font-size: 12px
         }
 
         .quick-add-options > button > svg {
@@ -5375,11 +5583,11 @@
         .quick-add-icon {
             display: grid;
             flex: none;
-            width: 46px;
-            height: 46px;
+            width: 42px;
+            height: 42px;
             place-items: center;
-            border-radius: 15px;
-            background: var(--sq);
+            border-radius: 12px;
+            background: transparent;
             color: var(--in)
         }
 
@@ -5388,8 +5596,24 @@
         }
 
         .quick-add-icon svg {
-            width: 20px;
-            height: 20px
+            width: 22px;
+            height: 22px
+        }
+
+        .quick-add-footer {
+            margin-top: auto;
+            padding: 14px 16px calc(16px + env(safe-area-inset-bottom, 0px));
+            border-top: 0;
+            box-shadow: 0 -12px 28px rgba(0, 0, 0, .18)
+        }
+
+        .quick-add-footer .b2 {
+            width: 100%;
+            min-height: 52px;
+            border: 0;
+            border-radius: 14px;
+            background: var(--sq);
+            color: var(--tx)
         }
 
         @media(max-width:760px) {
@@ -5601,5 +5825,1582 @@
                 border-color: transparent;
                 background: #203329;
                 color: #f2f6f3
+            }
+        }
+
+        #f.pocket-account-form .form-screen-header {
+            min-height: 64px;
+            padding: 8px 24px 4px
+        }
+
+        #f.pocket-account-form .form-screen-intro {
+            padding: 12px 24px 19px
+        }
+
+        #f.pocket-account-form .form-eyebrow {
+            letter-spacing: .06em
+        }
+
+        #f.pocket-account-form .form-screen-intro h3 {
+            font-size: 28px;
+            line-height: 1.1;
+            letter-spacing: -.03em
+        }
+
+        #f.pocket-account-form .form-fields {
+            grid-template-columns: minmax(0, 1fr);
+            row-gap: 18px;
+            padding: 0 24px 11px
+        }
+
+        #f.pocket-account-form .form-fields > label {
+            grid-column: 1 / -1;
+            gap: 8px
+        }
+
+        #f.pocket-account-form .form-fields > label[data-field="name"],
+        #f.pocket-account-form .form-fields > label[data-field="type"] {
+            gap: 3px
+        }
+
+        #f.pocket-account-form .form-fields > label[data-field="type"] {
+            margin-bottom: 2px
+        }
+
+        #f.pocket-account-form .account-form-card {
+            min-width: 0;
+            padding: 20px;
+            border-radius: 22px;
+            background: var(--cd)
+        }
+
+        #f.pocket-account-form .account-balance-card {
+            margin-bottom: 2px;
+            padding-bottom: 30px
+        }
+
+        #f.pocket-account-form .account-form-card label {
+            display: grid;
+            min-width: 0;
+            margin: 0;
+            color: var(--mu);
+            font-size: 12px;
+            font-weight: 600
+        }
+
+        #f.pocket-account-form .account-balance-card > label {
+            gap: 3px
+        }
+
+        #f.pocket-account-form .account-color-card {
+            padding: 24px 20px 16px
+        }
+
+        #f.pocket-account-form .account-color-heading {
+            display: flex;
+            position: relative;
+            min-height: 24px;
+            align-items: center;
+            justify-content: flex-start;
+            transform: translateY(-3px);
+            color: var(--tx);
+            font-size: 13px;
+            font-weight: 400
+        }
+
+        #f.pocket-account-form .account-color-toggle {
+            display: grid;
+            width: 24px;
+            height: 24px;
+            flex: none;
+            position: absolute;
+            right: 0;
+            place-items: center;
+            padding: 0;
+            border: 0;
+            border-radius: 6px;
+            background: transparent;
+            color: var(--mu);
+            cursor: pointer
+        }
+
+        #f.pocket-account-form .account-color-toggle svg {
+            width: 18px;
+            height: 18px
+        }
+
+        #f.pocket-account-form .account-color-toggle:focus-visible {
+            outline: 2px solid var(--in);
+            outline-offset: 2px
+        }
+
+        #f.pocket-account-form .account-color-fields {
+            display: grid;
+            gap: 0;
+            margin-top: 3px
+        }
+
+        #f.pocket-account-form .account-color-fields[hidden] {
+            display: none
+        }
+
+        #f.pocket-account-form label[data-field="color"] {
+            gap: 0;
+            color: var(--tx);
+            font-size: 13px;
+            font-weight: 400
+        }
+
+        #f.pocket-account-form .color-picker {
+            gap: 18px
+        }
+
+        #f.pocket-account-form .color-swatches {
+            grid-template-columns: repeat(6, 34px);
+            gap: 16px;
+            max-width: none
+        }
+
+        #f.pocket-account-form .color-swatch {
+            width: 34px;
+            height: 34px;
+            padding: 2px;
+            border: 2px solid transparent;
+            border-radius: 50%;
+            background: transparent
+        }
+
+        #f.pocket-account-form .color-swatch::before {
+            border-radius: 50%
+        }
+
+        #f.pocket-account-form .color-swatch[aria-pressed=true] {
+            padding: 2px;
+            border-color: var(--tx)
+        }
+
+        @media(max-width:380px) {
+            #f.pocket-account-form .color-swatches {
+                grid-template-columns: repeat(6, minmax(0, 1fr));
+                column-gap: 12px
+            }
+
+            #f.pocket-account-form .color-swatch {
+                width: 100%;
+                height: auto;
+                min-width: 0
+            }
+        }
+
+        #f.pocket-account-form .account-color-code-row {
+            display: block
+        }
+
+        #f.pocket-account-form .color-preview {
+            display: none
+        }
+
+        #f.pocket-account-form .account-color-code {
+            display: grid;
+            gap: 2px
+        }
+
+        #f.pocket-account-form .color-hex-input {
+            max-width: none;
+            font-family: inherit
+        }
+
+        #f.pocket-account-form .color-picker > small {
+            display: none
+        }
+
+        #f.pocket-account-form .form-field-help {
+            color: var(--mu);
+            font-size: 12px;
+            font-weight: 400;
+            line-height: 1.4
+        }
+
+        #f.pocket-account-form label[data-field="icon"] {
+            gap: 0;
+            margin-top: 16px;
+            color: var(--tx)
+        }
+
+        #f.pocket-account-form .account-icon-row {
+            display: flex;
+            min-height: 24px;
+            align-items: center;
+            gap: 12px
+        }
+
+        #f.pocket-account-form .account-icon-preview {
+            display: grid;
+            width: 24px;
+            height: 24px;
+            flex: none;
+            place-items: center;
+            color: var(--mu)
+        }
+
+        #f.pocket-account-form .account-icon-preview svg {
+            width: 22px;
+            height: 22px
+        }
+
+        #f.pocket-account-form .account-icon-name {
+            color: var(--tx);
+            font-size: 14px;
+            font-weight: 400
+        }
+
+        #f.pocket-account-form .account-icon-trigger {
+            display: inline-flex;
+            min-height: 24px;
+            align-items: center;
+            gap: 4px;
+            margin-left: auto;
+            padding: 0;
+            border: 0;
+            background: transparent;
+            color: var(--in);
+            font: inherit;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer
+        }
+
+        #f.pocket-account-form .account-icon-trigger:focus-visible {
+            outline: 2px solid var(--in);
+            outline-offset: 3px
+        }
+
+        #f.pocket-account-form > .row.end {
+            padding: 12px 24px calc(24px + env(safe-area-inset-bottom, 0px));
+            box-shadow: none
+        }
+
+        #f.pocket-account-form > .row.end button {
+            border-radius: 14px
+        }
+
+        #m[data-view="bud"] > .budgets-heading {
+            align-items: flex-start
+        }
+
+        #m[data-view="bud"] .budgets-heading-copy {
+            display: grid;
+            gap: 5px;
+            min-width: 0
+        }
+
+        #m[data-view="bud"] .budgets-heading-copy > small {
+            color: var(--mu);
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: .12em
+        }
+
+        #m[data-view="bud"] .budgets-heading-copy h2 {
+            margin: 0;
+            font-size: 30px;
+            letter-spacing: -.04em
+        }
+
+        .budgets-page {
+            width: 100%;
+            max-width: 640px;
+            margin: 0 auto;
+            padding-bottom: 140px
+        }
+
+        .budgets-month {
+            display: flex;
+            min-height: 48px;
+            align-items: center;
+            justify-content: center;
+            gap: 18px;
+            margin: 0 0 16px
+        }
+
+        .budgets-month > strong {
+            min-width: 148px;
+            color: var(--tx);
+            font-size: 16px;
+            text-align: center
+        }
+
+        .budgets-month-button {
+            display: grid;
+            width: 36px;
+            height: 36px;
+            place-items: center;
+            padding: 0;
+            border: 1px solid var(--bd);
+            border-radius: 11px;
+            background: var(--cd);
+            color: var(--mu);
+            cursor: pointer
+        }
+
+        .budgets-month-button:hover,
+        .budgets-month-button:focus-visible {
+            color: var(--tx)
+        }
+
+        .budgets-month-button:focus-visible,
+        .budget-card-menu summary:focus-visible,
+        .budget-card-menu-options button:focus-visible {
+            outline: 2px solid var(--in);
+            outline-offset: 2px
+        }
+
+        .budgets-month-button .ic {
+            width: 18px;
+            height: 18px
+        }
+
+        .budgets-overview-alert {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            margin: 0 0 16px;
+            padding: 15px 16px;
+            border: 1px solid #554829;
+            border-radius: 17px;
+            background: #30291b;
+            color: #f0cf75
+        }
+
+        .budgets-overview-alert-icon {
+            display: grid;
+            width: 22px;
+            height: 22px;
+            flex: none;
+            place-items: center;
+            margin-top: 1px
+        }
+
+        .budgets-overview-alert-icon .ic {
+            width: 19px;
+            height: 19px
+        }
+
+        .budgets-overview-alert > div {
+            display: grid;
+            gap: 3px;
+            min-width: 0
+        }
+
+        .budgets-overview-alert b {
+            font-size: 14px
+        }
+
+        .budgets-overview-alert small {
+            color: #d6bd79;
+            font-size: 12px;
+            line-height: 1.45
+        }
+
+        .budgets-list {
+            display: grid;
+            gap: 12px
+        }
+
+        #m[data-view="bud"] .budget-card {
+            min-width: 0;
+            padding: 16px 18px;
+            border: 1px solid var(--bd);
+            border-radius: 18px;
+            background: var(--cd);
+            box-shadow: none
+        }
+
+        .budget-card-heading {
+            display: flex;
+            min-height: 30px;
+            align-items: center;
+            gap: 10px
+        }
+
+        .budget-card-icon {
+            display: grid;
+            width: 24px;
+            height: 24px;
+            flex: none;
+            place-items: center;
+            color: var(--budget-icon-color)
+        }
+
+        .budget-card-icon .ic {
+            width: 21px;
+            height: 21px
+        }
+
+        .budget-card-heading > b {
+            min-width: 0;
+            overflow: hidden;
+            color: var(--tx);
+            font-size: 15px;
+            font-weight: 650;
+            text-overflow: ellipsis;
+            white-space: nowrap
+        }
+
+        .budget-card-menu {
+            position: relative;
+            flex: none;
+            margin-left: auto
+        }
+
+        .budget-card-menu summary {
+            display: grid;
+            width: 32px;
+            height: 32px;
+            place-items: center;
+            border-radius: 9px;
+            color: var(--mu);
+            cursor: pointer;
+            list-style: none
+        }
+
+        .budget-card-menu summary::-webkit-details-marker {
+            display: none
+        }
+
+        .budget-card-menu summary:hover,
+        .budget-card-menu[open] summary {
+            background: var(--sq);
+            color: var(--tx)
+        }
+
+        .budget-card-menu summary .ic {
+            width: 19px;
+            height: 19px
+        }
+
+        .budget-card-menu-options {
+            position: absolute;
+            top: calc(100% + 5px);
+            right: 0;
+            z-index: 8;
+            display: grid;
+            width: 172px;
+            gap: 3px;
+            padding: 6px;
+            border: 1px solid var(--bd);
+            border-radius: 12px;
+            background: var(--cd);
+            box-shadow: 0 10px 24px #0005
+        }
+
+        .budget-card-menu-options button {
+            display: flex;
+            min-height: 38px;
+            align-items: center;
+            gap: 9px;
+            padding: 7px 9px;
+            border: 0;
+            border-radius: 8px;
+            background: transparent;
+            color: var(--tx);
+            font: inherit;
+            font-size: 13px;
+            text-align: left;
+            cursor: pointer
+        }
+
+        .budget-card-menu-options button:hover {
+            background: var(--sq)
+        }
+
+        .budget-card-menu-options button:last-child {
+            color: var(--ex)
+        }
+
+        .budget-card-menu-options .ic {
+            width: 17px;
+            height: 17px;
+            flex: none
+        }
+
+        .budget-card-amounts {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 12px;
+            margin-top: 8px
+        }
+
+        .budget-card-amounts > div {
+            display: grid;
+            gap: 2px
+        }
+
+        .budget-card-amounts small,
+        .budget-card-footer small {
+            color: var(--mu);
+            font-size: 11px
+        }
+
+        .budget-card-amounts strong {
+            color: var(--tx);
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: -.025em
+        }
+
+        .budget-card-amounts > small {
+            padding-bottom: 2px;
+            text-align: right
+        }
+
+        .budget-card-amounts > small b {
+            color: var(--tx);
+            font-weight: 600
+        }
+
+        #m[data-view="bud"] .budget-card .bar {
+            height: 7px;
+            margin: 11px 0 8px;
+            overflow: hidden;
+            border-radius: 999px;
+            background: var(--sq)
+        }
+
+        #m[data-view="bud"] .budget-card .bar i {
+            display: block;
+            height: 100%;
+            border-radius: inherit
+        }
+
+        .budget-card-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px
+        }
+
+        .budget-card-footer > b {
+            font-size: 12px;
+            font-weight: 700
+        }
+
+        #m[data-view="bud"] .budgets-empty {
+            padding: 24px 18px;
+            border: 1px dashed var(--bd);
+            color: var(--mu);
+            text-align: center
+        }
+
+        #f.pocket-budget-form .form-screen-header {
+            min-height: 64px;
+            padding: 8px 24px 4px
+        }
+
+        #f.pocket-budget-form .form-screen-intro {
+            padding: 12px 24px 20px
+        }
+
+        #f.pocket-budget-form .form-eyebrow {
+            letter-spacing: .06em
+        }
+
+        #f.pocket-budget-form .form-screen-intro h3 {
+            font-size: 28px;
+            line-height: 1.1;
+            letter-spacing: -.03em
+        }
+
+        #f.pocket-budget-form .form-screen-intro p {
+            max-width: 330px;
+            margin-top: 7px;
+            font-size: 13px;
+            line-height: 1.5
+        }
+
+        #f.pocket-budget-form .budget-form-fields {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            padding: 0 24px 12px
+        }
+
+        #f.pocket-budget-form .budget-form-fields > .er {
+            width: 100%;
+            margin: 0;
+            padding: 0 2px
+        }
+
+        #f.pocket-budget-form .budget-form-fields > .er[hidden] {
+            display: none
+        }
+
+        #f.pocket-budget-form .budget-form-card {
+            display: grid;
+            gap: 17px;
+            padding: 20px;
+            border-radius: 20px;
+            background: var(--cd)
+        }
+
+        #f.pocket-budget-form .budget-form-card > label {
+            display: grid;
+            min-width: 0;
+            gap: 8px;
+            margin: 0;
+            color: var(--mu);
+            font-size: 12px;
+            font-weight: 600
+        }
+
+        #f.pocket-budget-form .budget-amount-input {
+            display: flex;
+            min-width: 0;
+            min-height: 52px;
+            align-items: center;
+            gap: 7px;
+            padding: 0 14px;
+            border: 1px solid var(--bd);
+            border-radius: 12px;
+            background: var(--sq);
+            color: var(--mu);
+            font-size: 14px
+        }
+
+        #f.pocket-budget-form .budget-amount-input input {
+            width: 100%;
+            min-width: 0;
+            min-height: 0;
+            padding: 0;
+            border: 0;
+            outline: 0;
+            background: transparent;
+            color: var(--tx);
+            font: inherit;
+            font-size: 14px
+        }
+
+        #f.pocket-budget-form .budget-amount-input:focus-within {
+            border-color: var(--in);
+            box-shadow: 0 0 0 2px color-mix(in srgb, var(--in) 18%, transparent)
+        }
+
+        #f.pocket-budget-form .budget-form-note {
+            display: flex;
+            align-items: flex-start;
+            padding: 16px;
+            border: 1px solid color-mix(in srgb, var(--in) 20%, transparent);
+            border-radius: 17px;
+            background: color-mix(in srgb, var(--in) 10%, var(--cd))
+        }
+
+        #f.pocket-budget-form .budget-form-note > div {
+            display: grid;
+            gap: 4px;
+            padding-top: 1px
+        }
+
+        #f.pocket-budget-form .budget-form-note b {
+            color: var(--tx);
+            font-size: 13px
+        }
+
+        #f.pocket-budget-form .budget-form-note p {
+            margin: 0;
+            color: var(--mu);
+            font-size: 12px;
+            line-height: 1.45
+        }
+
+        #f.pocket-budget-form > .row.end {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr);
+            gap: 10px;
+            padding: 12px 24px calc(24px + env(safe-area-inset-bottom, 0px));
+            box-shadow: none
+        }
+
+        #f.pocket-budget-form > .row.end button {
+            width: 100%;
+            min-height: 52px;
+            border-radius: 14px
+        }
+
+        #f.pocket-cashback-form .form-screen-header {
+            min-height: 64px;
+            padding: 8px 24px 4px
+        }
+
+        #f.pocket-cashback-form .form-screen-intro {
+            padding: 12px 24px 20px
+        }
+
+        #f.pocket-cashback-form .form-screen-intro h3 {
+            font-size: 28px;
+            line-height: 1.1;
+            letter-spacing: -.03em
+        }
+
+        #f.pocket-cashback-form .form-screen-intro p {
+            max-width: 330px;
+            margin-top: 7px;
+            font-size: 13px;
+            line-height: 1.5
+        }
+
+        #f.pocket-cashback-form .form-fields {
+            grid-template-columns: minmax(0, 1fr);
+            row-gap: 16px;
+            padding: 0 24px 12px
+        }
+
+        #f.pocket-cashback-form .form-fields > label {
+            gap: 8px
+        }
+
+        #f.pocket-cashback-form .amount-input-wrap {
+            display: flex;
+            min-width: 0;
+            min-height: 52px;
+            align-items: center;
+            gap: 7px;
+            padding: 0 14px;
+            border: 1px solid var(--bd);
+            border-radius: 12px;
+            background: var(--sq);
+            color: var(--mu);
+            font-size: 14px
+        }
+
+        #f.pocket-cashback-form .amount-currency {
+            flex: none
+        }
+
+        #f.pocket-cashback-form .amount-input-wrap input {
+            width: 100%;
+            min-width: 0;
+            min-height: 0;
+            padding: 0;
+            border: 0;
+            outline: 0;
+            background: transparent;
+            color: var(--tx);
+            font: inherit;
+            font-size: 14px
+        }
+
+        #f.pocket-cashback-form .amount-input-wrap:focus-within {
+            border-color: var(--in);
+            box-shadow: 0 0 0 2px color-mix(in srgb, var(--in) 18%, transparent)
+        }
+
+        #f.pocket-cashback-form > .row.end {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr);
+            gap: 10px;
+            padding: 12px 24px calc(24px + env(safe-area-inset-bottom, 0px));
+            box-shadow: none
+        }
+
+        #f.pocket-cashback-form > .row.end button {
+            width: 100%;
+            min-height: 52px;
+            border-radius: 14px
+        }
+
+        @media (max-width: 760px) {
+            #m[data-view="bud"] {
+                padding: 20px 24px 154px
+            }
+
+            #m[data-view="bud"] .budgets-page {
+                padding-bottom: 8px
+            }
+
+            html[data-view="bud"] .fab.pocket-fab-labeled {
+                right: 24px;
+                bottom: calc(96px + env(safe-area-inset-bottom, 0px));
+                left: 24px;
+                width: auto;
+                min-width: 0;
+                height: 52px;
+                justify-content: center;
+                padding: 0 16px;
+                border-radius: 15px
+            }
+
+            #f.pocket-budget-form .form-screen-intro p {
+                max-width: 320px
+            }
+        }
+
+        #m[data-view="cash"] > .cashback-header {
+            align-items: flex-start;
+            margin-top: -24px;
+            padding: 24px 0 0
+        }
+
+        #m[data-view="cash"] .cashback-heading-copy {
+            display: grid;
+            order: 1;
+            gap: 14px;
+            min-width: 0
+        }
+
+        #m[data-view="cash"] .cashback-eyebrow {
+            color: var(--in);
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: .04em
+        }
+
+        #m[data-view="cash"] .cashback-heading-copy h2 {
+            margin: 0;
+            font-size: 30px;
+            line-height: 1.15;
+            letter-spacing: -.035em
+        }
+
+        #m[data-view="cash"] .cashback-header .page-menu-toggle {
+            order: 2;
+            margin: 5px 0 0 auto
+        }
+
+        #m[data-view="cash"] .cashback-header .pocket-profile-button {
+            display: none
+        }
+
+        html[data-view="cash"] #m .cashback-summary {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr);
+            align-content: space-between;
+            gap: 0;
+            min-height: 152px;
+            margin: 34px 0 21px;
+            padding: 22px 20px;
+            border: 0;
+            border-radius: 20px;
+            background: #203c2a
+        }
+
+        html[data-view="cash"] #m .cashback-summary > small,
+        html[data-view="cash"] #m .cashback-summary > span {
+            color: var(--mu);
+            font-size: 12px
+        }
+
+        html[data-view="cash"] #m .cashback-summary > b {
+            color: var(--in);
+            font-size: 36px;
+            line-height: 1.15;
+            letter-spacing: -.04em
+        }
+
+        #m[data-view="cash"] .cashback-section-heading {
+            align-items: center;
+            justify-content: flex-start;
+            gap: 8px;
+            margin: 22px 0 23px
+        }
+
+        #m[data-view="cash"] .cashback-section-heading .cashback-subtitle {
+            margin: 0;
+            color: var(--tx);
+            font-size: 16px;
+            font-weight: 650
+        }
+
+        #m[data-view="cash"] .cashback-count {
+            min-width: 0;
+            height: auto;
+            padding: 0;
+            background: transparent;
+            color: var(--in);
+            font-size: 12px
+        }
+
+        #m[data-view="cash"] .cashback-section-menu {
+            position: relative;
+            flex: none;
+            margin-left: auto
+        }
+
+        #m[data-view="cash"] .cashback-section-menu summary {
+            display: grid;
+            width: 32px;
+            height: 32px;
+            place-items: center;
+            border-radius: 9px;
+            color: var(--mu);
+            cursor: pointer;
+            list-style: none
+        }
+
+        #m[data-view="cash"] .cashback-section-menu summary::-webkit-details-marker {
+            display: none
+        }
+
+        #m[data-view="cash"] .cashback-section-menu summary:hover,
+        #m[data-view="cash"] .cashback-section-menu[open] summary {
+            background: var(--sq);
+            color: var(--tx)
+        }
+
+        #m[data-view="cash"] .cashback-section-menu summary:focus-visible,
+        #m[data-view="cash"] .cashback-section-menu-actions button:focus-visible {
+            outline: 2px solid var(--in);
+            outline-offset: 2px
+        }
+
+        #m[data-view="cash"] .cashback-section-menu summary .ic {
+            width: 19px;
+            height: 19px
+        }
+
+        #m[data-view="cash"] .cashback-section-menu-options {
+            position: absolute;
+            top: calc(100% + 5px);
+            right: 0;
+            z-index: 12;
+            display: grid;
+            width: min(260px, calc(100vw - 48px));
+            max-height: min(60vh, 360px);
+            overflow-y: auto;
+            gap: 4px;
+            padding: 6px;
+            border: 1px solid var(--bd);
+            border-radius: 12px;
+            background: var(--cd);
+            box-shadow: 0 10px 24px #0005
+        }
+
+        #m[data-view="cash"] .cashback-section-menu-item {
+            display: grid;
+            gap: 6px;
+            padding: 7px
+        }
+
+        #m[data-view="cash"] .cashback-section-menu-item + .cashback-section-menu-item {
+            border-top: 1px solid var(--bd)
+        }
+
+        #m[data-view="cash"] .cashback-section-menu-item-label {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 8px
+        }
+
+        #m[data-view="cash"] .cashback-section-menu-item-label b {
+            min-width: 0;
+            overflow-wrap: anywhere;
+            color: var(--tx);
+            font-size: 12px;
+            font-weight: 600
+        }
+
+        #m[data-view="cash"] .cashback-section-menu-item-label span {
+            flex: none;
+            color: var(--in);
+            font-size: 12px;
+            font-weight: 650
+        }
+
+        #m[data-view="cash"] .cashback-section-menu-actions {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 5px
+        }
+
+        #m[data-view="cash"] .cashback-section-menu-actions button {
+            display: flex;
+            min-width: 0;
+            min-height: 36px;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 6px;
+            border: 0;
+            border-radius: 8px;
+            background: var(--sq);
+            color: var(--tx);
+            font: inherit;
+            font-size: 12px;
+            cursor: pointer
+        }
+
+        #m[data-view="cash"] .cashback-section-menu-actions button:last-child {
+            color: var(--ex)
+        }
+
+        #m[data-view="cash"] .cashback-section-menu-actions .ic {
+            width: 15px;
+            height: 15px;
+            flex: none
+        }
+
+        #m[data-view="cash"] .cashback-list {
+            grid-template-columns: minmax(0, 1fr);
+            gap: 12px
+        }
+
+        #m[data-view="cash"] .cashback-card {
+            display: grid;
+            gap: 16px;
+            min-width: 0;
+            padding: 20px;
+            border: 0;
+            border-radius: 20px;
+            background: var(--cd)
+        }
+
+        #m[data-view="cash"] .cashback-card-heading {
+            grid-template-columns: 26px minmax(0, 1fr) auto;
+            gap: 10px
+        }
+
+        #m[data-view="cash"] .cashback-card-icon {
+            display: grid;
+            width: 24px;
+            height: 24px;
+            place-items: center;
+            color: var(--mu)
+        }
+
+        #m[data-view="cash"] .cashback-card-icon .ic {
+            width: 22px;
+            height: 22px
+        }
+
+        #m[data-view="cash"] .cashback-card-title {
+            gap: 4px
+        }
+
+        #m[data-view="cash"] .cashback-card-title b {
+            color: var(--tx);
+            font-size: 15px;
+            font-weight: 650
+        }
+
+        #m[data-view="cash"] .cashback-card-title small {
+            color: var(--mu);
+            font-size: 11px
+        }
+
+        #m[data-view="cash"] .cashback-amount {
+            max-width: none;
+            color: var(--in);
+            font-size: 19px;
+            font-weight: 700
+        }
+
+        #m[data-view="cash"] .cashback-card-meta {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr);
+            gap: 10px;
+            padding: 0;
+            border: 0
+        }
+
+        #m[data-view="cash"] .cashback-card-meta > div {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px
+        }
+
+        #m[data-view="cash"] .cashback-card-meta small {
+            color: var(--mu);
+            font-size: 12px
+        }
+
+        #m[data-view="cash"] .cashback-card-meta b {
+            color: var(--tx);
+            font-size: 13px;
+            font-weight: 500;
+            text-align: right
+        }
+
+        #m[data-view="cash"] .cashback-card-actions button {
+            width: 100%;
+            min-height: 52px;
+            padding: 0 14px;
+            border: 0;
+            border-radius: 14px;
+            background: #203329;
+            color: var(--tx);
+            font: inherit;
+            font-size: 14px;
+            font-weight: 650;
+            cursor: pointer
+        }
+
+        #m[data-view="cash"] .cashback-card-actions button:hover {
+            background: #263a2d
+        }
+
+        #m[data-view="cash"] .cashback-empty {
+            padding: 20px;
+            border: 1px solid var(--bd);
+            border-radius: 20px;
+            background: var(--cd);
+            color: var(--mu);
+            line-height: 1.5
+        }
+
+        @media (max-width: 760px) {
+            #m[data-view="cash"] {
+                padding: 20px 24px 154px
+            }
+
+            #m[data-view="cash"] > .cashback-header {
+                margin-top: -20px;
+                padding-top: 24px
+            }
+
+            html[data-view="cash"] .fab.pocket-fab-labeled {
+                right: 24px;
+                bottom: calc(96px + env(safe-area-inset-bottom, 0px));
+                left: 24px;
+                width: auto;
+                min-width: 0;
+                height: 52px;
+                justify-content: center;
+                padding: 0 16px;
+                border-radius: 15px
+            }
+        }
+
+        #m[data-view="rec"] > .recurring-header {
+            align-items: flex-start;
+            margin-top: -24px;
+            padding: 24px 0 0
+        }
+
+        #m[data-view="rec"] .recurring-heading-copy {
+            display: grid;
+            order: 1;
+            gap: 14px;
+            min-width: 0
+        }
+
+        #m[data-view="rec"] .recurring-heading-copy > small {
+            color: var(--in);
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: .04em
+        }
+
+        #m[data-view="rec"] .recurring-heading-copy h2 {
+            margin: 0;
+            font-size: 30px;
+            line-height: 1.15;
+            letter-spacing: -.035em
+        }
+
+        #m[data-view="rec"] .recurring-heading-copy p {
+            max-width: 330px;
+            margin: 0;
+            color: var(--mu);
+            font-size: 12px;
+            line-height: 1.5
+        }
+
+        #m[data-view="rec"] .recurring-header .page-menu-toggle {
+            order: 2;
+            margin: 5px 0 0 auto
+        }
+
+        #m[data-view="rec"] .recurring-header .pocket-profile-button {
+            display: none
+        }
+
+        #m[data-view="rec"] .recurring-section-heading {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin: 24px 0 12px
+        }
+
+        #m[data-view="rec"] .recurring-section-heading b {
+            color: var(--tx);
+            font-size: 16px;
+            font-weight: 650
+        }
+
+        #m[data-view="rec"] .recurring-section-heading small {
+            color: var(--mu);
+            font-size: 12px
+        }
+
+        #m[data-view="rec"] .recurring-list {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr);
+            gap: 12px
+        }
+
+        #m[data-view="rec"] .recurring-card {
+            display: grid;
+            min-width: 0;
+            gap: 16px;
+            padding: 20px;
+            border: 0;
+            border-radius: 20px;
+            background: var(--cd)
+        }
+
+        #m[data-view="rec"] .recurring-card-heading {
+            display: grid;
+            grid-template-columns: 26px minmax(0, 1fr) 32px;
+            align-items: center;
+            gap: 10px
+        }
+
+        #m[data-view="rec"] .recurring-card-icon {
+            display: grid;
+            width: 24px;
+            height: 24px;
+            place-items: center;
+            color: var(--mu)
+        }
+
+        #m[data-view="rec"] .recurring-card-icon .ic {
+            width: 22px;
+            height: 22px
+        }
+
+        #m[data-view="rec"] .recurring-card-title {
+            display: grid;
+            min-width: 0;
+            gap: 4px
+        }
+
+        #m[data-view="rec"] .recurring-card-title b {
+            overflow-wrap: anywhere;
+            color: var(--tx);
+            font-size: 15px;
+            font-weight: 650
+        }
+
+        #m[data-view="rec"] .recurring-card-title small {
+            overflow-wrap: anywhere;
+            color: var(--mu);
+            font-size: 11px
+        }
+
+        #m[data-view="rec"] .recurring-card-menu {
+            position: relative;
+            justify-self: end
+        }
+
+        #m[data-view="rec"] .recurring-card-menu summary {
+            display: grid;
+            width: 32px;
+            height: 32px;
+            place-items: center;
+            border-radius: 10px;
+            color: var(--mu);
+            list-style: none;
+            cursor: pointer
+        }
+
+        #m[data-view="rec"] .recurring-card-menu summary::-webkit-details-marker {
+            display: none
+        }
+
+        #m[data-view="rec"] .recurring-card-menu summary:hover,
+        #m[data-view="rec"] .recurring-card-menu[open] summary {
+            background: var(--sq);
+            color: var(--tx)
+        }
+
+        #m[data-view="rec"] .recurring-card-menu summary:focus-visible,
+        #m[data-view="rec"] .recurring-card-menu-items button:focus-visible,
+        #m[data-view="rec"] .recurring-toggle:focus-visible {
+            outline: 2px solid var(--in);
+            outline-offset: 2px
+        }
+
+        #m[data-view="rec"] .recurring-card-menu summary .dashboard-icon {
+            width: 19px;
+            height: 19px
+        }
+
+        #m[data-view="rec"] .recurring-card-menu-items {
+            position: absolute;
+            top: calc(100% + 5px);
+            right: 0;
+            z-index: 12;
+            display: grid;
+            width: 160px;
+            gap: 4px;
+            padding: 6px;
+            border: 1px solid var(--bd);
+            border-radius: 12px;
+            background: var(--cd);
+            box-shadow: 0 10px 24px #0005
+        }
+
+        #m[data-view="rec"] .recurring-card-menu-items button {
+            min-height: 38px;
+            padding: 8px 10px;
+            border: 0;
+            border-radius: 8px;
+            background: transparent;
+            color: var(--tx);
+            font: inherit;
+            font-size: 12px;
+            text-align: left;
+            cursor: pointer
+        }
+
+        #m[data-view="rec"] .recurring-card-menu-items button:hover {
+            background: var(--sq)
+        }
+
+        #m[data-view="rec"] .recurring-card-menu-items button:last-child {
+            color: var(--ex)
+        }
+
+        #m[data-view="rec"] .recurring-card-amount {
+            color: var(--tx);
+            font-size: 34px;
+            font-weight: 750;
+            letter-spacing: -.04em;
+            line-height: 1.1
+        }
+
+        #m[data-view="rec"] .recurring-card-details {
+            display: grid;
+            gap: 11px
+        }
+
+        #m[data-view="rec"] .recurring-card-detail {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px
+        }
+
+        #m[data-view="rec"] .recurring-card-detail > span {
+            color: var(--mu);
+            font-size: 12px
+        }
+
+        #m[data-view="rec"] .recurring-card-detail > b {
+            min-width: 0;
+            overflow-wrap: anywhere;
+            color: var(--tx);
+            font-size: 13px;
+            font-weight: 500;
+            text-align: right
+        }
+
+        #m[data-view="rec"] .recurring-card-detail > b.is-waiting {
+            color: var(--ex)
+        }
+
+        #m[data-view="rec"] .recurring-card-start {
+            color: var(--mu);
+            font-size: 11px
+        }
+
+        #m[data-view="rec"] .recurring-toggle {
+            width: 100%;
+            min-height: 52px;
+            padding: 0 14px;
+            border: 0;
+            border-radius: 14px;
+            background: #203329;
+            color: var(--tx);
+            font: inherit;
+            font-size: 14px;
+            font-weight: 650;
+            cursor: pointer
+        }
+
+        #m[data-view="rec"] .recurring-toggle:hover {
+            background: #263a2d
+        }
+
+        #m[data-view="rec"] .recurring-empty {
+            display: flex;
+            align-items: center;
+            gap: 13px;
+            padding: 20px;
+            border: 0;
+            border-radius: 20px;
+            background: var(--cd)
+        }
+
+        #m[data-view="rec"] .recurring-empty-icon {
+            display: grid;
+            width: 42px;
+            height: 42px;
+            flex: none;
+            place-items: center;
+            border-radius: 14px;
+            background: var(--sq);
+            color: var(--in)
+        }
+
+        #m[data-view="rec"] .recurring-empty-icon .ic {
+            width: 20px;
+            height: 20px
+        }
+
+        #m[data-view="rec"] .recurring-empty > div {
+            display: grid;
+            gap: 4px
+        }
+
+        #m[data-view="rec"] .recurring-empty b {
+            color: var(--tx);
+            font-size: 13px
+        }
+
+        #m[data-view="rec"] .recurring-empty small {
+            color: var(--mu);
+            font-size: 11px;
+            line-height: 1.45
+        }
+
+        #m[data-view="rec"] .recurring-note {
+            display: block;
+            margin-top: 12px;
+            color: var(--mu);
+            font-size: 10px;
+            line-height: 1.45
+        }
+
+        #f.pocket-recurring-form .form-screen-header {
+            min-height: 64px;
+            padding: 8px 24px 4px
+        }
+
+        #f.pocket-recurring-form .form-screen-intro {
+            padding: 10px 24px 14px
+        }
+
+        #f.pocket-recurring-form .form-eyebrow {
+            letter-spacing: .06em
+        }
+
+        #f.pocket-recurring-form .form-screen-intro h3 {
+            font-size: 30px;
+            line-height: 1.05;
+            letter-spacing: -.03em
+        }
+
+        #f.pocket-recurring-form .form-fields {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            column-gap: 12px;
+            row-gap: 14px;
+            padding: 0 24px 12px
+        }
+
+        #f.pocket-recurring-form .form-fields > label {
+            min-width: 0;
+            gap: 8px
+        }
+
+        #f.pocket-recurring-form .form-fields > label.form-field-full {
+            grid-column: 1 / -1
+        }
+
+        #f.pocket-recurring-form .form-fields .form-select-trigger,
+        #f.pocket-recurring-form .form-fields > label input:not([type="hidden"]) {
+            min-height: 50px;
+            padding: 12px
+        }
+
+        #f.pocket-recurring-form .form-fields > label[data-field="amount"] {
+            gap: 9px
+        }
+
+        #f.pocket-recurring-form .form-fields > label[data-field="amount"] .amount-input-wrap {
+            display: flex;
+            min-width: 0;
+            min-height: 64px;
+            align-items: center;
+            gap: 9px;
+            padding: 0 16px;
+            border: 1px solid var(--bd);
+            border-radius: 15px;
+            background: var(--sq);
+            color: var(--tx);
+            font-size: 22px;
+            font-weight: 650
+        }
+
+        #f.pocket-recurring-form .amount-currency {
+            flex: none;
+            color: var(--mu);
+            font-size: 17px;
+            font-weight: 500
+        }
+
+        #f.pocket-recurring-form .amount-input-wrap input {
+            width: 100%;
+            min-width: 0;
+            min-height: 0;
+            padding: 0;
+            border: 0;
+            outline: 0;
+            background: transparent;
+            color: var(--tx);
+            font: inherit;
+            font-size: 22px
+        }
+
+        #f.pocket-recurring-form .amount-input-wrap:focus-within {
+            border-color: var(--in);
+            box-shadow: 0 0 0 2px color-mix(in srgb, var(--in) 18%, transparent)
+        }
+
+        #f.pocket-recurring-form .form-fields > label[data-field="title"] input,
+        #f.pocket-recurring-form .form-fields > label[data-field="note"] input {
+            min-height: 50px
+        }
+
+        #f.pocket-recurring-form .form-fields > label[data-field="type"],
+        #f.pocket-recurring-form .form-fields > label[data-field="frequency"] {
+            margin-bottom: 0
+        }
+
+        #f.pocket-recurring-form .date-input-wrap {
+            width: 100%;
+            min-height: 50px
+        }
+
+        #f.pocket-recurring-form .date-input-wrap input[type="date"] {
+            min-height: 50px;
+            padding: 12px
+        }
+
+        #f.pocket-recurring-form > .row.end {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr);
+            gap: 10px;
+            padding: 12px 24px calc(24px + env(safe-area-inset-bottom, 0px));
+            box-shadow: none
+        }
+
+        #f.pocket-recurring-form > .row.end button {
+            width: 100%;
+            min-height: 52px;
+            border-radius: 14px
+        }
+
+        @media (max-width: 760px) {
+            #m[data-view="rec"] {
+                padding: 20px 24px 154px
+            }
+
+            #m[data-view="rec"] > .recurring-header {
+                margin-top: -20px;
+                padding-top: 24px
             }
         }

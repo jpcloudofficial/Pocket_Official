@@ -57,11 +57,12 @@
       .pocket-fab-menu button[data-kind="expense"] .mini{color:var(--ex)}
       .pocket-fab-menu button[data-kind="income"] .mini{color:var(--in)}
       .pocket-fab-menu button[data-kind="transfer"] .mini{color:var(--tr)}
-      .pocket-account-transfer{position:fixed;right:22px;bottom:82px;z-index:21;width:147px;height:52px;padding:0 16px;border:1px solid var(--bd);border-radius:28px;background:var(--cd);color:var(--tx);box-shadow:0 4px 14px #0004;display:flex;align-items:center;justify-content:flex-start;gap:8px;font:inherit;font-weight:700;cursor:pointer}
+      .pocket-account-transfer{position:fixed;right:22px;bottom:82px;z-index:21;width:147px;height:52px;padding:0 16px;border:1px solid var(--bd);border-radius:28px;background:var(--cd);color:var(--tx);box-shadow:0 4px 14px #0004;display:flex;align-items:center;justify-content:center;gap:8px;font:inherit;font-weight:700;cursor:pointer}
       .pocket-account-transfer svg{width:24px;height:24px;flex:none}
       body.pocket-modal-open .pocket-account-transfer{display:none!important}
       .pocket-fab-menu,.pocket-account-transfer{transition:transform .24s ease,opacity .24s ease}
       body.pocket-actions-scroll-hidden .fab,body.pocket-actions-scroll-hidden .pocket-account-transfer,body.pocket-actions-scroll-hidden .pocket-fab-menu{transform:translateX(calc(100% + 80px));opacity:0;pointer-events:none}
+      html[data-view="acc"] body.pocket-actions-scroll-hidden .fab.pocket-fab-labeled,html[data-view="acc"] body.pocket-actions-scroll-hidden .pocket-account-transfer{transform:none}
       @media(max-width:760px){
         .fab{right:14px}
       }
@@ -410,6 +411,11 @@
           if (typeof window.budForm === 'function') window.budForm();
           return;
         }
+        if (main.dataset.view === 'cash') {
+          closeMenu(menu, fab);
+          if (typeof window.cashbackForm === 'function') window.cashbackForm();
+          return;
+        }
         if (main.dataset.view === 'shop') {
           closeMenu(menu, fab);
           if (typeof window.shoppingListFabAction === 'function') window.shoppingListFabAction();
@@ -431,17 +437,18 @@
     const categoryPage = main.dataset.view === 'cat';
     const goalPage = main.dataset.view === 'goal';
     const budgetPage = main.dataset.view === 'bud';
+    const cashbackPage = main.dataset.view === 'cash';
     const shoppingPage = main.dataset.view === 'shop';
     const hideFab = main.dataset.view === 'set' || main.dataset.view === 'rep' || main.dataset.view === 'prof';
     const shoppingFabLabel = shoppingPage && typeof window.shoppingListFabLabel === 'function' ? window.shoppingListFabLabel() : 'Add list';
-    const fabLabel = accountPage ? 'Add account' : recurringPage ? 'Add schedule' : categoryPage ? 'New category' : goalPage ? 'New goal' : budgetPage ? 'Add budget' : shoppingPage ? shoppingFabLabel : 'Add transaction';
-    fab.classList.toggle('pocket-fab-labeled', accountPage || recurringPage || categoryPage || goalPage || budgetPage || shoppingPage);
+    const fabLabel = accountPage ? 'Add account' : recurringPage ? 'Add schedule' : categoryPage ? 'New category' : goalPage ? 'New goal' : budgetPage ? 'Add budget' : cashbackPage ? 'Add cashback' : shoppingPage ? shoppingFabLabel : 'Add transaction';
+    fab.classList.toggle('pocket-fab-labeled', accountPage || categoryPage || goalPage || budgetPage || cashbackPage || shoppingPage);
     fab.classList.toggle('pocket-hidden', hideFab);
     fab.setAttribute('aria-label', fabLabel);
     fab.title = fabLabel;
     const label = fab.querySelector('.fab-label');
     if (label) label.textContent = fabLabel;
-    if (accountPage || recurringPage || categoryPage || goalPage || budgetPage || shoppingPage || hideFab) closeMenu(menu, fab);
+    if (accountPage || recurringPage || categoryPage || goalPage || budgetPage || cashbackPage || shoppingPage || hideFab) closeMenu(menu, fab);
     let transferButton = document.querySelector('.pocket-account-transfer');
     if (!transferButton) {
       transferButton = document.createElement('button');

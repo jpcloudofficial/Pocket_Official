@@ -78,8 +78,8 @@ function syncDateInput(input) {
         const defaultDashboardWidgets = () => Object.fromEntries(DASHBOARD_WIDGETS.map(([id, , enabled]) => [id, enabled]));
         let D, onboardingState = null, onboardingActive = false, onboardingPersistenceError = false,
             demoMode = false, demoReturnData = null, demoReturnView = 'dash', demoReturnOnboarding = false,
-            accountStackOrder = [], accountStackSignature = '', accountStackExpanded = false,
-            accountViewMode = 'list', U = {
+            accountStackOrder = [], accountStackSignature = '',
+            accountViewMode = 'list', budgetMonthOffset = 0, U = {
             v: 'dash',
             ra: '',
             rc: '',
@@ -437,9 +437,14 @@ function syncDateInput(input) {
                 'rotate-ccw': '<path d="M4 12a8 8 0 1 0 2.5-5.8M4 4v4.5h4.5"/>',
                 'arrow-left-right': '<path d="M4 8h16l-3.5-3.5M20 16H4l3.5 3.5"/>',
                 'arrow-left': '<path d="M19 12H5M12 19l-7-7 7-7"/>',
+                'arrow-up': '<path d="M12 19V5M5 12l7-7 7 7"/>',
+                'arrow-down': '<path d="M12 5v14M19 12l-7 7-7-7"/>',
+                'arrow-down-up': '<path d="M7 20V4M4 7l3-3 3 3M17 4v16m-3-3 3 3 3-3"/>',
                 'arrow-up-right': '<path d="M7 17 17 7M8 7h9v9"/>',
                 'arrow-down-left': '<path d="M17 7 7 17M16 17H7V8"/>',
+                'chevron-left': '<path d="m15 18-6-6 6-6"/>',
                 'chevron-right': '<path d="m9 18 6-6-6-6"/>',
+                'more-horizontal': '<circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/>',
                 settings: '<circle cx="12" cy="12" r="3"/><path d="m19.4 15 .1.1 1.4 1.1-1.4 2.4-1.7-.7a8 8 0 0 1-1.7 1l-.3 1.8h-2.8l-.3-1.8a8 8 0 0 1-1.7-1l-1.7.7-1.4-2.4 1.4-1.1a7 7 0 0 1 0-2l-1.4-1.1 1.4-2.4 1.7.7a8 8 0 0 1 1.7-1l.3-1.8h2.8l.3 1.8a8 8 0 0 1 1.7 1l1.7-.7 1.4 2.4-1.4 1.1a7 7 0 0 1 0 2z"/>',
                 car: '<path d="M4 16v-4l2-5h12l2 5v4M4 16h16M4 16v2.5M20 16v2.5"/><circle cx="7.5" cy="13.3" r=".7"/><circle cx="16.5" cy="13.3" r=".7"/>',
                 book: '<path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3V4z"/><path d="M5 17a3 3 0 0 1 3-3h11"/>',
@@ -473,7 +478,8 @@ function syncDateInput(input) {
                 })),
             lu = () => {};
 
-        let modalScrollPosition = 0;
+        let modalScrollPosition = 0,
+            transactionFormReturnToChooser = false;
         function ov(h) {
             document.querySelectorAll('.pocket-select-overlay').forEach(menu => menu.remove());
             $('#ov').classList.remove('report-filter-open');
@@ -489,6 +495,7 @@ function syncDateInput(input) {
         const cl = () => {
             document.querySelectorAll('.pocket-select-overlay').forEach(menu =>
                 menu.closePicker ? menu.closePicker(false) : menu.remove());
+            transactionFormReturnToChooser = false;
             $('#ov').style.display = 'none';
             $('#ov').classList.remove('form-open', 'report-filter-open', 'quick-add-open');
             const wasLocked = document.body.classList.contains('pocket-modal-open');
@@ -507,12 +514,21 @@ function syncDateInput(input) {
             trigger.addEventListener('click', () => {
                 const overlay = document.createElement('div'),
                     menu = document.createElement('div'),
-                    isTransactionFilter = Boolean(trigger.closest('.transaction-filters'));
+                    isTransactionFilter = Boolean(trigger.closest('.transaction-filters')),
+                    isCashbackTransactionPicker = Boolean(trigger.closest('#f.pocket-cashback-form') && select.name === 'expenseId');
                 overlay.className = 'pocket-select-overlay';
                 menu.className = 'pocket-select-menu';
                 if (isTransactionFilter) menu.classList.add('transaction-filter-menu');
-                menu.setAttribute('role', 'listbox');
-                menu.setAttribute('aria-label', label);
+                if (isCashbackTransactionPicker) {
+                    overlay.classList.add('cashback-transaction-overlay');
+                    menu.classList.add('cashback-transaction-picker');
+                    menu.setAttribute('role', 'dialog');
+                    menu.setAttribute('aria-modal', 'true');
+                    menu.setAttribute('aria-labelledby', 'cashback-transaction-picker-title');
+                } else {
+                    menu.setAttribute('role', 'listbox');
+                    menu.setAttribute('aria-label', label);
+                }
                 let closing = false;
                 const closePicker = (restoreFocus = true) => {
                     window.removeEventListener('scroll', closeOnScroll, true);
@@ -533,6 +549,49 @@ function syncDateInput(input) {
                 overlay.addEventListener('click', event => {
                     if (event.target === overlay) closePicker()
                 });
+                let optionsList = menu,
+                    searchInput,
+                    noResults;
+                if (isCashbackTransactionPicker) {
+                    const header = document.createElement('div'),
+                        heading = document.createElement('div'),
+                        eyebrow = document.createElement('small'),
+                        title = document.createElement('h2'),
+                        closeButton = document.createElement('button'),
+                        search = document.createElement('label'),
+                        searchIcon = document.createElement('span');
+                    header.className = 'cashback-transaction-picker-header';
+                    heading.className = 'cashback-transaction-picker-heading';
+                    eyebrow.textContent = 'TRACK A RETURN';
+                    title.id = 'cashback-transaction-picker-title';
+                    title.textContent = 'Choose transaction';
+                    closeButton.type = 'button';
+                    closeButton.className = 'cashback-transaction-picker-close';
+                    closeButton.setAttribute('aria-label', 'Close transaction picker');
+                    closeButton.innerHTML = ic('x');
+                    search.className = 'cashback-transaction-picker-search';
+                    searchIcon.setAttribute('aria-hidden', 'true');
+                    searchIcon.innerHTML = ic('search');
+                    searchInput = document.createElement('input');
+                    searchInput.type = 'search';
+                    searchInput.placeholder = 'Search transactions';
+                    searchInput.setAttribute('aria-label', 'Search transactions');
+                    searchInput.autocomplete = 'off';
+                    optionsList = document.createElement('div');
+                    optionsList.className = 'cashback-transaction-picker-options';
+                    optionsList.setAttribute('role', 'listbox');
+                    optionsList.setAttribute('aria-label', label);
+                    noResults = document.createElement('p');
+                    noResults.className = 'cashback-transaction-picker-empty';
+                    noResults.setAttribute('role', 'status');
+                    noResults.textContent = 'No matching transactions.';
+                    noResults.hidden = true;
+                    heading.append(eyebrow, title);
+                    header.append(heading, closeButton);
+                    search.append(searchIcon, searchInput);
+                    menu.append(header, search, optionsList, noResults);
+                    closeButton.addEventListener('click', () => closePicker());
+                }
                 const availableOptions = Array.from(select.options).filter(option => !option.disabled);
                 availableOptions.forEach(option => {
                     const item = document.createElement('button');
@@ -546,14 +605,33 @@ function syncDateInput(input) {
                         closePicker();
                         select.dispatchEvent(new Event('change', { bubbles: true }))
                     });
-                    menu.append(item)
+                    optionsList.append(item)
                 });
+                if (isCashbackTransactionPicker) {
+                    searchInput.addEventListener('input', () => {
+                        const query = searchInput.value.trim().toLocaleLowerCase();
+                        let matchCount = 0;
+                        optionsList.querySelectorAll('.pocket-select-option').forEach(item => {
+                            item.hidden = !item.textContent.toLocaleLowerCase().includes(query);
+                            if (!item.hidden) matchCount += 1
+                        });
+                        noResults.hidden = matchCount > 0
+                    })
+                }
                 menu.addEventListener('keydown', event => {
                     if (event.key === 'Escape') {
                         event.preventDefault();
                         closePicker()
+                    } else if (isCashbackTransactionPicker && event.target === searchInput) {
+                        if (event.key === 'ArrowDown') {
+                            const firstOption = optionsList.querySelector('.pocket-select-option:not([hidden])');
+                            if (firstOption) {
+                                event.preventDefault();
+                                firstOption.focus()
+                            }
+                        }
                     } else if (event.key === 'ArrowDown' || event.key === 'ArrowUp' || event.key === 'Home' || event.key === 'End') {
-                        const items = Array.from(menu.querySelectorAll('.pocket-select-option')),
+                        const items = Array.from(optionsList.querySelectorAll('.pocket-select-option:not([hidden])')),
                             index = items.indexOf(document.activeElement),
                             next = event.key === 'Home' ? 0 :
                                 event.key === 'End' ? items.length - 1 :
@@ -570,20 +648,34 @@ function syncDateInput(input) {
                     width = Math.min(Math.max(bounds.width, minWidth), viewportWidth - 16),
                     left = Math.max(8, Math.min(bounds.left, viewportWidth - width - 8)),
                     availableHeight = Math.max(80, window.innerHeight - bounds.bottom - 8);
-                menu.style.left = `${left}px`;
-                menu.style.top = `${bounds.bottom + 4}px`;
-                menu.style.width = `${width}px`;
-                menu.style.maxHeight = `${Math.min(220, availableHeight)}px`;
+                if (isCashbackTransactionPicker) {
+                    menu.style.position = 'relative';
+                    menu.style.left = 'auto';
+                    menu.style.top = 'auto';
+                    menu.style.width = '100%';
+                    menu.style.maxHeight = `${Math.min(window.innerHeight * .76, 640)}px`
+                } else {
+                    menu.style.left = `${left}px`;
+                    menu.style.top = `${bounds.bottom + 4}px`;
+                    menu.style.width = `${width}px`;
+                    menu.style.maxHeight = `${Math.min(220, availableHeight)}px`
+                }
                 overlay.append(menu);
                 document.body.append(overlay);
                 window.addEventListener('scroll', closeOnScroll, true);
                 window.addEventListener('resize', closeOnResize);
                 trigger.setAttribute('aria-expanded', 'true');
                 const selectedButton = availableOptions.find(option => option.value === select.value);
-                const initialOption = selectedButton && Array.from(menu.children)
-                    .find(button => button.textContent === selectedButton.textContent) || menu.querySelector('button');
-                (initialOption || trigger).focus();
-                if (initialOption) menu.scrollTop = initialOption.offsetTop
+                const initialOption = selectedButton && Array.from(optionsList.children)
+                    .find(button => button.textContent === selectedButton.textContent) ||
+                    (isCashbackTransactionPicker ? optionsList.querySelector('.pocket-select-option') : menu.querySelector('button'));
+                if (isCashbackTransactionPicker) {
+                    searchInput.focus({ preventScroll: true });
+                    if (initialOption) optionsList.scrollTop = initialOption.offsetTop - optionsList.offsetTop
+                } else {
+                    (initialOption || trigger).focus();
+                    if (initialOption) menu.scrollTop = initialOption.offsetTop
+                }
             })
         }
 
@@ -620,8 +712,13 @@ function syncDateInput(input) {
 
         function openForm(title, fn, vals, submit, rr, saveLabel = 'Save') {
             const f = fn(vals).filter(Boolean);
+            const isTransactionForm = title === 'Add transaction' || title === 'Edit transaction';
+            const isAccountForm = title === 'Add account' || title === 'Edit account';
+            const isBudgetForm = title === 'Set budget' || title === 'Edit budget';
+            const isCashbackForm = title === 'Track cashback' || title === 'Edit cashback';
+            const isRecurringForm = title === 'New recurring transaction' || title === 'Edit recurring transaction';
             const formCopy = {
-                'Add account': ['EVERY BALANCE, TOGETHER', 'Add an account to keep your money organized.'],
+                'Add account': ['EVERY PESO HAS A PLACE', ''],
                 'Edit account': ['EVERY BALANCE, TOGETHER', 'Update your account details.'],
                 'Set budget': ['GIVE YOUR SPENDING A LIMIT', 'Choose a category and decide how much to set aside each month.'],
                 'Edit budget': ['GIVE YOUR SPENDING A LIMIT', 'Update your monthly category limit.'],
@@ -639,12 +736,25 @@ function syncDateInput(input) {
                 'Edit category': ['MAKE IT YOURS', 'Update this transaction category.'],
                 'Add transaction': ['KEEP YOUR MONEY UP TO DATE', 'Enter the details of this transaction.'],
                 'Edit transaction': ['KEEP YOUR MONEY UP TO DATE', 'Update the transaction details.'],
-                'Track cashback': ['EVERY PESO COMES BACK', 'Track the cashback you expect to receive.']
+                'Track cashback': ['EVERY PESO COMES BACK', 'Track the cashback you expect to receive.'],
+                'Edit cashback': ['EVERY PESO COMES BACK', 'Update the expected amount or deposit account.']
             }[title] || ['MAKE IT YOURS', 'Enter the details below.'];
             let displayTitle = title,
                 displayEyebrow = formCopy[0],
                 displayDescription = formCopy[1],
                 displaySaveLabel = saveLabel;
+            if (title === 'Add account') {
+                displayTitle = 'Add an account';
+                displaySaveLabel = 'Save account'
+            }
+            if (isBudgetForm) {
+                displayTitle = title === 'Set budget' ? 'Set a budget' : title;
+                displaySaveLabel = 'Save budget'
+            }
+            if (isRecurringForm) {
+                displayDescription = '';
+                displaySaveLabel = 'Save schedule'
+            }
             if (title === 'Add transaction' || title === 'Edit transaction') {
                 const transactionType = vals?.type || 'expense';
                 displayTitle = transactionType === 'income' ? 'Add income' : transactionType === 'transfer' ? 'Transfer money' : 'Add expense';
@@ -660,6 +770,8 @@ function syncDateInput(input) {
                     placeholder = x.t === 'sel' && (x.placeholder || (!selectedOption && !emptyOption ? `Choose ${label}` : '')),
                     optionSelected = option => selectedOption ? option[0] == v : !placeholder && option[0] === '';
                 const i = x.t === 'icons' ?
+                    isAccountForm ?
+                    `<input type="hidden" name="${x.k}" value="${esc(v)}"><div class="account-icon-row"><span class="account-icon-preview">${ic(v||'wallet')}</span><span class="account-icon-name">${esc(String(v||'wallet').split('-').map(part=>part.charAt(0).toUpperCase()+part.slice(1)).join(' '))}</span><button type="button" class="account-icon-trigger" onclick="tg(this)">Change icon <span aria-hidden="true">→</span></button></div><div class="ip" hidden>${ICONS.map(o=>`<button type="button" class="ib${o[0]==v?' sel':''}" onclick="pick(this,'${o[0]}')">${ic(o[0])}</button>`).join('')}</div>` :
                     `<input type="hidden" name="${x.k}" value="${esc(v)}"><button type="button" class="b2 it" onclick="tg(this)"><span>${ic(v||'tag')}</span> Change icon</button><div class="ip" hidden>${ICONS.map(o=>`<button type="button" class="ib${o[0]==v?' sel':''}" onclick="pick(this,'${o[0]}')">${ic(o[0])}</button>`).join('')}</div>` :
                     x.t === 'direction' ?
                     `<div class="transfer-direction" aria-hidden="true"><span>Move to</span>${ic('repeat')}</div>` :
@@ -668,29 +780,55 @@ function syncDateInput(input) {
                     x.t === 'sel' ?
                     `<select name="${x.k}"${x.req?' required':''} hidden aria-hidden="true" tabindex="-1">${placeholder?`<option value=""${!selectedOption?' selected':''}${x.req?' disabled':''}>${esc(placeholder)}</option>`:''}${x.o.map(o=>`<option value="${o[0]}"${optionSelected(o)?' selected':''}>${esc(o[1])}</option>`).join('')}</select><button type="button" class="form-select-trigger" data-select-name="${x.k}" data-select-label="${esc(x.l)}" aria-label="${esc(x.l)}: ${esc(selectedOption?.[1] || (emptyOption && !placeholder ? emptyOption[1] : placeholder) || '')}" aria-haspopup="listbox" aria-expanded="false">${esc(selectedOption?.[1] || (emptyOption && !placeholder ? emptyOption[1] : placeholder) || '')}</button>` :
                     x.t === 'color' ?
-                    `<div class="color-picker"><div class="color-swatches" role="group" aria-label="${esc(x.l)} presets">${FORM_COLORS.map(color=>`<button type="button" class="color-swatch" data-color="${color}" style="--form-swatch:${color}" aria-label="${color}" aria-pressed="${String(v).toLowerCase()===color}"></button>`).join('')}</div><div class="color-code-row"><span class="color-preview" aria-hidden="true" style="--form-swatch:${okCol(v)?v:'#2563eb'}"></span><input class="color-hex-input" name="${x.k}" type="text" value="${esc(v)}" maxlength="7" spellcheck="false" autocapitalize="characters" aria-label="${esc(x.l)} hex code" placeholder="#2563eb"></div><small>Choose a swatch or enter a 6-digit hex code.</small></div>` :
+                    `<div class="color-picker"><div class="color-swatches" role="group" aria-label="${esc(x.l)} presets">${FORM_COLORS.map(color=>`<button type="button" class="color-swatch" data-color="${color}" style="--form-swatch:${color}" aria-label="${color}" aria-pressed="${String(v).toLowerCase()===color}"></button>`).join('')}</div><div class="color-code-row${isAccountForm?' account-color-code-row':''}"><span class="color-preview" aria-hidden="true" style="--form-swatch:${okCol(v)?v:'#2563eb'}"></span>${isAccountForm?'<div class="account-color-code"><span>Hex color</span>':''}<input class="color-hex-input" name="${x.k}" type="text" value="${esc(v)}" maxlength="7" spellcheck="false" autocapitalize="characters" aria-label="${esc(x.l)} hex code" placeholder="#2563eb">${isAccountForm?'</div>':''}</div>${isAccountForm?'':'<small>Choose a swatch or enter a 6-digit hex code.</small>'}</div>` :
                     x.t === 'date' ?
                     `<span class="date-input-wrap${v ? '' : ' is-empty'}"><input name="${x.k}" type="date" value="${esc(v)}" onchange="syncDateInput(this)"><span class="date-input-value">${esc(fd(v))}</span><span class="date-input-placeholder">${esc(x.placeholder || 'Choose date')}</span></span>` :
                     x.t === 'area' ? `<textarea name="${x.k}" rows="2">${esc(v)}</textarea>` :
+                    isBudgetForm && x.k === 'amt' ?
+                    `<span class="budget-amount-input"><span aria-hidden="true">₱</span><input name="${x.k}" type="number" step="0.01" value="${esc(v)}" placeholder="0.00" aria-label="Monthly budget amount"></span>` :
                     x.k === 'amount' ?
                     `<span class="amount-input-wrap"><span class="amount-currency">₱</span><input name="${x.k}" type="text" inputmode="decimal" value="${esc(v)}" placeholder="0.00"></span>` :
-                    `<input name="${x.k}" type="${x.t||'text'}" value="${esc(v)}" ${x.t==='number'?'step="0.01"':''}${x.k==='title'?(vals.type==='income'?' placeholder="Where did it come from?"':vals.type==='transfer'?' placeholder="Name this transfer"':' placeholder="What was it for?"'):''}${x.k==='note'?' placeholder="Add a note..."':''}>`;
-                return `<label data-field="${esc(x.k)}"${x.cls?` class="${esc(x.cls)}"`:''}>${x.l}${x.req?' *':''}${i}</label>`
+                    `<input name="${x.k}" type="${x.t||'text'}" value="${esc(v)}" ${x.t==='number'?'step="0.01"':''}${x.placeholder?` placeholder="${esc(x.placeholder)}"`:''}${x.k==='title'?(isRecurringForm?' placeholder="Name this transaction"':vals.type==='income'?' placeholder="Where did it come from?"':vals.type==='transfer'?' placeholder="Name this transfer"':' placeholder="What was it for?"'):''}${x.k==='cashbackAmount'?' placeholder="₱0.00"':''}${x.k==='note'?' placeholder="Add a note..."':''}>`;
+                return `<label data-field="${esc(x.k)}"${x.cls?` class="${esc(x.cls)}"`:''}>${isAccountForm&&(x.k==='icon'||x.hideLabel)?'':x.l}${x.req&&!x.noMark?' *':''}${i}${x.help?`<small class="form-field-help">${esc(x.help)}</small>`:''}</label>`
             };
+            const formError = '<p class="er" id="er" role="alert" hidden></p>';
+            const formFields = isAccountForm ?
+                `<div class="form-fields account-form-fields">${f.slice(0, 2).map(fld).join('')}<section class="account-form-card account-balance-card">${f.slice(2, 3).map(fld).join('')}</section><section class="account-form-card account-color-card"><div class="account-color-heading"><span>Account color</span><button type="button" class="account-color-toggle" aria-label="Collapse account color section" aria-expanded="true" aria-controls="account-color-options" onclick="toggleAccountColor(this)">${ic('arrow-up')}</button></div><div class="account-color-fields" id="account-color-options">${f.slice(3).map(x=>fld(x.k==='color'?{...x,hideLabel:true}:x)).join('')}</div></section></div>` :
+                isBudgetForm ?
+                `<div class="form-fields budget-form-fields"><section class="budget-form-card">${f.map(fld).join('')}</section>${formError}<section class="budget-form-note"><div><b>A plan, not a restriction.</b><p>Budgets are flexible, and you can adjust them whenever your priorities change.</p></div></section></div>` :
+                `<div class="form-fields">${f.map(fld).join('')}</div>`;
+            const formClasses = [
+                isAccountForm ? 'pocket-account-form' : '',
+                isBudgetForm ? 'pocket-budget-form' : '',
+                isCashbackForm ? 'pocket-cashback-form' : '',
+                isRecurringForm ? 'pocket-recurring-form' : '',
+                isTransactionForm || title === 'Record shopping expense' ? 'pocket-transaction-form' : ''
+            ].filter(Boolean).join(' ');
+            const formActions = isBudgetForm || isRecurringForm ?
+                `<button type="button" class="b1" id="sv">${esc(displaySaveLabel)}</button><button type="button" class="b2" onclick="cl()">Cancel</button>` :
+                `<button type="button" class="b2" onclick="cl()">Cancel</button><button type="button" class="b1" id="sv">${esc(displaySaveLabel)}</button>`;
             ov(
-            `<div id="f"${title === 'Add transaction' || title === 'Edit transaction' || title === 'Record shopping expense' ? ' class="pocket-transaction-form"' : ''}><div class="form-screen-header"><button type="button" class="form-screen-back" aria-label="Back" onclick="cl()">${ic('arrow-left')}</button><span>Pocket</span><button type="button" class="form-screen-close" aria-label="Close" onclick="cl()">${ic('x')}</button></div><div class="form-screen-intro"><small class="form-eyebrow">${esc(displayEyebrow)}</small><h3>${esc(displayTitle)}</h3>${displayDescription?`<p>${esc(displayDescription)}</p>`:''}</div><div class="form-fields">${f.map(fld).join('')}</div><p class="er" id="er"></p><div class="row end"><button type="button" class="b2" onclick="cl()">Cancel</button><button type="button" class="b1" id="sv">${esc(displaySaveLabel)}</button></div></div>`);
+            `<div id="f"${formClasses ? ` class="${formClasses}"` : ''}><div class="form-screen-header"><span class="form-screen-arrow" role="button" aria-label="Back" tabindex="0" onclick="${isTransactionForm ? 'backFromTransactionForm()' : 'cl()'}">${ic('arrow-left')}</span><span>Pocket</span><span class="form-screen-close" role="button" aria-label="Close" tabindex="0" onclick="cl()">${ic('x')}</span></div><div class="form-screen-intro"><small class="form-eyebrow">${esc(displayEyebrow)}</small><h3>${esc(displayTitle)}</h3>${displayDescription?`<p>${esc(displayDescription)}</p>`:''}</div>${formFields}${isBudgetForm ? '' : formError}<div class="row end">${formActions}</div></div>`);
             $('#ov').classList.add('form-open');
             const F = $('#f'),
                 el = k => F.querySelector('[name="' + k + '"]'),
                 get = () => {
                     const o = {};
-                    f.forEach(x => o[x.k] = el(x.k).value.trim());
+                    f.forEach(x => {
+                        const field = el(x.k);
+                        o[x.k] = field ? field.value.trim() : '';
+                    });
                     return o
                 },
                 er = m => {
-                    $('#er').textContent = m
+                    const error = $('#er');
+                    error.textContent = m;
+                    error.hidden = false
                 };
             F.querySelectorAll('.form-select-trigger').forEach(trigger => {
+                if (isCashbackForm && trigger.dataset.selectName === 'expenseId') {
+                    trigger.setAttribute('aria-haspopup', 'dialog')
+                }
                 wireSelectPicker(el(trigger.dataset.selectName), trigger, trigger.dataset.selectLabel)
             });
             F.querySelectorAll('.color-picker').forEach(picker => {
@@ -770,9 +908,8 @@ function syncDateInput(input) {
                             req: v.type === 'expense'
                         }, {
                             k: 'cashbackAmount',
-                            l: 'Cashback',
-                            t: 'number',
-                            pos: 1,
+                            l: 'Cashback (optional)',
+                            t: 'text',
                             cls: 'form-field-full'
                         }] : [{
                             k: 'title',
@@ -842,7 +979,8 @@ function syncDateInput(input) {
                     date: today(),
                     time: '',
                     acc: '',
-                    to: 'gcash'
+                    to: 'gcash',
+                    cashbackAmount: '0.00'
                 }, v => {
                     const amt = +v.amount,
                         tr = v.type === 'transfer',
@@ -902,7 +1040,8 @@ function syncDateInput(input) {
                 }, 'type')
         }
 
-        function quickAdd(type) {
+        function quickAdd(type, returnToChooser = false) {
+            transactionFormReturnToChooser = returnToChooser;
             txForm();
             const t = document.querySelector('#f [name="type"]');
             if (t) {
@@ -919,12 +1058,26 @@ function syncDateInput(input) {
         }
 
         function quickAddChooser() {
-            ov(`<div class="quick-add-screen"><div class="form-screen-header"><button type="button" class="form-screen-back" aria-label="Back" onclick="cl()">${ic('arrow-left')}</button><span>Pocket</span><button type="button" class="form-screen-close" aria-label="Close" onclick="cl()">${ic('x')}</button></div><div class="form-screen-intro"><small class="form-eyebrow">A QUICK WAY TO LOG IT</small><h3>Quick add</h3><p>What would you like to add?</p></div><div class="quick-add-options"><button type="button" onclick="cl();quickAdd('expense')"><span class="quick-add-icon expense">${ic('arrow-up-right')}</span><span><b>Expense</b><small>Record money you spent</small></span>${ic('chevron-right')}</button><button type="button" onclick="cl();quickAdd('income')"><span class="quick-add-icon income">${ic('arrow-down-left')}</span><span><b>Income</b><small>Record money you received</small></span>${ic('chevron-right')}</button><button type="button" onclick="cl();quickAdd('transfer')"><span class="quick-add-icon transfer">${ic('arrow-left-right')}</span><span><b>Transfer</b><small>Move money between accounts</small></span>${ic('chevron-right')}</button></div></div>`);
+            ov(`<div class="quick-add-screen"><div class="form-screen-intro quick-add-intro"><button type="button" class="page-menu-toggle quick-add-page-menu-toggle" aria-label="Open pages menu" aria-expanded="false" aria-haspopup="dialog" aria-controls="page-title-menu">${dashboardIcon('more')}</button><small class="form-eyebrow">KEEP YOUR MONEY UP TO DATE</small><h3>Add transaction</h3><p>What would you like to record?</p></div><div class="quick-add-options"><button type="button" onclick="quickAddFromChooser('expense')"><span class="quick-add-icon expense">${ic('arrow-up-right')}</span><span><b>Expense</b><small>Track a purchase or payment.</small></span>${ic('chevron-right')}</button><button type="button" onclick="quickAddFromChooser('income')"><span class="quick-add-icon income">${ic('arrow-down-left')}</span><span><b>Income</b><small>Record money you received.</small></span>${ic('chevron-right')}</button><button type="button" onclick="quickAddFromChooser('transfer')"><span class="quick-add-icon transfer">${ic('arrow-left-right')}</span><span><b>Transfer</b><small>Move money between accounts.</small></span>${ic('chevron-right')}</button></div><div class="quick-add-footer"><button type="button" class="b2" onclick="cl()">Cancel</button></div></div>`);
+            bindPageMenuToggle(document.querySelector('.quick-add-page-menu-toggle'));
             $('#ov').classList.add('quick-add-open')
+        }
+
+        function quickAddFromChooser(type) {
+            cl();
+            quickAdd(type, true);
+        }
+
+        function backFromTransactionForm() {
+            const returnToChooser = transactionFormReturnToChooser;
+            cl();
+            if (returnToChooser) quickAddChooser();
         }
 
         function primaryAdd() {
             if (U.v === 'acc') accForm();
+            else if (U.v === 'bud') budForm();
+            else if (U.v === 'cash') cashbackForm();
             else if (U.v === 'shop') shoppingListForm();
             else quickAddChooser()
         }
@@ -948,25 +1101,50 @@ function syncDateInput(input) {
             const transaction = D.tx.find(item =>
                 item.id === transactionId && (item.type === 'expense' || item.type === 'transfer')
             );
-            if (!transaction) return info('The linked transaction could not be found.');
-            if (D.cashbacks.some(claim => claim.expenseId === transactionId)) {
+            if (transactionId && !transaction) return info('The linked transaction could not be found.');
+            if (transactionId && D.cashbacks.some(claim => claim.expenseId === transactionId)) {
                 go('cash');
                 return info('This transaction already has a cashback claim. You can manage it on the Cashback page.');
             }
+            const eligibleTransactions = D.tx.filter(item =>
+                (item.type === 'expense' || item.type === 'transfer') &&
+                !D.cashbacks.some(claim => claim.expenseId === item.id)
+            );
+            if (!transaction && !eligibleTransactions.length) {
+                return info('Add an expense or transfer before tracking cashback.');
+            }
             const cashbackCategory = D.cats.find(category => category.g === 'Income' && category.name.toLowerCase() === 'cashback');
             if (!cashbackCategory) return info('Cashback category is unavailable. Reload Pocket to update categories.');
-            openForm('Track cashback', () => [{
-                k: 'amount', l: 'Expected cashback (₱)', t: 'number', req: 1, pos: 1
-            }, {
-                k: 'account', l: 'Deposit account', t: 'sel', req: 1, o: D.acc.map(account => [account.id, account.name])
-            }], { amount: '', account: transaction.type === 'transfer' ? transaction.to : transaction.acc }, value => {
+            openForm('Track cashback', () => [
+                transaction ? null : {
+                    k: 'expenseId',
+                    l: 'Transaction',
+                    t: 'sel',
+                    req: 1,
+                    placeholder: 'Choose transaction',
+                    o: eligibleTransactions.map(item => [item.id, `${item.title} · ${fd(item.date)} · ${peso(item.amount)}`])
+                },
+                { k: 'amount', l: 'Expected cashback (₱)', t: 'number', req: 1, pos: 1 },
+                { k: 'account', l: 'Deposit account', t: 'sel', req: 1, o: D.acc.map(account => [account.id, account.name]) }
+            ], {
+                expenseId: transactionId || '',
+                amount: '',
+                account: transaction ? transaction.type === 'transfer' ? transaction.to : transaction.acc : ''
+            }, value => {
+                const linkedTransaction = transaction || D.tx.find(item =>
+                    item.id === value.expenseId && (item.type === 'expense' || item.type === 'transfer')
+                );
+                if (!linkedTransaction) return 'Choose a transaction for this cashback.';
+                if (D.cashbacks.some(claim => claim.expenseId === linkedTransaction.id)) {
+                    return 'This transaction already has a cashback claim.';
+                }
                 const amount = +value.amount;
-                if (amount > transaction.amount) return 'Cashback can’t exceed the linked transaction amount.';
+                if (amount > linkedTransaction.amount) return 'Cashback can’t exceed the linked transaction amount.';
                 D.cashbacks.push({
                     id: uid(),
-                    expenseId: transactionId,
-                    expenseTitle: transaction.title,
-                    expenseDate: transaction.date,
+                    expenseId: linkedTransaction.id,
+                    expenseTitle: linkedTransaction.title,
+                    expenseDate: linkedTransaction.date,
                     amount,
                     account: value.account,
                     created: today(),
@@ -974,6 +1152,48 @@ function syncDateInput(input) {
                     receivedDate: '',
                     incomeId: ''
                 });
+            }, undefined, 'Add cashback');
+        }
+
+        function editCashback(id) {
+            const claim = D.cashbacks.find(item => item.id === id);
+            if (!claim) return info('This cashback claim could not be found.');
+            const transaction = D.tx.find(item => item.id === claim.expenseId),
+                income = D.tx.find(item => item.id === claim.incomeId || item.cashbackId === claim.id);
+            if (claim.status === 'received' && !income) {
+                return info('The linked income transaction could not be found.');
+            }
+            openForm('Edit cashback', () => [
+                { k: 'amount', l: 'Expected cashback (₱)', t: 'number', req: 1, pos: 1 },
+                { k: 'account', l: 'Deposit account', t: 'sel', req: 1, o: D.acc.map(account => [account.id, account.name]) }
+            ], {
+                amount: String(claim.amount),
+                account: claim.account
+            }, value => {
+                const amount = +value.amount;
+                if (!A(value.account)) return 'Choose a deposit account.';
+                if (transaction && amount > transaction.amount) return 'Cashback can’t exceed the linked transaction amount.';
+                claim.amount = amount;
+                claim.account = value.account;
+                if (transaction) {
+                    claim.expenseTitle = transaction.title;
+                    claim.expenseDate = transaction.date;
+                }
+                if (income) {
+                    claim.incomeId = income.id;
+                    income.amount = amount;
+                    income.acc = value.account;
+                    income.title = `Cashback — ${claim.expenseTitle || transaction?.title || 'Expense'}`;
+                }
+            }, undefined, 'Save cashback');
+        }
+
+        function deleteCashback(id) {
+            const claim = D.cashbacks.find(item => item.id === id);
+            if (!claim) return info('This cashback claim could not be found.');
+            ask('Delete this cashback claim? If received, its linked income transaction will also be deleted.', () => {
+                D.tx = D.tx.filter(item => item.id !== claim.incomeId && item.cashbackId !== claim.id);
+                D.cashbacks = D.cashbacks.filter(item => item.id !== id)
             });
         }
 
@@ -1003,12 +1223,6 @@ function syncDateInput(input) {
             save();
             render();
         }
-
-        const deleteCashback = id => ask('Delete this cashback claim? If received, its linked income transaction will also be deleted.', () => {
-            const claim = D.cashbacks.find(item => item.id === id);
-            if (claim?.incomeId) D.tx = D.tx.filter(item => item.id !== claim.incomeId);
-            D.cashbacks = D.cashbacks.filter(item => item.id !== id)
-        });
 
         const RECURRENCES = [
             ['daily', 'Every day'],
@@ -1081,13 +1295,13 @@ function syncDateInput(input) {
                 const transfer = v.type === 'transfer';
                 const accounts = D.acc.map(account => [account.id, account.name]);
                 return [{
-                    k: 'type', l: 'Type', t: 'sel', o: [
+                    k: 'type', l: 'Type', t: 'sel', cls: 'form-field-full', o: [
                         ['expense', 'Expense'], ['income', 'Income'], ['transfer', 'Transfer']
                     ]
                 }, {
-                    k: 'title', l: 'Title', req: !transfer
+                    k: 'title', l: 'Title', req: !transfer, cls: 'form-field-full'
                 }, {
-                    k: 'amount', l: 'Amount (₱)', t: 'number', req: 1, pos: 1
+                    k: 'amount', l: 'Amount (₱)', t: 'number', req: 1, pos: 1, cls: 'form-field-full'
                 }, transfer ? {
                     k: 'acc', l: 'From account', t: 'sel', req: 1, o: accounts
                 } : {
@@ -1099,11 +1313,11 @@ function syncDateInput(input) {
                 } : {
                     k: 'acc', l: 'Account', t: 'sel', req: 1, o: accounts
                 }, {
-                    k: 'frequency', l: 'Repeat', t: 'sel', o: RECURRENCES
+                    k: 'frequency', l: 'Repeat', t: 'sel', cls: 'form-field-full', o: RECURRENCES
                 }, {
-                    k: 'start', l: 'First transaction date', t: 'date', req: 1
+                    k: 'start', l: 'First transaction date', t: 'date', req: 1, cls: 'form-field-full'
                 }, {
-                    k: 'note', l: 'Notes (optional)', t: 'area'
+                    k: 'note', l: 'Notes (optional)', cls: 'form-field-full'
                 }];
             }, initial, v => {
                 const transfer = v.type === 'transfer';
@@ -1246,16 +1460,15 @@ function syncDateInput(input) {
             }).join('') : '<div class="empty">No expenses in this period.</div>'
         }
 
-        function spent(id, key) {
+        function spent(id, key = ym(today())) {
             return D.tx.filter(t => t.type === 'expense' && t.cat === id && ym(t.date) === key).reduce((s, t) => s + t
                 .amount, 0)
         }
 
-        function bstat() {
-            const k = ym(today());
+        function bstat(key = ym(today())) {
             return Object.entries(D.budgets).map(([id, b]) => {
-                const s = spent(id, k),
-                    p = s / b * 100;
+                const s = spent(id, key),
+                    p = b > 0 ? s / b * 100 : s > 0 ? Infinity : 0;
                 return {
                     id,
                     b,
@@ -1383,9 +1596,6 @@ function syncDateInput(input) {
                 frontCard = stack && stack.querySelector('.account-stack-card.is-front');
             if (accountStackOrder.length < 2 || !stack) return;
             if (!skipAnimation && frontCard && !window.matchMedia('(prefers-reduced-motion: reduce)').matches && typeof frontCard.animate === 'function') {
-                const nextButton = $('#m .account-stack-controls button');
-                if (nextButton) nextButton.disabled = true;
-                stack.classList.add('is-swiping');
                 const distance = Math.max(stack.clientWidth, window.innerWidth),
                     animation = frontCard.animate([
                         { transform: 'translate3d(0,0,0)', opacity: 1 },
@@ -1396,23 +1606,11 @@ function syncDateInput(input) {
                     accountStackOrder.unshift(accountStackOrder.pop());
                     renderAccountStackLayout(restoreFocus, outgoingId)
                 };
-                animation.oncancel = () => {
-                    stack.classList.remove('is-swiping');
-                    if (nextButton && nextButton.isConnected) nextButton.disabled = false
-                };
                 return
             }
             const outgoingId = frontCard && frontCard.dataset.accountId;
             accountStackOrder.unshift(accountStackOrder.pop());
             renderAccountStackLayout(restoreFocus, outgoingId)
-        }
-        function setAccountStackExpanded(expanded, restoreFocus) {
-            if (accountStackExpanded === expanded) return;
-            accountStackExpanded = expanded;
-            renderAccountStackLayout(restoreFocus)
-        }
-        function toggleAccountStackExpanded() {
-            setAccountStackExpanded(!accountStackExpanded)
         }
         function toggleAccountViewMode() {
             accountViewMode = accountViewMode === 'list' ? 'cards' : 'list';
@@ -1422,7 +1620,7 @@ function syncDateInput(input) {
             const stack = $('#m .account-stack');
             if (!stack || stack.dataset.swipeReady) return;
             stack.dataset.swipeReady = '1';
-            let pointerStart = null, touchStart = null, draggedCard = null, cyclingCard = false;
+            let pointerStart = null, draggedCard = null, cyclingCard = false;
             stack.addEventListener('pointerdown', event => {
                 if (cyclingCard || event.button !== 0 || event.target.closest('button,a,input,select,textarea')) return;
                 const targetCard = event.target.closest('.account-stack-card');
@@ -1436,7 +1634,6 @@ function syncDateInput(input) {
                 const dx = event.clientX - pointerStart.x,
                     dy = event.clientY - pointerStart.y;
                 if (Math.abs(dx) < 6 || Math.abs(dx) < Math.abs(dy) * 1.25) return;
-                stack.classList.add('is-swiping');
                 const width = Math.max(1, stack.clientWidth),
                     rotation = Math.max(-8, Math.min(8, dx / width * 10));
                 draggedCard.style.transform = `translate3d(${dx}px,0,0) rotate(${rotation}deg)`;
@@ -1451,13 +1648,11 @@ function syncDateInput(input) {
                 draggedCard = null;
                 if (Math.abs(dx) >= 48 && Math.abs(dx) >= Math.abs(dy) * 1.25) {
                     if (!card || accountStackOrder.length < 2) {
-                        stack.classList.remove('is-swiping');
                         sendAccountCardToBack();
                         return
                     }
                     cyclingCard = true;
                     const finishCycle = () => {
-                        stack.classList.remove('is-swiping');
                         card.style.transform = '';
                         card.style.opacity = '';
                         sendAccountCardToBack(undefined, true);
@@ -1481,10 +1676,7 @@ function syncDateInput(input) {
                     animation.onfinish = finishCycle;
                     return
                 }
-                stack.classList.remove('is-swiping');
-                if (Math.abs(dy) >= 48 && Math.abs(dy) >= Math.abs(dx) * 1.25) {
-                    setAccountStackExpanded(dy > 0)
-                } else if (card) {
+                if (card) {
                     card.style.transform = '';
                     card.style.opacity = ''
                 }
@@ -1495,41 +1687,12 @@ function syncDateInput(input) {
                     draggedCard.style.opacity = ''
                 }
                 pointerStart = null;
-                draggedCard = null;
-                stack.classList.remove('is-swiping')
+                draggedCard = null
             });
-            stack.addEventListener('touchstart', event => {
-                if (event.touches.length !== 1) {
-                    touchStart = null;
-                    return
-                }
-                const touch = event.touches[0];
-                touchStart = { x: touch.clientX, y: touch.clientY }
-            }, { passive: true });
-            stack.addEventListener('touchend', event => {
-                if (!touchStart) return;
-                const touch = event.changedTouches[0],
-                    dx = touch.clientX - touchStart.x,
-                    dy = touch.clientY - touchStart.y;
-                touchStart = null;
-                if (Math.abs(dy) >= 48 && Math.abs(dy) >= Math.abs(dx) * 1.25) {
-                    setAccountStackExpanded(dy > 0)
-                }
-            }, { passive: true });
-            stack.addEventListener('touchcancel', () => {
-                touchStart = null;
-                stack.classList.remove('is-swiping')
-            }, { passive: true });
             stack.addEventListener('keydown', event => {
                 if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
                     event.preventDefault();
                     sendAccountCardToBack(true)
-                } else if (event.key === 'ArrowDown') {
-                    event.preventDefault();
-                    setAccountStackExpanded(true, true)
-                } else if (event.key === 'ArrowUp') {
-                    event.preventDefault();
-                    setAccountStackExpanded(false, true)
                 }
             })
         }
@@ -1563,7 +1726,7 @@ function syncDateInput(input) {
                 `<div class="hero dashboard-balance-card"><div class="dashboard-balance-label"><small>Total balance</small></div><div class="hb">${peso(tot,1)}</div><small class="pocket-summary-amounts">Available ${peso(av)}${cr<0?' · Card owed '+peso(-cr):''}</small><div class="two"><div><small>↙ Income</small><div class="hn" style="color:var(--in)">${peso(inc, inc === 0)}</div></div><div><small>↗ Expenses</small><div class="hn" style="color:var(--ex)">${peso(exp, exp === 0)}</div></div></div></div>` :
                 '';
             const shortcutsWidget = widgets.shortcuts ?
-                `<section class="dashboard-shortcuts dashboard-section" aria-labelledby="dashboard-shortcuts-title"><div class="dashboard-section-heading"><h3 class="sec" id="dashboard-shortcuts-title">Your shortcuts</h3><button type="button" class="dashboard-section-link" onclick="dashboardSettingsForm()">Manage <span aria-hidden="true">→</span></button></div><div class="quick-actions-grid"><button class="quick-action" onclick="go('bud')"><span class="quick-action-icon quick-action-budget" aria-hidden="true">${dashboardIcon('chart')}</span><span>Budgets</span></button><button class="quick-action" onclick="go('cash')"><span class="quick-action-icon quick-action-cashback" aria-hidden="true">${dashboardIcon('gift')}</span><span>Cashback</span></button><button class="quick-action" onclick="go('rec')"><span class="quick-action-icon quick-action-recurring" aria-hidden="true">${dashboardIcon('repeat')}</span><span>Recurring</span></button><button class="quick-action" onclick="go('goal')"><span class="quick-action-icon quick-action-savings" aria-hidden="true">${dashboardIcon('goal')}</span><span>Goals</span></button><button class="quick-action" onclick="go('shop')"><span class="quick-action-icon quick-action-shopping" aria-hidden="true">${dashboardIcon('cart')}</span><span>Lists</span></button></div></section>` :
+                `<section class="dashboard-shortcuts dashboard-section" aria-labelledby="dashboard-shortcuts-title"><div class="dashboard-section-heading"><h3 class="sec" id="dashboard-shortcuts-title">Your shortcuts</h3></div><div class="quick-actions-grid"><button class="quick-action" onclick="go('bud')"><span class="quick-action-icon quick-action-budget" aria-hidden="true">${dashboardIcon('chart')}</span><span>Budgets</span></button><button class="quick-action" onclick="go('cash')"><span class="quick-action-icon quick-action-cashback" aria-hidden="true">${dashboardIcon('gift')}</span><span>Cashback</span></button><button class="quick-action" onclick="go('rec')"><span class="quick-action-icon quick-action-recurring" aria-hidden="true">${dashboardIcon('repeat')}</span><span>Recurring</span></button><button class="quick-action" onclick="go('goal')"><span class="quick-action-icon quick-action-savings" aria-hidden="true">${dashboardIcon('goal')}</span><span>Goals</span></button><button class="quick-action" onclick="go('shop')"><span class="quick-action-icon quick-action-shopping" aria-hidden="true">${dashboardIcon('cart')}</span><span>Lists</span></button></div></section>` :
                 '';
             const actionsWidget = widgets.actions ?
                 `<div class="row end" style="margin-top:18px"><button class="b2" onclick="quickAdd('expense')">${ic('plus')} Expense</button><button class="b2" onclick="quickAdd('income')">${ic('plus')} Income</button><button class="b2" onclick="quickAdd('transfer')">${ic('arrow-left-right')} Transfer</button></div>` :
@@ -2072,15 +2235,27 @@ function syncDateInput(input) {
                 const transactionType = expense?.type === 'transfer' ? 'Transfer' : 'Expense';
                 const timingLabel = claim.status === 'received' ? 'Received' : 'Added';
                 const timingDate = claim.status === 'received' ? claim.receivedDate : claim.created;
-                const deleteButton = `<button class="ib" onclick="deleteCashback('${claim.id}')" aria-label="Delete cashback claim">${ic('trash-2')}</button>`;
+                const title = claim.expenseTitle || expense?.title || 'Linked transaction';
+                const formatDate = value => {
+                    const [year, month, day] = String(value || '').split('-').map(Number);
+                    return year && month >= 1 && month <= 12 && day ? `${day} ${MO[month - 1]} ${year}` : 'Unknown date';
+                };
                 const actions = claim.status === 'pending'
-                    ? `<div class="cashback-card-actions"><button class="chip" onclick="markCashbackReceived('${claim.id}')">Mark received</button>${deleteButton}</div>`
+                    ? `<div class="cashback-card-actions"><button type="button" onclick="markCashbackReceived('${claim.id}')">Mark as received</button></div>`
                     : '';
-                return `<article class="card cashback-card"><div class="cashback-card-heading"><span class="dot" style="background:#0891b222;color:#0891b2">${ic('coins')}</span><div class="cashback-card-title"><b>${esc(claim.expenseTitle || expense?.title || 'Linked transaction')}</b><small>${transactionType} · ${fd(claim.expenseDate || expense?.date || claim.created)}</small></div><b class="cashback-amount">${peso(claim.amount)}</b></div><div class="cashback-card-meta"><span><small>Deposit account</small><b>${esc(A(claim.account)?.name || 'Unknown account')}</b></span><span><small>${timingLabel}</small><b>${fd(timingDate)}</b></span>${claim.status === 'received' ? deleteButton : ''}</div>${actions}</article>`
+                return `<article class="card cashback-card"><div class="cashback-card-heading"><span class="cashback-card-icon" aria-hidden="true">${ic('gift')}</span><div class="cashback-card-title"><b>${esc(title)}</b><small>${transactionType} · ${formatDate(claim.expenseDate || expense?.date || claim.created)}</small></div><b class="cashback-amount">${peso(claim.amount)}</b></div><div class="cashback-card-meta"><div><small>Deposit account</small><b>${esc(A(claim.account)?.name || 'Unknown account')}</b></div><div><small>${timingLabel}</small><b>${formatDate(timingDate)}</b></div></div>${actions}</article>`
             };
             const receivedTotal = received.reduce((total, claim) => total + claim.amount, 0),
                 pendingTotal = pending.reduce((total, claim) => total + claim.amount, 0);
-            return `<div class="cashback-header"><div><h2>Cashback</h2><small>Track pending and received cashback.</small></div></div><section class="card cashback-summary"><div class="cashback-summary-icon">${ic('coins')}</div><small>Total received</small><b>${peso(receivedTotal)}</b><span>${peso(pendingTotal)} pending</span></section><h3 class="sec cashback-subtitle"><span>Pending</span><span class="cashback-count">${pending.length}</span></h3><div class="g g2 cashback-list">${pending.length ? pending.map(claimCard).join('') : '<div class="empty card cashback-empty">Add a claim from an expense or transfer in Transactions.</div>'}</div><div class="cashback-section-heading"><h3 class="sec cashback-subtitle"><span>Received</span><span class="cashback-count">${received.length}</span></h3></div><div class="g g2 cashback-list">${received.length ? received.map(claimCard).join('') : '<div class="empty card cashback-empty">Cashback marked received will appear here as income.</div>'}</div>`
+            const sectionHeading = (title, claims) => {
+                const menu = claims.length ? `<details class="cashback-section-menu"><summary aria-label="Manage ${title.toLowerCase()} cashback claims">${ic('more-horizontal')}</summary><div class="cashback-section-menu-options">${claims.map(claim => {
+                    const expense = D.tx.find(item => item.id === claim.expenseId),
+                        claimTitle = claim.expenseTitle || expense?.title || 'Linked transaction';
+                    return `<div class="cashback-section-menu-item"><div class="cashback-section-menu-item-label"><b>${esc(claimTitle)}</b><span>${peso(claim.amount)}</span></div><div class="cashback-section-menu-actions"><button type="button" aria-label="Edit cashback for ${esc(claimTitle)}" onclick="this.closest('details').open=false;editCashback('${claim.id}')">${ic('pencil')}Edit</button><button type="button" aria-label="Delete cashback for ${esc(claimTitle)}" onclick="this.closest('details').open=false;deleteCashback('${claim.id}')">${ic('trash-2')}Delete</button></div></div>`
+                }).join('')}</div></details>` : '';
+                return `<div class="cashback-section-heading"><h3 class="cashback-subtitle">${title}</h3><span class="cashback-count">${claims.length}</span>${menu}</div>`
+            };
+            return `<div class="cashback-header"><div class="cashback-heading-copy"><small class="cashback-eyebrow">EVERY PESO COMES BACK</small><h2>Cashback</h2></div></div><section class="card cashback-summary"><small>Total received</small><b>${peso(receivedTotal)}</b><span>${peso(pendingTotal)} pending</span></section>${sectionHeading('Pending', pending)}<div class="g g2 cashback-list">${pending.length ? pending.map(claimCard).join('') : '<div class="empty card cashback-empty">Add a claim from an expense or transfer in Transactions.</div>'}</div>${sectionHeading('Received', received)}<div class="g g2 cashback-list">${received.length ? received.map(claimCard).join('') : '<div class="empty card cashback-empty">Cashback marked received will appear here as income.</div>'}</div>`
         };
         V.tx = () => {
             const options = (items, selected, allLabel) =>
@@ -2181,10 +2356,25 @@ function syncDateInput(input) {
         function pick(b, n) {
             const L = b.closest('label');
             L.querySelector('input').value = n;
-            L.querySelector('.it span').innerHTML = ic(n);
+            const iconButton = L.querySelector('.it span'),
+                iconPreview = L.querySelector('.account-icon-preview'),
+                iconName = L.querySelector('.account-icon-name');
+            if (iconButton) iconButton.innerHTML = ic(n);
+            if (iconPreview) iconPreview.innerHTML = ic(n);
+            if (iconName) iconName.textContent = n.split('-').map(part => part.charAt(0).toUpperCase() + part.slice(1)).join(' ');
             L.querySelectorAll('.ip .ib').forEach(x => x.classList.remove('sel'));
             b.classList.add('sel');
             L.querySelector('.ip').hidden = true
+        }
+
+        function toggleAccountColor(button) {
+            const expanded = button.getAttribute('aria-expanded') === 'true',
+                content = document.getElementById(button.getAttribute('aria-controls'));
+            if (!content) throw new Error('Account color section content is missing');
+            content.hidden = expanded;
+            button.setAttribute('aria-expanded', String(!expanded));
+            button.setAttribute('aria-label', `${expanded ? 'Expand' : 'Collapse'} account color section`);
+            button.innerHTML = ic(expanded ? 'arrow-down' : 'arrow-up')
         }
 
         function tg(b) {
@@ -2197,7 +2387,8 @@ function syncDateInput(input) {
             openForm(a ? 'Edit account' : 'Add account', () => [{
                 k: 'name',
                 l: 'Account name',
-                req: 1
+                req: 1,
+                placeholder: a ? '' : 'Name your account'
             }, {
                 k: 'type',
                 l: 'Type',
@@ -2205,14 +2396,15 @@ function syncDateInput(input) {
                 o: TYPES
             }, {
                 k: 'initial',
-                l: a ? 'Current balance (₱, negative if you owe)' :
-                    'Initial balance (₱, negative if you owe)',
+                l: a ? 'Current balance (₱)' : 'Initial balance (₱)',
                 t: 'number',
                 neg: 1,
-                req: 1
+                req: 1,
+                noMark: 1,
+                help: 'Enter a negative amount if this money is owed.'
             }, {
                 k: 'color',
-                l: 'Color',
+                l: 'Account color',
                 t: 'color'
             }, {
                 k: 'icon',
@@ -2247,10 +2439,8 @@ function syncDateInput(input) {
         });
         V.acc = () => {
             const accounts = accountStackAccounts();
-            const collapsedHeight = accounts.length ? Math.min(160 + (accounts.length - 1) * 28, 384) : 0,
-                stackGap = accounts.length > 1 ? accountStackExpanded ? 68 : (collapsedHeight - 160) / (accounts.length - 1) : 0,
+            const stackGap = 68,
                 stackHeight = accounts.length ? 160 + (accounts.length - 1) * stackGap : 0,
-                stackClass = accountStackExpanded ? 'account-stack is-expanded' : 'account-stack',
                 totalBalance = D.acc.filter(account => !isSav(account)).reduce((total, account) => total + bal(account), 0),
                 savingsBalance = D.acc.filter(isSav).reduce((total, account) => total + bal(account), 0);
             const visibleAccounts = accounts;
@@ -2261,18 +2451,16 @@ function syncDateInput(input) {
             const cards = visibleAccounts.map((account, index) => {
                 const balance = bal(account);
                 const isFront = index === visibleAccounts.length - 1;
-                const isNext = index === visibleAccounts.length - 2;
                 const balanceNote = account.type === 'Credit Card' ? 'Liability · not counted in available balance' :
                     isSav(account) ? 'Savings · kept separate from total balance' : `Initial ${pesoBalance(account.initial)}`;
                 const actions = isFront ?
                     `<div class="account-stack-actions"><button class="ib" onclick="accForm('${account.id}')" aria-label="Edit ${esc(account.name)}">${ic('pencil')}</button><button class="ib" onclick="delAcc('${account.id}')" aria-label="Delete ${esc(account.name)}">${ic('trash-2')}</button></div>` :
                     '';
-                return `<article class="account-stack-card${isFront ? ' is-front' : ''}${isNext ? ' is-next' : ''}" data-account-id="${esc(account.id)}" aria-hidden="${!isFront && !accountStackExpanded}" style="--account-accent:${esc(account.color)};--stack-offset:${index * stackGap}px;z-index:${index}"><div class="account-stack-card-heading"><div class="account-stack-name"><span class="account-stack-icon">${ic(account.icon || 'wallet')}</span><span class="account-stack-name-copy"><b>${esc(account.name)}</b><small>${esc(account.type)} · since ${fd(account.created)}</small></span></div><b class="account-stack-balance" style="color:${balance < 0 ? 'var(--ex)' : 'var(--tx)'}">${pesoBalance(balance)}</b></div><div class="account-stack-card-footer"><small>${balanceNote}</small>${actions}</div></article>`
+                return `<article class="account-stack-card${isFront ? ' is-front' : ''}" data-account-id="${esc(account.id)}" style="--account-accent:${esc(account.color)};--stack-offset:${index * stackGap}px;z-index:${index}"><div class="account-stack-card-heading"><div class="account-stack-name"><span class="account-stack-icon">${ic(account.icon || 'wallet')}</span><span class="account-stack-name-copy"><b>${esc(account.name)}</b><small>${esc(account.type)} · since ${fd(account.created)}</small></span></div><b class="account-stack-balance" style="color:${balance < 0 ? 'var(--ex)' : 'var(--tx)'}">${pesoBalance(balance)}</b></div><div class="account-stack-card-footer"><small>${balanceNote}</small>${actions}</div></article>`
             }).join('');
             const accountCount = `${accounts.length} ${accounts.length === 1 ? 'account' : 'accounts'}`;
-            const accountOverview = `<div class="account-stack-overview" aria-label="Account summary"><div><b>${accounts.length}</b><small>Accounts</small></div><div><b>${pesoBalance(totalBalance)}</b><small>Total balance</small></div><div><b>${pesoBalance(savingsBalance)}</b><small>Savings</small></div></div>`;
             const stackView = accounts.length ?
-                `<div class="account-stack-wrap">${accountOverview}<div class="account-stack-controls"><div class="account-stack-control-actions"><button type="button" class="chip" aria-label="Show next account" ${accounts.length < 2 ? 'disabled' : ''} onclick="sendAccountCardToBack()">${ic('repeat')} Next account</button><button type="button" class="chip" aria-label="${accountStackExpanded ? 'Collapse account cards' : 'Show all account balances'}" aria-expanded="${accountStackExpanded}" ${accounts.length < 2 ? 'disabled' : ''} onclick="toggleAccountStackExpanded()">${accountStackExpanded ? 'Collapse cards' : 'Show balances'}</button></div></div><div class="${stackClass}" role="region" aria-expanded="${accountStackExpanded}" aria-label="Account cards. Swipe sideways to switch accounts, or use Show balances to expand." tabindex="0" style="height:${stackHeight}px">${cards}</div><div class="account-stack-footer"><small>Swipe sideways to switch accounts.</small></div></div>` :
+                `<div class="account-stack-wrap"><div class="account-stack-footer"><small>Swipe sideways to switch accounts.</small></div><div class="account-stack" role="region" aria-label="Account cards. Swipe sideways to switch accounts." tabindex="0" style="height:${stackHeight}px">${cards}</div></div>` :
                 '<div class="empty accounts-empty">No accounts yet. Add one to get started.</div>';
             const accountContent = accountViewMode === 'list' ?
                 accounts.length ? `<div class="accounts-list">${accountRows}</div>` :
@@ -2291,9 +2479,10 @@ function syncDateInput(input) {
                 o: D.cats.filter(c => c.g !== 'Income').map(c => [c.id, c.name])
             }, {
                 k: 'amt',
-                l: 'Monthly budget (₱)',
+                l: 'Monthly budget * (₱)',
                 t: 'number',
                 req: 1,
+                noMark: 1,
                 pos: 1
             }], id ? {
                 cat: id,
@@ -2306,18 +2495,30 @@ function syncDateInput(input) {
         const delBudget = id => ask('Remove this budget?', () => {
             delete D.budgets[id]
         });
+        function shiftBudgetMonth(amount) {
+            budgetMonthOffset += amount;
+            render()
+        }
         V.bud = () => {
             const categoryName = id => C(id)?.name || 'Unknown category',
-                L = bstat().sort((first, second) =>
+                month = new Date(new Date().getFullYear(), new Date().getMonth() + budgetMonthOffset, 1),
+                monthKey = ym(iso(month)),
+                monthLabel = new Intl.DateTimeFormat('en-PH', { month: 'long', year: 'numeric' }).format(month),
+                L = bstat(monthKey).sort((first, second) =>
                     categoryName(first.id).localeCompare(categoryName(second.id), undefined, { sensitivity: 'base' }) ||
                     first.id.localeCompare(second.id)
                 );
-            return `<div class="row sp"><div><h2>Budgets</h2><small>As of ${MO[new Date().getMonth()]} ${new Date().getFullYear()}</small></div></div>${alerts()}<div class="g g2">${L.length ? L.map(x => {
-                const c = C(x.id) || { name: 'Unknown category', color: '#999' };
-                const col = x.p >= 100 ? 'var(--ex)' : x.p >= 75 ? '#eab308' : 'var(--in)';
-                const percent = Math.round(x.p);
-                return `<div class="card"><div class="row"><span style="color:${c.color};display:inline-flex">${ic(c.icon || 'tag')}</span><b class="gr">${esc(c.name)}</b><button class="ib" onclick="budForm('${x.id}')" aria-label="Edit budget">${ic('pencil')}</button><button class="ib" onclick="delBudget('${x.id}')" aria-label="Remove budget">${ic('trash-2')}</button></div><div class="bar"><i style="width:${Math.min(100, Math.max(0, x.p))}%;background:${col}"></i></div><div class="row sp"><small>Spent ${peso(x.s)} of ${peso(x.b)}</small><b style="color:${col}">${percent}%</b></div><small>${x.b >= x.s ? `${peso(x.b - x.s)} remaining` : `${peso(x.s - x.b)} over budget`}</small></div>`
-            }).join('') : '<div class="empty card">No budgets yet. Set one for a category to track your spending.</div>'}</div>`
+                overBudgetNames = L.filter(item => item.p > 100).map(item => categoryName(item.id)),
+                overBudgetList = overBudgetNames.length < 2 ? overBudgetNames[0] :
+                    `${overBudgetNames.slice(0, -1).join(', ')} and ${overBudgetNames[overBudgetNames.length - 1]}`,
+                budgetAlert = overBudgetNames.length ? `<section class="budgets-overview-alert" role="status"><span class="budgets-overview-alert-icon" aria-hidden="true">${ic('alert-triangle')}</span><div><b>${overBudgetNames.length} budget${overBudgetNames.length === 1 ? '' : 's'} over their limit</b><small>Keep an eye on ${esc(overBudgetList)}.</small></div></section>` : '';
+            return `<div class="row sp budgets-heading"><div class="budgets-heading-copy"><small>A LITTLE PLAN, MORE CONTROL.</small><h2>Budgets</h2></div></div><div class="budgets-page"><div class="budgets-month"><button type="button" class="budgets-month-button" onclick="shiftBudgetMonth(-1)" aria-label="Previous month">${ic('chevron-left')}</button><strong aria-live="polite">${esc(monthLabel)}</strong><button type="button" class="budgets-month-button" onclick="shiftBudgetMonth(1)" aria-label="Next month">${ic('chevron-right')}</button></div>${budgetAlert}<div class="budgets-list">${L.length ? L.map(x => {
+                const c = C(x.id) || { name: 'Unknown category', color: '#999', icon: 'tag' },
+                    col = x.p >= 100 ? 'var(--ex)' : 'var(--in)',
+                    percent = Number.isFinite(x.p) ? Math.round(x.p) : '∞',
+                    progress = Number.isFinite(x.p) ? Math.min(100, Math.max(0, x.p)) : 100;
+                return `<article class="card budget-card"><div class="budget-card-heading"><span class="budget-card-icon" style="--budget-icon-color:${esc(c.color)}">${ic(c.icon || 'tag')}</span><b>${esc(c.name)}</b><details class="budget-card-menu"><summary aria-label="Budget options for ${esc(c.name)}">${ic('more-horizontal')}</summary><div class="budget-card-menu-options"><button type="button" onclick="budForm('${esc(x.id)}')">${ic('pencil')}Edit budget</button><button type="button" onclick="delBudget('${esc(x.id)}')">${ic('trash-2')}Remove budget</button></div></details></div><div class="budget-card-amounts"><div><small>Spent</small><strong>${peso(x.s)}</strong></div><small>of <b>${peso(x.b)}</b> budget</small></div><div class="bar"><i style="width:${progress}%;background:${col}"></i></div><div class="budget-card-footer"><small>${x.b >= x.s ? `${peso(x.b - x.s)} remaining` : `${peso(x.s - x.b)} over budget`}</small><b style="color:${col}">${percent}%</b></div></article>`
+            }).join('') : '<div class="empty card budgets-empty">No budgets yet. Set one for a category to track your spending.</div>'}</div></div>`
         };
 
         function goalForm(id) {
@@ -2550,13 +2751,29 @@ function syncDateInput(input) {
         };
         V.rec = () => {
             const frequencyName = frequency => RECURRENCES.find(item => item[0] === frequency)?.[1] || 'Recurring';
-            const details = rule => rule.type === 'transfer'
-                ? `${esc(A(rule.acc)?.name || 'Unknown account')} → ${esc(A(rule.to)?.name || 'Unknown account')}`
-                : `${esc(C(rule.cat)?.name || 'Uncategorized')} · ${esc(A(rule.acc)?.name || 'Unknown account')}`;
+            const scheduleDate = value => {
+                const [year, month, day] = String(value || '').split('-').map(Number);
+                return year && month >= 1 && month <= 12 && day > 0
+                    ? `${day} ${MO[month - 1]} ${year}`
+                    : 'Unknown date';
+            };
             const waitingForFunds = rule => rule.active && rule.type === 'transfer' && rule.next <= today() &&
                 A(rule.acc) && !od(A(rule.acc)) && bal(A(rule.acc)) < rule.amount;
-            const activeCount = D.recurring.filter(rule => rule.active).length;
-            return `<div class="row"><div class="gr"><h2>Recurring transactions</h2><small>Due items are added while Pocket is open; missed items catch up next time.</small></div></div><div class="recurring-section-heading"><b>Active schedules</b><small>${activeCount} active</small></div><div class="g g2">${D.recurring.length ? D.recurring.map(rule => `<div class="card"><div class="row"><span class="dot" style="background:var(--sq);color:${rule.type==='income'?'var(--in)':rule.type==='expense'?'var(--ex)':'var(--tr)'}">${ic(rule.type==='transfer'?'arrow-left-right':rule.type==='income'?'wallet':'zap')}</span><div class="gr"><b>${esc(rule.title || 'Transfer')}</b><br><small>${frequencyName(rule.frequency)} · ${details(rule)}</small></div><button class="ib" onclick="recurringForm('${rule.id}')" aria-label="Edit schedule">${ic('pencil')}</button><button class="ib" onclick="deleteRecurring('${rule.id}')" aria-label="Delete schedule">${ic('trash-2')}</button></div><div class="row sp" style="margin-top:10px"><b style="color:${rule.type==='income'?'var(--in)':rule.type==='expense'?'var(--ex)':'var(--tr)'}">${rule.type==='expense'?'−':rule.type==='income'?'+':''}${peso(rule.amount)}</b><small>${rule.active ? waitingForFunds(rule) ? 'Waiting for sufficient funds' : `Next: ${fd(rule.next)}` : 'Paused'}</small></div><div class="row sp" style="margin-top:10px"><small>${rule.next < today() && !rule.active ? `Paused · next due ${fd(rule.next)}` : `Starts ${fd(rule.start)}`}</small><button class="chip" onclick="toggleRecurring('${rule.id}')">${rule.active?'Pause':'Resume'}</button></div></div>`).join('') : '<div class="empty card">No recurring schedules yet. Add one for a regular bill, subscription, salary, or transfer.</div>'}</div>`
+            const active = D.recurring.filter(rule => rule.active),
+                paused = D.recurring.filter(rule => !rule.active);
+            const card = rule => {
+                const title = rule.title || 'Transfer',
+                    category = rule.type === 'transfer' ? 'Transfer' : C(rule.cat)?.name || 'Uncategorized',
+                    accountLabel = rule.type === 'income' ? 'Deposited to' : rule.type === 'transfer' ? 'From account' : 'Paid from',
+                    accountName = A(rule.acc)?.name || 'Unknown account',
+                    amount = `${rule.type === 'expense' ? '−' : rule.type === 'income' ? '+' : ''}${peso(rule.amount)}`,
+                    waiting = waitingForFunds(rule),
+                    nextPayment = rule.active ? scheduleDate(rule.next) : `Paused · ${scheduleDate(rule.next)}`;
+                return `<article class="card recurring-card"><div class="recurring-card-heading"><span class="recurring-card-icon">${ic(rule.type === 'transfer' ? 'arrow-left-right' : rule.type === 'income' ? 'wallet' : 'zap')}</span><div class="recurring-card-title"><b>${esc(title)}</b><small>${esc(frequencyName(rule.frequency))} · ${esc(category)}</small></div><details class="recurring-card-menu"><summary aria-label="Manage ${esc(title)}" title="Manage schedule">${dashboardIcon('more')}</summary><div class="recurring-card-menu-items"><button type="button" onclick="recurringForm('${rule.id}');this.closest('details').open=false">Edit schedule</button><button type="button" onclick="deleteRecurring('${rule.id}');this.closest('details').open=false">Delete schedule</button></div></details></div><b class="recurring-card-amount">${amount}</b><div class="recurring-card-details"><div class="recurring-card-detail"><span>Next payment</span><b class="${waiting ? 'is-waiting' : ''}">${waiting ? 'Waiting for funds' : nextPayment}</b></div><div class="recurring-card-detail"><span>${accountLabel}</span><b>${esc(accountName)}</b></div>${rule.type === 'transfer' ? `<div class="recurring-card-detail"><span>To account</span><b>${esc(A(rule.to)?.name || 'Unknown account')}</b></div>` : ''}<small class="recurring-card-start">Starts ${scheduleDate(rule.start)}</small></div><button type="button" class="recurring-toggle" onclick="toggleRecurring('${rule.id}')">${rule.active ? 'Pause schedule' : 'Resume schedule'}</button></article>`
+            };
+            const sectionHeading = (title, schedules) => `<div class="recurring-section-heading"><b>${title}</b><small>${schedules.length} schedule${schedules.length === 1 ? '' : 's'}</small></div>`;
+            const emptyState = `<div class="card recurring-empty"><span class="recurring-empty-icon">${ic('repeat')}</span><div><b>${paused.length ? 'No active schedules' : 'No schedules yet'}</b><small>${paused.length ? 'Resume a paused schedule or add a new one.' : 'Add one for a regular bill, subscription, salary, or transfer.'}</small></div></div>`;
+            return `<div class="row recurring-header"><div class="recurring-heading-copy"><small>LESS TO REMEMBER</small><h2>Recurring</h2><p>Set schedules for regular expenses, income, and transfers.</p></div></div>${sectionHeading('Active', active)}<div class="recurring-list">${active.length ? active.map(card).join('') : emptyState}</div>${paused.length ? `${sectionHeading('Paused', paused)}<div class="recurring-list">${paused.map(card).join('')}</div>` : ''}<small class="recurring-note">Due items are added while Pocket is open. Missed schedules catch up next time.</small>`
         };
         const REPORT_COLORS = ['#16a34a', '#ea580c', '#2563eb'],
             REPORT_RANGES = [['weekly', 'Weekly'], ['monthly', 'Monthly'], ['yearly', 'Yearly'], ['custom', 'Custom']];
@@ -3302,28 +3519,41 @@ ${chartCard('Cash Flow', cashFlowChart)}
 <div class="card"><h3>Data management</h3><small class="settings-note">These actions can clear or replace local data. You’ll be asked to confirm before they run.</small><div class="settings-actions" style="margin-top:10px"><button class="b2" style="color:var(--ex)" onclick="clearTransactionHistory()">${ic('trash-2')} Clear transaction history</button><button class="b2" onclick="ask('Reset all amounts to ₱0? This clears every transaction, sets all account balances to ₱0 and empties savings goals.',()=>zero(D),'Reset')">${ic('rotate-ccw')} Reset all amounts</button><button class="b2" onclick="ask('Load the sample data? Your changes will be lost.',()=>{D=seed();D.v2=D.v3=1},'Load')">${ic('rotate-ccw')} Load sample data</button></div></div></div>`;
         const NAV = ['dash', 'tx', 'acc', 'rep', 'set'];
         const TITLE_MENU_GROUPS = [
-            ['Pages', [
-                ['dash', 'Dashboard'],
-                ['tx', 'Transactions'],
-                ['acc', 'Accounts'],
-                ['rep', 'Reports']
+            ['pages', '', [
+                ['dash', 'Overview', 'home'],
+                ['tx', 'Transactions', 'arrow-down-up'],
+                ['acc', 'Accounts', 'wallet'],
+                ['rep', 'Reports', 'bar-chart-3']
             ]],
-            ['Manage', [
+            ['manage', 'Manage', [
                 ['bud', 'Budgets'],
                 ['goal', 'Savings goals'],
                 ['rec', 'Recurring transactions'],
-                ['shop', 'Shopping List'],
+                ['shop', 'Shopping lists'],
                 ['cat', 'Categories'],
                 ['cash', 'Cashback']
             ]],
-            ['Account', [
-                ['prof', 'Profile']
-            ]],
-            ['Preferences', [
+            ['account-preferences', 'Account & Preferences', [
+                ['prof', 'Profile'],
                 ['set', 'Settings']
             ]]
         ];
         let titleMenu, titleMenuBackdrop, titleMenuTrigger, pageTransition, titleMenuCloseTimer, titleMenuOpenTimer;
+
+        function bindPageMenuToggle(toggle) {
+            if (!toggle) return;
+            toggle.addEventListener('click', event => {
+                event.stopPropagation();
+                if (!titleMenu.hidden && titleMenuTrigger === toggle) closeTitleMenu();
+                else openTitleMenu(toggle);
+            });
+            toggle.addEventListener('keydown', event => {
+                if (event.key !== 'ArrowDown') return;
+                event.preventDefault();
+                openTitleMenu(toggle);
+                titleMenu.querySelector('button[data-page]')?.focus();
+            });
+        }
 
         function closeTitleMenu() {
             if (!titleMenu || titleMenu.hidden || titleMenu.classList.contains('is-closing')) return;
@@ -3441,10 +3671,10 @@ ${chartCard('Cash Flow', cashFlowChart)}
                 });
                 window.addEventListener('resize', closeTitleMenu);
             }
-            titleMenu.innerHTML = `<div class="page-title-menu-header"><strong id="page-title-menu-heading">Pages</strong><button type="button" class="page-title-menu-close" aria-label="Close pages menu"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>${TITLE_MENU_GROUPS.map(([group, items]) =>
-                `<div class="page-title-menu-group"><div class="page-title-menu-label">${group}</div>${items.map(([id, label]) =>
-                    `<button type="button" data-page="${id}"${U.v===id?' aria-current="page"':''}>${label}</button>`
-                ).join('')}</div>`
+            titleMenu.innerHTML = `<div class="page-title-menu-header"><strong id="page-title-menu-heading">Pocket</strong></div>${TITLE_MENU_GROUPS.map(([group, label, items]) =>
+                `<div class="page-title-menu-group page-title-menu-group-${group}">${label?`<div class="page-title-menu-label">${label}</div>`:''}<div class="page-title-menu-items">${items.map(([id, itemLabel, icon]) =>
+                    `<button type="button" data-page="${id}"${U.v===id?' aria-current="page"':''}>${icon?`<span class="page-title-menu-item-icon">${ic(icon)}</span>`:''}<span>${itemLabel}</span></button>`
+                ).join('')}</div></div>`
             ).join('')}`;
             const heading = $('#m').querySelector('h2');
             if (!heading) return;
@@ -3474,7 +3704,7 @@ ${chartCard('Cash Flow', cashFlowChart)}
                     }
                 });
             }
-            toggle.innerHTML = U.v === 'dash' || U.v === 'tx' ? dashboardIcon('more') : '<span></span><span></span><span></span>';
+            toggle.innerHTML = U.v === 'dash' || U.v === 'tx' || U.v === 'cash' || U.v === 'rec' ? dashboardIcon('more') : '<span></span><span></span><span></span>';
             if (toggle.parentElement !== header || toggle.nextElementSibling !== headingGroup) {
                 header.insertBefore(toggle, headingGroup);
             }
