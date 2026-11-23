@@ -82,6 +82,10 @@
   };
 
   const render = () => {
+    if (main.dataset.view === 'dash') {
+      document.getElementById(PANEL_ID)?.remove();
+      return;
+    }
     installStyles();
     const data = loadData();
     if (!data) return;

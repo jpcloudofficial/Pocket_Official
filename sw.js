@@ -1,9 +1,9 @@
-const CACHE = 'pera-v135';
+const CACHE = 'pera-v137';
 const FILES = [
   './',
   'index.html',
   'manifest.webmanifest',
-  'src/app/app.css?v=20261124-form-1',
+  'src/app/app.css?v=20261124-form-17',
   'src/app/app.js',
   'src/app/router.js',
   'src/app/component-loader.js',

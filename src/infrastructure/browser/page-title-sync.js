@@ -2,7 +2,7 @@
             const titles = {
                 tx: 'Transactions',
                 cash: 'Cashback',
-                rec: 'Recurring transactions',
+                rec: 'Recurring',
                 acc: 'Accounts',
                 bud: 'Budgets',
                 goal: 'Savings goals',
