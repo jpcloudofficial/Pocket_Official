@@ -31,6 +31,8 @@ function syncDateInput(input) {
             '"': '&quot;'
         } [c]));
         const MO = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        const dashboardIcon = name =>
+            `<img class="dashboard-icon" src="assets/dashboard-icons/${name}.svg" width="24" height="24" alt="">`;
         const ICONS = ['wallet', 'banknote', 'landmark', 'smartphone', 'piggy-bank', 'credit-card', 'coins', 'tag',
             'bus', 'utensils', 'shopping-cart', 'cookie', 'heart', 'shopping-bag', 'home', 'zap', 'repeat', 'film',
             'activity', 'shield', 'trending-up', 'briefcase', 'laptop', 'gift', 'calendar', 'rotate-ccw',
@@ -498,9 +500,11 @@ function syncDateInput(input) {
             select.addEventListener('change', updateTrigger);
             trigger.addEventListener('click', () => {
                 const overlay = document.createElement('div'),
-                    menu = document.createElement('div');
+                    menu = document.createElement('div'),
+                    isTransactionFilter = Boolean(trigger.closest('.transaction-filters'));
                 overlay.className = 'pocket-select-overlay';
                 menu.className = 'pocket-select-menu';
+                if (isTransactionFilter) menu.classList.add('transaction-filter-menu');
                 menu.setAttribute('role', 'listbox');
                 menu.setAttribute('aria-label', label);
                 let closing = false;
@@ -556,7 +560,8 @@ function syncDateInput(input) {
                 });
                 const bounds = trigger.getBoundingClientRect(),
                     viewportWidth = document.documentElement.clientWidth || window.innerWidth,
-                    width = Math.min(bounds.width, viewportWidth - 16),
+                    minWidth = isTransactionFilter ? Math.min(220, viewportWidth - 16) : bounds.width,
+                    width = Math.min(Math.max(bounds.width, minWidth), viewportWidth - 16),
                     left = Math.max(8, Math.min(bounds.left, viewportWidth - width - 8)),
                     availableHeight = Math.max(80, window.innerHeight - bounds.bottom - 8);
                 menu.style.left = `${left}px`;
@@ -1106,7 +1111,22 @@ function syncDateInput(input) {
                 amount = `${t.type === 'expense' ? '−' : t.type === 'income' ? '+' : ''}${peso(t.amount)}`;
             const cashback = t.type === 'expense' || tr ? D.cashbacks.find(claim => claim.expenseId === t.id) : null;
             const actions = act ? `<div class="tx-actions">${t.type === 'expense' || tr ? `<button class="ib" onclick="${cashback ? "go('cash')" : `cashbackForm('${t.id}')`}" aria-label="${cashback ? 'Manage cashback' : 'Track cashback'}" title="${cashback ? 'Manage cashback' : 'Track cashback'}">${ic('coins')}</button>` : ''}<button class="ib" onclick="editTx('${t.id}')" aria-label="Edit">${ic('pencil')}</button><button class="ib" onclick="delTx('${t.id}')" aria-label="Delete">${ic('trash-2')}</button></div>` : '';
-            return `<div class="tx tx-list-row${recentLink ? ' recent-link' : ''}" data-date="${esc(t.date)}"${recentLink ? ` role="link" tabindex="0" aria-label="Open ${esc(t.title)} in Transactions" onclick="openRecentTransaction('${t.id}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openRecentTransaction('${t.id}')}"` : ''}><span class="dot" style="background:var(--sq);color:var(--tx)">${ic(tr ? 'arrow-left-right' : c ? c.icon : 'tag')}</span><div class="gr tx-copy"><b>${esc(t.title)}</b><small class="tx-meta"><span>${details}</span><span>${date}</span></small></div><div class="tx-end"><b class="tx-amount" style="color:${col}">${amount}</b>${actions}</div></div>`
+            const transactionDate = new Date(`${t.date}T00:00:00`),
+                recentDate = `${transactionDate.getDate()} ${MO[transactionDate.getMonth()]}`,
+                recentDetails = tr ?
+                    `${recentDate} · ${esc(A(t.acc)?.name || 'Account')} → ${esc(A(t.to)?.name || 'Account')}` :
+                    `${recentDate} · ${esc(t.type === 'income' ? A(t.acc)?.name || 'Account' : c?.name || 'Uncategorized')}`,
+                metadata = recentLink ? `<span>${recentDetails}</span>` : U.v === 'tx' ?
+                    `<span>${details}</span>` : `<span>${details}</span><span>${date}</span>`;
+                const transactionPageIcon = tr ? 'repeat' : t.type === 'income' ? 'gift' :
+                    c?.name === 'Food & Drinks' ? 'cart' :
+                        c?.name === 'Transportation' ? 'activity' :
+                            c?.icon === 'shopping-cart' ? 'cart' :
+                                c?.icon === 'repeat' ? 'repeat' : '';
+                const transactionIcon = recentLink ? dashboardIcon(tr ? 'repeat' : t.type === 'income' ? 'gift' : 'activity') :
+                    U.v === 'tx' && transactionPageIcon ? dashboardIcon(transactionPageIcon) :
+                        ic(tr ? 'arrow-left-right' : c ? c.icon : 'tag');
+            return `<div class="tx tx-list-row${recentLink ? ' recent-link' : ''}" data-date="${esc(t.date)}"${recentLink ? ` role="link" tabindex="0" aria-label="Open ${esc(t.title)} in Transactions" onclick="openRecentTransaction('${t.id}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openRecentTransaction('${t.id}')}"` : ''}><span class="dot" style="background:var(--sq);color:var(--tx)">${transactionIcon}</span><div class="gr tx-copy"><b>${esc(t.title)}</b><small class="tx-meta">${metadata}</small></div><div class="tx-end"><b class="tx-amount" style="color:${col}">${amount}</b>${actions}</div></div>`
         }
 
         function bars(S, L, C) {
@@ -1460,27 +1480,28 @@ function syncDateInput(input) {
                     total + bal(account, iso(new Date(reportYear, i + 1, 0))), 0));
             const card = (l, v, c, s = '') =>
                 `<div class="card"><small>${l}</small><div class="big" style="color:${c||'inherit'}">${peso(v)}</div><small>${s}</small></div>`;
-            const accountPages = [];
-            for (let i = 0; i < D.acc.length; i += 4) accountPages.push(D.acc.slice(i, i + 4));
             const accountCard = x => {
                 const balance = bal(x);
-                return `<div class="ac" onclick="go('acc')"><div class="row" style="flex-wrap:nowrap;gap:8px"><span style="display:inline-flex">${ic(x.icon||'wallet')}</span><b>${esc(x.name)}</b></div><div class="av" style="color:${balance<0?'var(--ex)':'inherit'}">${pesoBalance(balance)}</div></div>`
+                const accountType = x.type === 'E-Wallet' ? 'E-wallet' :
+                    ['Digital Bank', 'Traditional Bank'].includes(x.type) ? 'Digital bank' : x.type;
+                const accountIcon = ['Digital Bank', 'Traditional Bank'].includes(x.type) ? 'bank' : 'wallet';
+                return `<button type="button" class="dashboard-account-row" onclick="go('acc')" aria-label="Open ${esc(x.name)}, balance ${esc(pesoBalance(balance))}"><span class="dashboard-account-icon">${dashboardIcon(accountIcon)}</span><span class="dashboard-account-copy"><b>${esc(x.name)}</b><small>${esc(accountType)}</small></span><b class="dashboard-account-balance${balance<0?' is-negative':''}">${pesoBalance(balance)}</b></button>`
             };
             const widgets = D.dashboardWidgets;
             const summaryWidget = widgets.summary ?
-                `<div class="hero"><small>Total Balance</small><div class="hb">${peso(tot,1)}</div><div class="two"><div><small>Income</small><div class="hn" style="color:var(--in)">${peso(inc, inc === 0)}</div></div><div><small>Expenses</small><div class="hn" style="color:var(--ex)">${peso(exp, exp === 0)}</div></div></div><small class="pocket-summary-amounts">Available ${peso(av)}${cr<0?' · Card owed '+peso(-cr):''}</small></div>` :
+                `<div class="hero dashboard-balance-card"><div class="dashboard-balance-label"><small>Total balance</small></div><div class="hb">${peso(tot,1)}</div><small class="pocket-summary-amounts">Available ${peso(av)}${cr<0?' · Card owed '+peso(-cr):''}</small><div class="two"><div><small>↙ Income</small><div class="hn" style="color:var(--in)">${peso(inc, inc === 0)}</div></div><div><small>↗ Expenses</small><div class="hn" style="color:var(--ex)">${peso(exp, exp === 0)}</div></div></div></div>` :
                 '';
             const shortcutsWidget = widgets.shortcuts ?
-                `<section class="dashboard-shortcuts" aria-labelledby="dashboard-shortcuts-title"><h3 class="sec" id="dashboard-shortcuts-title">Quick Actions</h3><div class="quick-actions-grid"><button class="quick-action" onclick="go('bud')"><span class="quick-action-icon quick-action-budget" aria-hidden="true">${ic('gauge')}</span><span>Budgets</span></button><button class="quick-action" onclick="go('cash')"><span class="quick-action-icon quick-action-cashback" aria-hidden="true">${ic('coins')}</span><span>Cashback</span></button><button class="quick-action" onclick="go('rec')"><span class="quick-action-icon quick-action-recurring" aria-hidden="true">${ic('repeat')}</span><span>Recurring</span></button><button class="quick-action" onclick="go('goal')"><span class="quick-action-icon quick-action-savings" aria-hidden="true">${ic('target')}</span><span>Savings goals</span></button><button class="quick-action" onclick="go('shop')"><span class="quick-action-icon quick-action-shopping" aria-hidden="true">${ic('shopping-cart')}</span><span>Shopping List</span></button></div></section>` :
+                `<section class="dashboard-shortcuts dashboard-section" aria-labelledby="dashboard-shortcuts-title"><div class="dashboard-section-heading"><h3 class="sec" id="dashboard-shortcuts-title">Your shortcuts</h3><button type="button" class="dashboard-section-link" onclick="dashboardSettingsForm()">Manage <span aria-hidden="true">→</span></button></div><div class="quick-actions-grid"><button class="quick-action" onclick="go('bud')"><span class="quick-action-icon quick-action-budget" aria-hidden="true">${dashboardIcon('chart')}</span><span>Budgets</span></button><button class="quick-action" onclick="go('cash')"><span class="quick-action-icon quick-action-cashback" aria-hidden="true">${dashboardIcon('gift')}</span><span>Cashback</span></button><button class="quick-action" onclick="go('rec')"><span class="quick-action-icon quick-action-recurring" aria-hidden="true">${dashboardIcon('repeat')}</span><span>Recurring</span></button><button class="quick-action" onclick="go('goal')"><span class="quick-action-icon quick-action-savings" aria-hidden="true">${dashboardIcon('goal')}</span><span>Goals</span></button><button class="quick-action" onclick="go('shop')"><span class="quick-action-icon quick-action-shopping" aria-hidden="true">${dashboardIcon('cart')}</span><span>Lists</span></button></div></section>` :
                 '';
             const actionsWidget = widgets.actions ?
                 `<div class="row end" style="margin-top:18px"><button class="b2" onclick="quickAdd('expense')">${ic('plus')} Expense</button><button class="b2" onclick="quickAdd('income')">${ic('plus')} Income</button><button class="b2" onclick="quickAdd('transfer')">${ic('arrow-left-right')} Transfer</button></div>` :
                 '';
             const accountsWidget = widgets.accounts ?
-                `<div class="row sp" style="margin-top:22px"><h3 class="sec" style="margin:0">My Accounts</h3>${accountPages.length>1?`<small id="account-page-indicator" class="mu" aria-live="polite">Swipe · 1/${accountPages.length}</small>`:''}</div>${accountPages.length?`<div class="account-carousel" role="region" aria-label="My Accounts; swipe horizontally for more" onscroll="accountPageChanged(this)"><div class="account-carousel-track">${accountPages.map(page=>`<div class="ag account-page">${page.map(accountCard).join('')}</div>`).join('')}</div></div>`:'<div class="empty">No accounts yet.</div>'}` :
+                `<section class="dashboard-section dashboard-accounts"><div class="dashboard-section-heading"><h3 class="sec">My accounts</h3><button type="button" class="dashboard-section-link" onclick="go('acc')">See all <span aria-hidden="true">→</span></button></div>${D.acc.length?`<div class="dashboard-account-card">${D.acc.slice(0,4).map(accountCard).join('')}</div>`:'<div class="empty dashboard-empty">No accounts yet.</div>'}</section>` :
                 '';
             const transactionsWidget = widgets.transactions ?
-                `<div class="row sp" style="margin-top:22px"><h3 class="sec" style="margin:0">Recent Transactions</h3><button class="chip" onclick="go('tx')">View all</button></div><div style="margin-top:6px">${D.tx.length?sorted().slice(0,3).map(t=>row(t,false,true)).join(''):'<div class="empty">No transactions yet.</div>'}</div>` :
+                `<section class="dashboard-section dashboard-transactions"><div class="dashboard-section-heading"><h3 class="sec">Recent transactions</h3><button type="button" class="dashboard-section-link" onclick="go('tx')">See all <span aria-hidden="true">→</span></button></div>${D.tx.length?`<div class="dashboard-recent-card">${sorted().slice(0,3).map(t=>row(t,false,true)).join('')}</div>`:'<div class="empty dashboard-empty">No transactions yet.</div>'}</section>` :
                 '';
             const reportCards = [];
             if (widgets.incomeExpenses) {
@@ -1496,11 +1517,13 @@ function syncDateInput(input) {
                 '';
             const emptyDashboard = DASHBOARD_WIDGETS.some(([id]) => widgets[id]) ? '' :
                 '<div class="empty card">No dashboard sections are visible. Go to Settings and select Customize Dashboard to add sections.</div>';
-            const hour = new Date().getHours(),
+            const now = new Date(),
+                hour = now.getHours(),
                 greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening',
-                dashboardTitle = D.name ? `${greeting}, ${esc(D.name)}!` : `${greeting}!`;
-            return `<div class="row sp pocket-privacy-header"><h2 style="font-size:26px">${dashboardTitle}</h2></div>${widgets.alerts?alerts():''}
-${summaryWidget}${gettingStartedChecklist()}${shortcutsWidget}${actionsWidget}${accountsWidget}${transactionsWidget}${reportsWidget}${emptyDashboard}`
+                dashboardTitle = D.name ? `${greeting}, ${esc(D.name)}` : greeting,
+                dashboardDate = `${new Intl.DateTimeFormat('en-PH', { weekday: 'long' }).format(now)}, ${now.getDate()} ${new Intl.DateTimeFormat('en-PH', { month: 'long' }).format(now)}`.toUpperCase(),
+                dashboardAlerts = widgets.alerts ? alerts() : '';
+            return `<div class="row sp pocket-privacy-header dashboard-heading"><div class="dashboard-heading-copy"><small class="dashboard-date">${dashboardDate}</small><h2 style="font-size:28px">${dashboardTitle}</h2></div></div>${summaryWidget}<button type="button" class="dashboard-add-button" onclick="primaryAdd()">${ic('plus')}<span>Add transaction</span></button>${dashboardAlerts?`<section class="dashboard-alerts" aria-label="Budget alerts">${dashboardAlerts}</section>`:''}${gettingStartedChecklist()}${shortcutsWidget}${actionsWidget}${accountsWidget}${transactionsWidget}${reportsWidget}${emptyDashboard}`
         };
 
         const onboardingDraft = () => onboardingState && onboardingState.draft;
@@ -1900,19 +1923,16 @@ ${summaryWidget}${gettingStartedChecklist()}${shortcutsWidget}${actionsWidget}${
             return `<div class="onboarding-shell"><header class="onboarding-flow-header">${brand}<span>Step ${stepIndex + 1} of ${ONBOARDING_STEPS.length}</span></header><div class="onboarding-progress" role="progressbar" aria-label="Setup progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${percent}"><span style="width:${percent}%"></span></div><section class="onboarding-panel onboarding-step-panel"><h1>${heading}</h1>${content}${notice}<p id="onboarding-error" class="onboarding-inline-error" role="alert"></p><div class="onboarding-navigation${skip ? ' with-options' : ''}"><button type="button" class="onboarding-text-button" onclick="onboardingBack()">Back</button>${skip}<button type="button" class="b1 onboarding-primary" onclick="onboardingContinue()">${onboardingState.step === 'optional' ? 'Review setup' : 'Continue'}</button></div></section></div>`
         }
 
-        const transactionDateHeadingFormatter = new Intl.DateTimeFormat('en-US', {
-            month: 'long',
-            day: 'numeric',
-            year: 'numeric'
-        });
+        const transactionLongMonthFormatter = new Intl.DateTimeFormat('en-US', { month: 'long' });
         const TRANSACTION_PAGE_SIZE = 50;
-        let txPageLimit = TRANSACTION_PAGE_SIZE;
+        let txPageLimit = TRANSACTION_PAGE_SIZE,
+            transactionFiltersOpen = false;
         function txList() {
             const q = U.q.toLowerCase(),
                 L = sorted().filter(t => (!q || t.title.toLowerCase().includes(q)) && (!U.c || t.cat === U.c) && (!U
                         .a || t.acc === U.a || t.to === U.a) && (!U.ty || (U.ty === 'flow' ? t.type !== 'transfer' : t.type === U.ty)) && (!U.tf || t.date >= U
                     .tf) && (!U.tt || t.date <= U.tt));
-            if (!L.length) return '<div class="empty">No transactions match. Try clearing a filter or add one.</div>';
+            if (!L.length) return '<div class="empty transaction-empty">No transactions match. Try clearing a filter or add one.</div>';
             const transactions = L.slice(0, txPageLimit);
             const now = new Date(),
                 todayDate = iso(now),
@@ -1928,10 +1948,12 @@ ${summaryWidget}${gettingStartedChecklist()}${shortcutsWidget}${actionsWidget}${
             });
             return groups.map(group => {
                 const [year, month, day] = group.date.split('-').map(Number),
-                    dateLabel = group.date === todayDate ? 'Today' :
-                        group.date === yesterdayDate ? 'Yesterday' :
-                            transactionDateHeadingFormatter.format(new Date(year, month - 1, day));
-                return `<section class="transaction-date-group"><h3 class="transaction-date-heading" data-date="${esc(group.date)}">${esc(dateLabel)}</h3>${group.transactions.map(transaction => row(transaction, 1)).join('')}</section>`;
+                    date = new Date(year, month - 1, day),
+                    dateLabel = group.date === todayDate ? `Today · ${day} ${MO[month - 1]}` :
+                        group.date === yesterdayDate ? `Yesterday · ${day} ${MO[month - 1]}` :
+                            `${day} ${transactionLongMonthFormatter.format(date)}`,
+                    countLabel = `${group.transactions.length} transaction${group.transactions.length === 1 ? '' : 's'}`;
+                return `<section class="transaction-date-group"><div class="transaction-date-group-heading"><h3 class="transaction-date-heading" data-date="${esc(group.date)}">${esc(dateLabel)}</h3><span class="transaction-count">${countLabel}</span></div><div class="transaction-date-card">${group.transactions.map(transaction => row(transaction, 1)).join('')}</div></section>`;
             }).join('') + (L.length > transactions.length ? '<div class="tx-load-more" id="tx-load-more" aria-hidden="true"></div>' : '')
         }
 
@@ -1940,6 +1962,29 @@ ${summaryWidget}${gettingStartedChecklist()}${shortcutsWidget}${actionsWidget}${
             $('#tl').innerHTML = txList();
             lu()
         }
+        function toggleTransactionFilters() {
+            const panel = $('#transaction-advanced-filters'),
+                button = $('#transaction-filters-toggle');
+            if (!panel || !button) return;
+            panel.hidden = !panel.hidden;
+            button.setAttribute('aria-expanded', String(!panel.hidden));
+        }
+        function closeTransactionFilters() {
+            const panel = $('#transaction-advanced-filters'),
+                button = $('#transaction-filters-toggle');
+            if (!panel || !button || panel.hidden) return;
+            panel.hidden = true;
+            button.setAttribute('aria-expanded', 'false');
+        }
+        document.addEventListener('click', event => {
+            const panel = $('#transaction-advanced-filters'),
+                target = event.target;
+            if (!panel || panel.hidden || target.closest('.transaction-filter-row') || target.closest('.pocket-select-overlay')) return;
+            closeTransactionFilters();
+        });
+        document.addEventListener('keydown', event => {
+            if (event.key === 'Escape') closeTransactionFilters()
+        });
         const cashbackSection = () => {
             const recentClaims = status => D.cashbacks.map((claim, index) => ({
                 claim,
@@ -1966,11 +2011,32 @@ ${summaryWidget}${gettingStartedChecklist()}${shortcutsWidget}${actionsWidget}${
             return `<div class="cashback-header"><div><h2>Cashback</h2><small>Track pending and received cashback.</small></div></div><h3 class="sec cashback-subtitle"><span>Pending</span><span class="cashback-count">${pending.length}</span></h3><div class="g g2 cashback-list">${pending.length ? pending.map(claimCard).join('') : '<div class="empty card cashback-empty">Add a claim from an expense or transfer in Transactions.</div>'}</div><div class="cashback-section-heading"><h3 class="sec cashback-subtitle"><span>Received</span><span class="cashback-count">${received.length}</span></h3><div class="cashback-total"><small>Total received</small><b>${peso(receivedTotal)}</b></div></div><div class="g g2 cashback-list">${received.length ? received.map(claimCard).join('') : '<div class="empty card cashback-empty">Cashback marked received will appear here as income.</div>'}</div>`
         };
         V.tx = () => {
-            const o = (L, all) => `<option value="">${all}</option>` + L.map(x =>
-                `<option value="${x.id}">${esc(x.name)}</option>`).join('');
-            return `<div class="row sp pocket-privacy-header"><h2>Transactions</h2></div>
-<div class="f"><input placeholder="Search by name" value="${esc(U.q)}" oninput="U.q=this.value;fl()"><select aria-label="Filter by category" onchange="U.c=this.value;fl()">${o(D.cats,'All categories').replace(`value="${U.c}"`,`value="${U.c}" selected`)}</select><select aria-label="Filter by account" onchange="U.a=this.value;fl()">${o(D.acc,'All accounts').replace(`value="${U.a}"`,`value="${U.a}" selected`)}</select>
-<select aria-label="Filter by type" onchange="U.ty=this.value;fl()">${[['','All types'],['income','Income'],['expense','Expense'],['transfer','Transfer'],['flow','Income and expenses']].map(x=>`<option value="${x[0]}"${x[0]===U.ty?' selected':''}>${x[1]}</option>`).join('')}</select><span class="date-input-wrap date-filter${U.tf ? '' : ' is-empty'}"><input type="date" aria-label="From date" value="${esc(U.tf)}" onchange="U.tf=this.value;syncDateInput(this);fl()"><span class="date-input-value">${esc(fd(U.tf))}</span><span class="date-input-placeholder">From date</span></span><span class="date-input-wrap date-filter${U.tt ? '' : ' is-empty'}"><input type="date" aria-label="To date" value="${esc(U.tt)}" onchange="U.tt=this.value;syncDateInput(this);fl()"><span class="date-input-value">${esc(fd(U.tt))}</span><span class="date-input-placeholder">To date</span></span></div><div class="card" id="tl">${txList()}</div><div class="transaction-scroll-month" id="transaction-scroll-month" aria-hidden="true"></div>`
+            const options = (items, selected, allLabel) =>
+                `<option value=""${selected ? '' : ' selected'}>${allLabel}</option>` + items.map(item =>
+                    `<option value="${esc(item.id)}"${selected === item.id ? ' selected' : ''}>${esc(item.name)}</option>`
+                ).join(''),
+                typeOptions = [['', 'All types'], ['income', 'Income'], ['expense', 'Expense'], ['transfer', 'Transfer'], ['flow', 'Income and expenses']],
+                filtersOpen = transactionFiltersOpen || Boolean(U.ty);
+            return `<div class="row sp pocket-privacy-header transaction-page-heading"><div class="transaction-heading-copy"><small>YOUR MONEY, IN MOTION</small><h2>Transactions</h2></div></div>
+<div class="f transaction-filters">
+  <label class="transaction-search"><img src="assets/dashboard-icons/search.svg" width="24" height="24" alt=""><input aria-label="Search transactions" placeholder="Search transactions" value="${esc(U.q)}" oninput="U.q=this.value;fl()"></label>
+  <div class="transaction-filter-row">
+    <div class="transaction-filter-chip"><select aria-label="Filter by category" onchange="U.c=this.value;fl()">${options(D.cats, U.c, 'All categories')}</select></div>
+    <div class="transaction-filter-chip"><select aria-label="Filter by account" onchange="U.a=this.value;fl()">${options(D.acc, U.a, 'All accounts')}</select></div>
+    <button type="button" class="transaction-filters-toggle" id="transaction-filters-toggle" aria-controls="transaction-advanced-filters" aria-expanded="${filtersOpen}" onclick="toggleTransactionFilters()"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4"/></svg><span>Filters</span></button>
+    <div class="transaction-advanced-filters" id="transaction-advanced-filters"${filtersOpen ? '' : ' hidden'}>
+      <label>Type<select aria-label="Filter by type" onchange="U.ty=this.value;fl()">${typeOptions.map(([value, label]) => `<option value="${value}"${value === U.ty ? ' selected' : ''}>${label}</option>`).join('')}</select></label>
+    </div>
+  </div>
+  <div class="transaction-date-range">
+    <span class="date-input-wrap date-filter${U.tf ? '' : ' is-empty'}"><input type="date" aria-label="From date" value="${esc(U.tf)}" onchange="U.tf=this.value;syncDateInput(this);fl()"><span class="date-input-value">${esc(fd(U.tf))}</span><span class="date-input-placeholder">From date</span></span>
+    <span class="transaction-date-separator" aria-hidden="true">→</span>
+    <span class="date-input-wrap date-filter${U.tt ? '' : ' is-empty'}"><input type="date" aria-label="To date" value="${esc(U.tt)}" onchange="U.tt=this.value;syncDateInput(this);fl()"><span class="date-input-value">${esc(fd(U.tt))}</span><span class="date-input-placeholder">To date</span></span>
+  </div>
+</div>
+<div id="tl" class="transaction-list">${txList()}</div>
+<button type="button" class="transaction-add-button" onclick="primaryAdd()">+ <span>Add transaction</span></button>
+<div class="transaction-scroll-month" id="transaction-scroll-month" aria-hidden="true"></div>`
         };
         const transactionMonthFormatter = new Intl.DateTimeFormat(undefined, { month: 'short', year: 'numeric' });
         let transactionScrollHideTimer = 0;
@@ -3164,28 +3230,7 @@ ${chartCard('Cash Flow', cashFlowChart)}
 <div class="card"><h3>Export</h3><div class="settings-actions"><button class="b2" onclick="showText('Transactions (CSV)',csv())">${ic('file-text')} Transactions CSV</button><button class="b2" onclick="showText('Monthly report (CSV)',repCsv())">${ic('bar-chart-3')} Report CSV</button><button class="b2" onclick="exportAllData()">${ic('download')} Export all data (JSON)</button></div></div>
 <div class="card"><h3>Back up &amp; restore</h3><div class="settings-actions"><button class="b2" onclick="showText('Backup',JSON.stringify(D))">${ic('save')} View / copy backup</button><button class="b2" onclick="showText('Restore backup','',1)">${ic('upload')} Restore backup</button></div><small class="settings-note">Data is saved in this browser. Backups are files you download and store yourself; Pocket does not upload them to the cloud.</small></div>
 <div class="card"><h3>Data management</h3><small class="settings-note">These actions can clear or replace local data. You’ll be asked to confirm before they run.</small><div class="settings-actions" style="margin-top:10px"><button class="b2" style="color:var(--ex)" onclick="clearTransactionHistory()">${ic('trash-2')} Clear transaction history</button><button class="b2" onclick="ask('Reset all amounts to ₱0? This clears every transaction, sets all account balances to ₱0 and empties savings goals.',()=>zero(D),'Reset')">${ic('rotate-ccw')} Reset all amounts</button><button class="b2" onclick="ask('Load the sample data? Your changes will be lost.',()=>{D=seed();D.v2=D.v3=1},'Load')">${ic('rotate-ccw')} Load sample data</button></div></div></div>`;
-        const ico = p =>
-            `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`,
-            NI = {
-                dash: ico(
-                    '<rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/>'
-                    ),
-                tx: ico('<path d="M7 20V4M7 4 3.5 7.5M7 4l3.5 3.5M17 4v16M17 20l-3.5-3.5M17 20l3.5-3.5"/>'),
-                cash: ico('<circle cx="9" cy="9" r="6"/><circle cx="16" cy="16" r="5"/>'),
-                rec: ico('<path d="M20 7v5h-5M4 17v-5h5"/><path d="M5.5 9a7 7 0 0 1 11.8-2L20 12M4 12l2.7 5a7 7 0 0 0 11.8-2"/>'),
-                acc: ico('<rect x="3" y="6" width="18" height="14" rx="4"/><path d="M3 11h18M16.5 15.5h1"/>'),
-                rep: ico('<circle cx="12" cy="12" r="9"/><path d="M12 3v9h9"/>'),
-                set: ico(
-                    '<path d="M4 7h9M19 7h1M4 17h1M11 17h9"/><circle cx="16" cy="7" r="2.5"/><circle cx="8" cy="17" r="2.5"/>'
-                    )
-            };
-        const NAV = [
-            ['dash', 'Dashboard', 'layout-grid', 1],
-            ['tx', 'Transactions', 'receipt', 1],
-            ['acc', 'Accounts', 'wallet', 1],
-            ['rep', 'Reports', 'pie-chart', 1],
-            ['set', 'Settings', 'settings', 1]
-        ];
+        const NAV = ['dash', 'tx', 'acc', 'rep', 'set'];
         const TITLE_MENU_GROUPS = [
             ['Pages', [
                 ['dash', 'Dashboard'],
@@ -3346,7 +3391,6 @@ ${chartCard('Cash Flow', cashFlowChart)}
                 toggle.setAttribute('aria-expanded', 'false');
                 toggle.setAttribute('aria-haspopup', 'dialog');
                 toggle.setAttribute('aria-controls', 'page-title-menu');
-                toggle.innerHTML = '<span></span><span></span><span></span>';
                 toggle.addEventListener('click', event => {
                     event.stopPropagation();
                     if (!titleMenu.hidden && titleMenuTrigger === toggle) closeTitleMenu();
@@ -3360,6 +3404,7 @@ ${chartCard('Cash Flow', cashFlowChart)}
                     }
                 });
             }
+            toggle.innerHTML = U.v === 'dash' || U.v === 'tx' ? dashboardIcon('more') : '<span></span><span></span><span></span>';
             if (toggle.parentElement !== header || toggle.nextElementSibling !== headingGroup) {
                 header.insertBefore(toggle, headingGroup);
             }
@@ -3394,8 +3439,8 @@ ${chartCard('Cash Flow', cashFlowChart)}
             U.v = v;
             render();
             if (v === 'prof') window.scrollTo(0, 0);
-            const from = NAV.findIndex(([id]) => id === previousView),
-                to = NAV.findIndex(([id]) => id === v);
+            const from = NAV.indexOf(previousView),
+                to = NAV.indexOf(v);
             const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
             if (previousView !== v && v === 'prof' && !reduceMotion) {
                 $('#m').querySelectorAll('.profile-layout > .card').forEach((card, index) => {
@@ -3425,15 +3470,21 @@ ${chartCard('Cash Flow', cashFlowChart)}
             scrollTo(0, 0)
         }
 
-        function updateNavigationIndicator() {
-            const nav = $('#nv'),
-                indicator = nav.querySelector('.nav-indicator'),
-                activeButton = [...nav.querySelectorAll('button')].find(button => button.dataset.view === U.v);
-            if (!indicator || !activeButton) return;
-            indicator.style.width = `${activeButton.offsetWidth}px`;
-            indicator.style.height = `${activeButton.offsetHeight}px`;
-            indicator.style.transform = `translate(${activeButton.offsetLeft}px, ${activeButton.offsetTop}px)`;
+        function syncNavbar() {
+            const frame = $('#pocket-navbar-frame');
+            frame?.contentWindow?.postMessage({
+                type: 'pocket-navbar-state',
+                view: U.v,
+                theme: D.theme
+            }, '*');
         }
+        window.addEventListener('message', event => {
+            const frame = $('#pocket-navbar-frame');
+            if (event.source !== frame?.contentWindow || !event.data || typeof event.data !== 'object') return;
+            if (event.data.type === 'pocket-navbar-ready') syncNavbar();
+            if (event.data.type === 'pocket-navbar-navigate' && NAV.includes(event.data.view)) go(event.data.view);
+        });
+        $('#pocket-navbar-frame')?.addEventListener('load', syncNavbar);
 
         function restoreCurrentView() {
             try {
@@ -3476,26 +3527,10 @@ ${chartCard('Cash Flow', cashFlowChart)}
             persistCurrentView();
             document.documentElement.dataset.theme = D.theme;
             document.documentElement.dataset.view = U.v;
-            document.querySelector('meta[name=theme-color]').content = D.theme === 'dark' ? '#000000' : '#f5f5f4';
-            const nav = $('#nv');
-            if (!nav.querySelector('button')) {
-                nav.innerHTML = NAV.map(n =>
-                    `<button data-view="${n[0]}" class="${n[3]?'':'dm'}" aria-label="${n[1]}" onclick="go('${n[0]}')">${NI[n[0]]||''}<span>${n[1]}</span></button>`
-                ).join('');
-            }
-            let indicator = nav.querySelector('.nav-indicator');
-            const isFirstIndicator = !indicator;
-            if (isFirstIndicator) {
-                indicator = document.createElement('div');
-                indicator.className = 'nav-indicator';
-                indicator.setAttribute('aria-hidden', 'true');
-                nav.prepend(indicator);
-            }
-            nav.querySelectorAll('button').forEach(button =>
-                button.classList.toggle('on', button.dataset.view === U.v)
-            );
-            updateNavigationIndicator();
-            if (isFirstIndicator) requestAnimationFrame(() => indicator.classList.add('ready'));
+            document.querySelector('meta[name=theme-color]').content = (U.v === 'dash' || U.v === 'tx') && D.theme === 'dark'
+                ? '#0b100e'
+                : D.theme === 'dark' ? '#000000' : '#f5f5f4';
+            syncNavbar();
             $('#m').dataset.view = U.v;
             destroyReportCharts();
             $('#m').innerHTML = renderDemoModeBanner() + V[U.v]();
@@ -3512,7 +3547,6 @@ ${chartCard('Cash Flow', cashFlowChart)}
             if (U.v === 'acc') wireAccountStack();
             lu()
         }
-        window.addEventListener('resize', updateNavigationIndicator);
         const okId = s => typeof s === 'string' && /^[\w-]{1,40}$/.test(s),
             okCol = s => /^#[0-9a-fA-F]{6}$/.test(s),
             okD = s => /^\d{4}-\d\d-\d\d$/.test(s),

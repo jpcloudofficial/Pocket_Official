@@ -1,0 +1,73 @@
+* {
+    box-sizing: border-box
+}
+
+html,
+body {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    overflow: hidden;
+    background: #142019
+}
+
+body {
+    display: grid;
+    place-items: center
+}
+
+#pocket-navbar {
+    display: grid;
+    width: 100%;
+    height: 60px;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 0;
+    padding: 6px;
+    border: 1px solid #263a28;
+    border-radius: 999px;
+    background: #142019;
+    box-shadow: 0 10px 30px #0006
+}
+
+#pocket-navbar button {
+    display: grid;
+    min-width: 0;
+    height: 46px;
+    place-items: center;
+    padding: 0;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: background-color .18s ease, transform .18s ease
+}
+
+#pocket-navbar button[aria-current="page"] {
+    background: #263a28
+}
+
+#pocket-navbar button:active {
+    transform: scale(.96)
+}
+
+#pocket-navbar button:focus-visible {
+    outline: 2px solid #b8ef76;
+    outline-offset: 2px
+}
+
+#pocket-navbar img {
+    display: block;
+    width: 24px;
+    height: 24px
+}
+
+#pocket-navbar button[aria-current="page"] img {
+    filter: brightness(0) saturate(100%) invert(88%) sepia(30%) saturate(690%) hue-rotate(34deg) brightness(104%) contrast(97%)
+}
+
+@media (prefers-reduced-motion: reduce) {
+    #pocket-navbar button {
+        transition: none
+    }
+}
