@@ -25,8 +25,8 @@ jobs:
         run: |
           test -n "$FIREBASE_CONFIG_JSON" || { echo "Set the FIREBASE_CONFIG_JSON repository secret." >&2; exit 1; }
           mkdir -p _site
-          cp -R assets scripts styles vendor index.html manifest.webmanifest sw.js _site/
-          rm -f _site/scripts/firebase-config.example.js
+          cp -R assets src index.html manifest.webmanifest sw.js _site/
+          mkdir -p _site/src/infrastructure/firebase
           python3 - <<'PY'
           import json
           import os
@@ -38,7 +38,7 @@ jobs:
           if missing:
               raise SystemExit("FIREBASE_CONFIG_JSON is missing: " + ", ".join(missing))
 
-          target = Path("_site/scripts/firebase-config.js")
+          target = Path("_site/src/infrastructure/firebase/firebase-config.js")
           target.write_text(
               "export const firebaseConfig = " + json.dumps(config, separators=(",", ":")) + ";\n",
               encoding="utf-8",
