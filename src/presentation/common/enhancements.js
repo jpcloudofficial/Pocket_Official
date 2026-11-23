@@ -4,9 +4,11 @@
   if (!main) return;
 
   const icon = name => {
+    if (name === 'eye') {
+      return '<img class="dashboard-icon" src="assets/dashboard-icons/eye.svg" width="24" height="24" alt="">';
+    }
     const paths = {
       edit: '<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z"/>',
-      eye: '<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/>',
       off: '<path d="m3 3 18 18"/><path d="M10.6 10.6a2 2 0 0 0 2.8 2.8"/><path d="M9.9 5.2A10.7 10.7 0 0 1 12 5c6.4 0 10 7 10 7a17 17 0 0 1-3.1 3.8M6.2 6.2C3.6 8 2 12 2 12s3.6 7 10 7a10 10 0 0 0 3-.5"/>',
       bolt: '<path d="M13 2.5 5 13.5h6l-1 8 8-11h-6l1-8z"/>',
       wallet: '<rect x="3" y="6" width="18" height="14" rx="4"/><path d="M3 11h18M16.5 15.5h1"/>',
@@ -18,7 +20,7 @@
     const name = window.pocketApp?.getData?.().name;
     const hour = new Date().getHours(),
       greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
-    return typeof name === 'string' && name.trim() ? `${greeting}, ${name.trim()}!` : `${greeting}!`;
+    return typeof name === 'string' && name.trim() ? `${greeting}, ${name.trim()}` : greeting;
   };
   const isHidden = () => { try { return localStorage.getItem(PRIVACY_KEY) === '1'; } catch { return false; } };
 

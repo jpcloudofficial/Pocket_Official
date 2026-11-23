@@ -1,19 +1,38 @@
-const CACHE = 'pera-v111';
+const CACHE = 'pera-v125';
 const FILES = [
   './',
   'index.html',
   'manifest.webmanifest',
-  'styles/app.css?v=20261122-sticky-actions-1',
-  'vendor/chartjs/chart.umd.min.js',
-  'scripts/app.js',
-  'scripts/enhancements.js?v=20261121-shopping-fab-1',
-  'scripts/privacy-mask.js',
-  'scripts/page-title-sync.js',
-  'scripts/firebase-sync.js',
-  'assets/icons/apple-touch-icon.png',
-  'assets/icons/icon-192.png',
-  'assets/icons/icon-512.png',
-  'assets/icons/icon-maskable-512.png'
+  'src/app/app.css?v=20261123-modular-1',
+  'src/app/app.js',
+  'src/app/router.js',
+  'src/app/component-loader.js',
+  'src/app/pocket-app-legacy.js',
+  'src/presentation/common/navigation/navbar.css',
+  'src/presentation/common/navigation/navbar.html',
+  'src/presentation/common/navigation/navbar.js',
+  'src/infrastructure/charts/chart.umd.min.js',
+  'src/presentation/common/enhancements.js',
+  'src/infrastructure/browser/privacy-mask.js',
+  'src/infrastructure/browser/page-title-sync.js',
+  'src/presentation/common/budget-alerts.js',
+  'src/infrastructure/firebase/firebase-sync.js',
+  'assets/icons/app-icon-dark.svg',
+  'assets/icons/app-icon-dark.png',
+  'assets/icons/pocket-mark.svg',
+  'assets/dashboard-icons/settings.svg',
+  'assets/dashboard-icons/chart.svg',
+  'assets/dashboard-icons/wallet.svg',
+  'assets/dashboard-icons/activity.svg',
+  'assets/dashboard-icons/home.svg',
+  'assets/dashboard-icons/repeat.svg',
+  'assets/dashboard-icons/gift.svg',
+  'assets/dashboard-icons/bank.svg',
+  'assets/dashboard-icons/cart.svg',
+  'assets/dashboard-icons/goal.svg',
+  'assets/dashboard-icons/more.svg',
+  'assets/dashboard-icons/eye.svg',
+  'assets/dashboard-icons/search.svg'
 ];
 
 self.addEventListener('install', event => {
@@ -23,7 +42,7 @@ self.addEventListener('install', event => {
 
     // Repair quick-add SVGs when an older enhancement script has icon names
     // without matching path definitions (otherwise the icon squares render empty).
-    const scriptRequest = new Request(new URL('scripts/enhancements.js?v=20261121-shopping-fab-1', self.registration.scope));
+    const scriptRequest = new Request(new URL('src/presentation/common/enhancements.js', self.registration.scope));
     const scriptResponse = await cache.match(scriptRequest);
     if (scriptResponse) {
       const source = await scriptResponse.text();

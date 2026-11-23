@@ -9,30 +9,30 @@
     <meta name="theme-color" content="#000000">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-title" content="Pocket">
-    <link rel="icon" href="assets/icons/icon-192.png">
-    <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
-    <link rel="stylesheet" href="styles/app.css?v=20261122-sticky-actions-1">
+    <link rel="icon" type="image/svg+xml" href="assets/icons/app-icon-dark.svg">
+    <link rel="icon" type="image/png" sizes="86x86" href="assets/icons/app-icon-dark.png">
+    <link rel="apple-touch-icon" href="assets/icons/app-icon-dark.png">
+    <link rel="stylesheet" href="src/app/app.css?v=20261123-modular-1">
 </head>
 
 <body>
     <div class="app">
-        <aside>
-            <div class="logo">Pocket</div>
-            <nav id="nv"></nav>
+        <aside class="pocket-navbar-host">
+            <iframe id="pocket-navbar-frame" class="pocket-navbar-frame" src="src/presentation/common/navigation/navbar.html" title="Primary navigation"></iframe>
         </aside>
         <main id="m"></main>
-    </div><button class="fab" onclick="primaryAdd()" aria-label="Add transaction" title="Add transaction"><svg viewBox="0 0 24 24" width="24"
-            height="24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
-            <path d="M12 5v14M5 12h14" /></svg><span class="fab-label">Add account</span></button>
-    <div id="ov">
+    </div>
+    <button class="fab" onclick="primaryAdd()" aria-label="Add transaction" title="Add transaction">
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true">
+            <path d="M12 5v14M5 12h14" />
+        </svg>
+        <span class="fab-label">Add account</span>
+    </button>
+    <div id="ov" role="dialog" aria-modal="true">
         <div id="ovc"></div>
     </div>
-    <script src="vendor/chartjs/chart.umd.min.js"></script>
-    <script src="scripts/app.js"></script>
-    <script src="scripts/enhancements.js?v=20261121-shopping-fab-1"></script>
-    <script src="scripts/privacy-mask.js"></script>
-    <script src="scripts/page-title-sync.js"></script>
-    <script type="module" src="scripts/firebase-sync.js"></script>
+    <script src="src/infrastructure/charts/chart.umd.min.js"></script>
+    <script type="module" src="src/app/app.js"></script>
 </body>
 
 </html>
