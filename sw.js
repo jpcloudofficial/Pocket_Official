@@ -1,4 +1,4 @@
-const CACHE = 'pera-v126';
+const CACHE = 'pera-v128';
 const FILES = [
   './',
   'index.html',
@@ -18,10 +18,12 @@ const FILES = [
   'src/presentation/common/budget-alerts.js',
   'src/infrastructure/firebase/firebase-sync.js',
   'assets/icons/app-icon-dark.png',
-  'assets/icons/icon-192.png?v=20261123-pocket-icon-2',
-  'assets/icons/icon-512.png?v=20261123-pocket-icon-2',
-  'assets/icons/icon-maskable-512.png?v=20261123-pocket-icon-2',
-  'assets/icons/apple-touch-icon.png?v=20261123-pocket-icon-2',
+  'assets/icons/app-icon.svg',
+  'assets/icons/app-icon-maskable.svg',
+  'assets/icons/icon-192.png?v=20261123-pocket-icon-4',
+  'assets/icons/icon-512.png?v=20261123-pocket-icon-4',
+  'assets/icons/icon-maskable-512.png?v=20261123-pocket-icon-4',
+  'assets/icons/apple-touch-icon.png?v=20261123-pocket-icon-4',
   'assets/icons/pocket-mark.svg',
   'assets/dashboard-icons/settings.svg',
   'assets/dashboard-icons/chart.svg',
