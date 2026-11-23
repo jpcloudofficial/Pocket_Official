@@ -17,7 +17,6 @@ const FILES = [
   'src/infrastructure/browser/page-title-sync.js',
   'src/presentation/common/budget-alerts.js',
   'src/infrastructure/firebase/firebase-sync.js',
-  'assets/icons/app-icon-dark.svg',
   'assets/icons/app-icon-dark.png',
   'assets/icons/pocket-mark.svg',
   'assets/dashboard-icons/settings.svg',
