@@ -52,7 +52,7 @@ function syncDateInput(input) {
         const DASHBOARD_WIDGETS = [
             ['summary', 'Balance summary', true],
             ['shortcuts', 'Dashboard shortcuts (mobile)', true],
-            ['actions', 'Quick actions', true],
+            ['actions', 'Transaction actions', false],
             ['accounts', 'Accounts', true],
             ['transactions', 'Recent transactions', true],
             ['spendingTrend', 'Spending trend report', false],
@@ -1530,7 +1530,7 @@ function syncDateInput(input) {
                 ['budget', 'Set a monthly budget', Object.keys(D.budgets).length > 0, 'Choose a category and set a spending limit.'],
                 ['goal', 'Create a savings goal', D.goals.length > 0, 'Give a goal a name and target amount.']
             ];
-            return `<section class="card getting-started" aria-labelledby="getting-started-title"><div class="row sp"><div><h3 id="getting-started-title">Getting started</h3><small>Your progress stays on this device.</small></div><button type="button" class="ib" aria-label="Dismiss getting started checklist" onclick="dismissGettingStarted()">${ic('x')}</button></div><div class="getting-started-list">${tasks.map(([id, title, done, description]) => `<div class="getting-started-item${done ? ' is-done' : ''}"><span class="getting-started-check" aria-hidden="true">${ic(done ? 'check' : 'circle')}</span><span class="getting-started-copy"><b>${title}</b><small>${description}</small></span><button type="button" class="chip" onclick="startGettingStartedTask('${id}')">${done ? 'View' : 'Start'}</button></div>`).join('')}</div></section>`
+            return window.PocketFeatures.renderGettingStarted(tasks)
         }
 
         const trForm = () => txFormT();
