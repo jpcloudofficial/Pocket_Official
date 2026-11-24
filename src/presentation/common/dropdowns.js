@@ -21,7 +21,8 @@
         trigger.addEventListener('click', () => {
             const overlay = document.createElement('div'),
                 menu = document.createElement('div'),
-                isTransactionFilter = Boolean(trigger.closest('.transaction-filters'));
+                isTransactionFilter = Boolean(trigger.closest('.transaction-filters')),
+                isDateFormat = label === 'Date format';
             overlay.className = 'pocket-select-overlay';
             menu.className = 'pocket-select-menu';
             if (isTransactionFilter) menu.classList.add('transaction-filter-menu');
@@ -164,7 +165,7 @@
                 viewportHeight = visualViewport?.height || window.innerHeight,
                 viewportRight = viewportLeft + viewportWidth,
                 viewportBottom = viewportTop + viewportHeight,
-                minWidth = isTransactionFilter ? Math.min(220, viewportWidth - 16) : bounds.width,
+                minWidth = isTransactionFilter || isDateFormat ? Math.min(220, viewportWidth - 16) : bounds.width,
                 width = Math.min(Math.max(bounds.width, minWidth), viewportWidth - 16),
                 left = Math.max(viewportLeft + 8, Math.min(bounds.left, viewportRight - width - 8)),
                 spaceAbove = Math.max(0, bounds.top - viewportTop - 8),

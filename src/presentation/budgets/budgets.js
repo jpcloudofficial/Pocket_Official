@@ -3,7 +3,7 @@
         V.bud = () => {
             const categoryName = id => C(id)?.name || 'Unknown category',
                 month = new Date(new Date().getFullYear(), new Date().getMonth() + budgetMonthOffset, 1),
-                monthKey = ym(iso(month)),
+                monthKey = budgetMonthKey(budgetMonthOffset),
                 monthLabel = new Intl.DateTimeFormat('en-PH', { month: 'long', year: 'numeric' }).format(month),
                 L = bstat(monthKey).sort((first, second) =>
                     categoryName(first.id).localeCompare(categoryName(second.id), undefined, { sensitivity: 'base' }) ||

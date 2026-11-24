@@ -19,7 +19,7 @@
                 const title = claim.expenseTitle || expense?.title || 'Linked transaction';
                 const formatDate = value => {
                     const [year, month, day] = String(value || '').split('-').map(Number);
-                    return year && month >= 1 && month <= 12 && day ? `${day} ${MO[month - 1]} ${year}` : 'Unknown date';
+                    return year && month >= 1 && month <= 12 && day ? fd(value) : 'Unknown date';
                 };
                 const actions = claim.status === 'pending'
                     ? `<div class="cashback-card-actions"><button type="button" onclick="PocketFeatures.cash.markReceived('${claim.id}')">Mark as received</button></div>`

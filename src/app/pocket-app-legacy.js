@@ -4,15 +4,23 @@ const K = 'pera.v1',
             $ = s => document.querySelector(s),
             uid = () => Math.random().toString(36).slice(2, 9),
             pad = n => String(n).padStart(2, '0');
-const DATE_FORMATS = ['DD/MM/YYYY', 'MM/DD/YYYY', 'YYYY-MM-DD'];
+const DATE_FORMATS = ['DD/MM/YYYY', 'MM/DD/YYYY', 'YYYY-MM-DD', 'MMM DD, YYYY', 'MMMM DD, YYYY'];
+const DATE_FORMAT_EXAMPLES = {
+            'MMM DD, YYYY': 'Nov 24, 2026',
+            'MMMM DD, YYYY': 'November 24, 2026'
+        };
+        const dateFormatLabel = format => DATE_FORMAT_EXAMPLES[format] || format;
         const iso = d => d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()),
             today = () => iso(new Date()),
             fd = s => {
                 if (!s) return '';
                 const [year, month, day] = s.split('-');
         const format = currentDateFormat();
+        const monthIndex = Number(month) - 1;
         return format === 'MM/DD/YYYY' ? `${month}/${day}/${year}` :
-            format === 'YYYY-MM-DD' ? `${year}-${month}-${day}` : `${day}/${month}/${year}`;
+            format === 'YYYY-MM-DD' ? `${year}-${month}-${day}` :
+            format === 'MMM DD, YYYY' ? `${MO[monthIndex]} ${day}, ${year}` :
+            format === 'MMMM DD, YYYY' ? `${MONTHS_LONG[monthIndex]} ${day}, ${year}` : `${day}/${month}/${year}`;
             };
 function syncDateInput(input) {
     const wrap = input.parentElement;
@@ -30,7 +38,8 @@ function syncDateInput(input) {
             '>': '&gt;',
             '"': '&quot;'
         } [c]));
-        const MO = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        const MO = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+            MONTHS_LONG = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
         const dashboardIcon = name =>
             `<img class="dashboard-icon" src="assets/dashboard-icons/${name}.svg" width="24" height="24" alt="">`;
         const ICONS = ['wallet', 'banknote', 'landmark', 'smartphone', 'piggy-bank', 'credit-card', 'coins', 'tag',
@@ -49,6 +58,7 @@ function syncDateInput(input) {
             { key: 'savings', name: 'Savings', type: 'Savings', color: '#0ea5e9', icon: 'piggy-bank' }
         ];
         const ONBOARDING_STEPS = ['accounts', 'categories', 'preferences', 'optional'];
+        const ONBOARDING_HISTORY_STEPS = ['welcome', ...ONBOARDING_STEPS, 'complete'];
         const DASHBOARD_WIDGETS = [
             ['summary', 'Balance summary', true],
             ['shortcuts', 'Dashboard shortcuts (mobile)', true],
@@ -227,11 +237,13 @@ function syncDateInput(input) {
                 })),
                 tx,
                 budgets: {
-                    c_transportation: 1500,
-                    c_fooddrinks: 3000,
-                    c_subscriptions: 500,
-                    c_shopping: 1000,
-                    c_personalcare: 800
+                    [ym(today())]: {
+                        c_transportation: 1500,
+                        c_fooddrinks: 3000,
+                        c_subscriptions: 500,
+                        c_shopping: 1000,
+                        c_personalcare: 800
+                    }
                 },
                 goals: [
                     ['Emergency Fund', 50000, 20000, 'savings'],
@@ -477,9 +489,55 @@ function syncDateInput(input) {
             lu = () => {};
 
         let modalScrollPosition = 0,
-            transactionFormReturnToChooser = false;
+            transactionFormReturnToChooser = false,
+            modalHistoryClosePending = false,
+            modalHistoryActive = false,
+            modalHistorySnapshot = null;
+        const modalHistoryClasses = ['form-open', 'report-filter-open', 'quick-add-open'];
+        function modalIsOpen() {
+            return $('#ov').style.display === 'flex'
+        }
+        function hideModal() {
+            const overlay = $('#ov');
+            modalHistorySnapshot = {
+                classes: modalHistoryClasses.filter(className => overlay.classList.contains(className)),
+                scrollPosition: modalScrollPosition,
+                transactionFormReturnToChooser
+            };
+            overlay.style.display = 'none';
+            overlay.classList.remove(...modalHistoryClasses);
+            const wasLocked = document.body.classList.contains('pocket-modal-open');
+            document.body.classList.remove('pocket-modal-open');
+            document.body.style.removeProperty('--pocket-modal-scroll-top');
+            if (wasLocked) window.scrollTo(0, modalScrollPosition);
+            transactionFormReturnToChooser = false
+        }
+        function restoreModalFromHistory() {
+            if (!modalHistorySnapshot) return;
+            const overlay = $('#ov');
+            modalScrollPosition = modalHistorySnapshot.scrollPosition;
+            if (!document.body.classList.contains('pocket-modal-open')) {
+                document.body.style.setProperty('--pocket-modal-scroll-top', `-${modalScrollPosition}px`)
+            }
+            document.body.classList.add('pocket-modal-open');
+            overlay.classList.add(...modalHistorySnapshot.classes);
+            overlay.style.display = 'flex';
+            transactionFormReturnToChooser = modalHistorySnapshot.transactionFormReturnToChooser;
+            modalHistoryActive = true;
+            modalHistorySnapshot = null;
+            lu()
+        }
         function ov(h) {
             document.querySelectorAll('.pocket-select-overlay').forEach(menu => menu.remove());
+            if (!modalIsOpen()) {
+                if (modalHistoryClosePending && history.state?.pocketOverlay) {
+                    modalHistoryClosePending = false
+                } else {
+                    updateViewHistory(U.v, false, { pocketOverlay: true })
+                }
+                modalHistorySnapshot = null;
+                modalHistoryActive = true
+            }
             $('#ov').classList.remove('report-filter-open');
             $('#ovc').innerHTML = h;
             if (!document.body.classList.contains('pocket-modal-open')) {
@@ -493,13 +551,17 @@ function syncDateInput(input) {
         const cl = () => {
             document.querySelectorAll('.pocket-select-overlay').forEach(menu =>
                 menu.closePicker ? menu.closePicker(false) : menu.remove());
-            transactionFormReturnToChooser = false;
-            $('#ov').style.display = 'none';
-            $('#ov').classList.remove('form-open', 'report-filter-open', 'quick-add-open');
-            const wasLocked = document.body.classList.contains('pocket-modal-open');
-            document.body.classList.remove('pocket-modal-open');
-            document.body.style.removeProperty('--pocket-modal-scroll-top');
-            if (wasLocked) window.scrollTo(0, modalScrollPosition)
+            const wasOpen = modalIsOpen();
+            if (wasOpen) hideModal();
+            modalHistoryActive = false;
+            if (wasOpen && history.state?.pocketOverlay) {
+                modalHistoryClosePending = true;
+                Promise.resolve().then(() => {
+                    if (!modalHistoryClosePending) return;
+                    modalHistoryClosePending = false;
+                    if (history.state?.pocketOverlay) history.back()
+                })
+            }
         };
         function closeFormToDashboard() {
             cl();
@@ -960,8 +1022,7 @@ function syncDateInput(input) {
                 amount = `${t.type === 'expense' ? '−' : t.type === 'income' ? '+' : ''}${peso(t.amount)}`;
             const cashback = t.type === 'expense' || tr ? D.cashbacks.find(claim => claim.expenseId === t.id) : null;
             const actions = act ? `<div class="tx-actions">${t.type === 'expense' || tr ? `<button class="ib" onclick="${cashback ? "go('cash')" : `PocketFeatures.cash.openForm('${t.id}')`}" aria-label="${cashback ? 'Manage cashback' : 'Track cashback'}" title="${cashback ? 'Manage cashback' : 'Track cashback'}">${ic('coins')}</button>` : ''}<button class="ib" onclick="editTx('${t.id}')" aria-label="Edit">${ic('pencil')}</button><button class="ib" onclick="delTx('${t.id}')" aria-label="Delete">${ic('trash-2')}</button></div>` : '';
-            const transactionDate = new Date(`${t.date}T00:00:00`),
-                recentDate = `${transactionDate.getDate()} ${MO[transactionDate.getMonth()]}`,
+            const recentDate = fd(t.date),
                 recentDetails = tr ?
                     `${recentDate} · ${esc(A(t.acc)?.name || 'Account')} → ${esc(A(t.to)?.name || 'Account')}` :
                     `${recentDate} · ${esc(t.type === 'income' ? A(t.acc)?.name || 'Account' : c?.name || 'Uncategorized')}`,
@@ -1019,8 +1080,21 @@ function syncDateInput(input) {
                 .amount, 0)
         }
 
+        function budgetMonthKey(offset = 0) {
+            const now = new Date();
+            return ym(iso(new Date(now.getFullYear(), now.getMonth() + offset, 1)))
+        }
+        function selectedBudgetMonthKey() {
+            return budgetMonthKey(U.v === 'bud' ? budgetMonthOffset : 0)
+        }
+        function budgetAmountForMonth(id, key = ym(today())) {
+            return D.budgets[key]?.[id] || 0
+        }
+        function hasBudgetForCategory(id) {
+            return Object.values(D.budgets).some(monthBudgets => monthBudgets[id] > 0)
+        }
         function bstat(key = ym(today())) {
-            return Object.entries(D.budgets).map(([id, b]) => {
+            return Object.entries(D.budgets[key] || {}).map(([id, b]) => {
                 const s = spent(id, key),
                     p = b > 0 ? s / b * 100 : s > 0 ? Infinity : 0;
                 return {
@@ -1204,7 +1278,14 @@ function syncDateInput(input) {
         }
         function setOnboardingStep(step) {
             if (!onboardingState || !['welcome', ...ONBOARDING_STEPS, 'complete'].includes(step)) return;
+            if (onboardingState.step === step) return;
             onboardingState.step = step;
+            if (onboardingActive) {
+                updateViewHistory(U.v, false, {
+                    pocketOnboardingStep: step,
+                    pocketOnboardingDepth: ONBOARDING_HISTORY_STEPS.indexOf(step)
+                })
+            }
             saveOnboardingProgress()
         }
         function beginOnboarding() {
@@ -1371,6 +1452,13 @@ function syncDateInput(input) {
             draft.goals = [];
             setOnboardingStep('complete')
         }
+        function onboardingSkipCurrentStep() {
+            if (!onboardingState) return;
+            if (onboardingState.step === 'accounts') return onboardingSkipAccounts();
+            if (onboardingState.step === 'categories') return setOnboardingStep('preferences');
+            if (onboardingState.step === 'preferences') return setOnboardingStep('optional');
+            if (onboardingState.step === 'optional') return onboardingSkipOptional()
+        }
         function onboardingContinue() {
             const draft = onboardingDraft();
             if (!draft) return;
@@ -1407,8 +1495,13 @@ function syncDateInput(input) {
         function onboardingBack() {
             if (!onboardingState) return;
             const index = ONBOARDING_STEPS.indexOf(onboardingState.step);
-            if (index >= 0) setOnboardingStep(index ? ONBOARDING_STEPS[index - 1] : 'welcome');
-            else if (onboardingState.step === 'complete') setOnboardingStep('optional')
+            if (index >= 0 || onboardingState.step === 'complete') {
+                if (history.state?.pocketOnboardingStep === onboardingState.step) {
+                    history.back();
+                    return
+                }
+                setOnboardingStep(index > 0 ? ONBOARDING_STEPS[index - 1] : onboardingState.step === 'complete' ? 'optional' : 'welcome')
+            }
         }
         function finishOnboarding() {
             const draft = onboardingDraft();
@@ -1440,10 +1533,11 @@ function syncDateInput(input) {
                 D.cats.push({ id: 'c_cashback', name: 'Cashback', icon: 'coins', color: '#0891b2', g: 'Income' })
             }
             const activeCategoryIds = new Set(D.cats.map(category => category.id));
-            D.budgets = Object.fromEntries(Object.entries(draft.budgets).filter(([id, value]) => {
+            const initialBudgets = Object.fromEntries(Object.entries(draft.budgets).filter(([id, value]) => {
                 const amount = Number(value);
                 return activeCategoryIds.has(id) && Number.isFinite(amount) && amount >= 0 && value !== ''
             }).map(([id, value]) => [id, Number(value)]));
+            D.budgets = Object.keys(initialBudgets).length ? { [ym(today())]: initialBudgets } : {};
             D.goals = draft.goals.filter(goal => goal.name.trim() && Number(goal.target) > 0).map(goal => ({
                 id: uid(),
                 name: goal.name.trim().slice(0, 80),
@@ -1462,6 +1556,7 @@ function syncDateInput(input) {
             onboardingActive = false;
             U.v = 'dash';
             U.reportRange = D.financialPeriod;
+            updateViewHistory(U.v, true, { pocketOnboardingDepth: ONBOARDING_HISTORY_STEPS.length });
             persistOnboardingState();
             save();
             render()
@@ -1527,7 +1622,7 @@ function syncDateInput(input) {
             const tasks = [
                 ['accounts', 'Add an account', D.acc.length > 0, 'Start with Cash, GCash, or a bank account.'],
                 ['transaction', 'Record your first transaction', D.tx.length > 0, 'Add an expense or income to see real reports.'],
-                ['budget', 'Set a monthly budget', Object.keys(D.budgets).length > 0, 'Choose a category and set a spending limit.'],
+                ['budget', 'Set a monthly budget', Object.values(D.budgets).some(monthBudgets => Object.keys(monthBudgets).length > 0), 'Choose a category and set a spending limit.'],
                 ['goal', 'Create a savings goal', D.goals.length > 0, 'Give a goal a name and target amount.']
             ];
             return window.PocketFeatures.renderGettingStarted(tasks)
@@ -1628,6 +1723,8 @@ function syncDateInput(input) {
         });
 
         function budForm(id) {
+            const monthKey = selectedBudgetMonthKey(),
+                monthBudgets = D.budgets[monthKey] || {};
             openForm(id ? 'Edit budget' : 'Set budget', () => [{
                 k: 'cat',
                 l: 'Category',
@@ -1644,14 +1741,20 @@ function syncDateInput(input) {
                 pos: 1
             }], id ? {
                 cat: id,
-                amt: D.budgets[id]
+                amt: monthBudgets[id]
             } : {}, v => {
-                if (id && id !== v.cat) delete D.budgets[id];
-                D.budgets[v.cat] = +v.amt
+                const budgets = { ...(D.budgets[monthKey] || {}) };
+                if (id && id !== v.cat) delete budgets[id];
+                budgets[v.cat] = +v.amt;
+                D.budgets[monthKey] = budgets
             })
         }
         const delBudget = id => ask('Remove this budget?', () => {
-            delete D.budgets[id]
+            const monthKey = selectedBudgetMonthKey(),
+                budgets = { ...(D.budgets[monthKey] || {}) };
+            delete budgets[id];
+            if (Object.keys(budgets).length) D.budgets[monthKey] = budgets;
+            else delete D.budgets[monthKey]
         });
         function shiftBudgetMonth(amount) {
             budgetMonthOffset += amount;
@@ -1789,15 +1892,22 @@ function syncDateInput(input) {
             }, null, 'Record expense');
         }
         function openShoppingList(id) {
+            if (!id || !D.shoppingLists.some(list => list.id === id)) return;
+            if (selectedShoppingListId === id) return;
             selectedShoppingListId = id;
+            updateViewHistory(U.v, false, { pocketShoppingListId: id });
             render();
         }
         function closeShoppingList() {
+            if (!selectedShoppingListId) return;
+            const hasDetailHistory = history.state?.pocketShoppingListId === selectedShoppingListId;
             selectedShoppingListId = '';
             render();
+            if (hasDetailHistory) history.back();
         }
         function closeShoppingListToDashboard() {
             selectedShoppingListId = '';
+            if (history.state?.pocketShoppingListId) updateViewHistory(U.v, true);
             go('dash');
         }
         function shoppingListFabAction() {
@@ -1862,7 +1972,7 @@ function syncDateInput(input) {
                 })
             })
         }
-        const delCat = id => D.tx.some(t => t.cat === id) || D.budgets[id] || (D.cashbacks.length && C(id)?.name.toLowerCase() === 'cashback') ? info(
+        const delCat = id => D.tx.some(t => t.cat === id) || hasBudgetForCategory(id) || (D.cashbacks.length && C(id)?.name.toLowerCase() === 'cashback') ? info(
             'This category is in use by transactions or a budget.') : ask('Delete this category?', () => {
             D.cats = D.cats.filter(c => c.id !== id)
         });
@@ -2214,22 +2324,74 @@ function syncDateInput(input) {
             if (toggle.parentElement !== header || toggle !== header.lastElementChild) header.append(toggle);
         }
 
-        function updateViewHistory(view, replace = false) {
+        let lastOnboardingHistoryDepth = -1;
+        function viewHistoryState(view, extras = {}) {
             const currentState = history.state,
                 state = currentState && typeof currentState === 'object' && !Array.isArray(currentState)
                     ? { ...currentState, pocketView: view }
                     : { pocketView: view };
+            delete state.pocketOverlay;
+            delete state.pocketOnboardingStep;
+            delete state.pocketShoppingListId;
+            if (onboardingActive && onboardingState && !onboardingState.completed) {
+                state.pocketOnboardingStep = onboardingState.step;
+                state.pocketOnboardingDepth = ONBOARDING_HISTORY_STEPS.indexOf(onboardingState.step)
+            }
+            if (view === 'shop' && selectedShoppingListId) state.pocketShoppingListId = selectedShoppingListId;
+            Object.assign(state, extras);
+            return state
+        }
+
+        function updateViewHistory(view, replace = false, extras = {}) {
+            const state = viewHistoryState(view, extras);
             if (replace) history.replaceState(state, '', location.href);
             else history.pushState(state, '', location.href);
+            lastOnboardingHistoryDepth = Number.isInteger(state.pocketOnboardingDepth)
+                ? state.pocketOnboardingDepth
+                : -1
         }
 
         function restoreViewFromHistory(event) {
-            const view = event.state?.pocketView;
-            if (!view || !Object.prototype.hasOwnProperty.call(V, view) || view === U.v) return;
+            const state = event.state,
+                previousOnboardingDepth = lastOnboardingHistoryDepth;
+            lastOnboardingHistoryDepth = Number.isInteger(state?.pocketOnboardingDepth)
+                ? state.pocketOnboardingDepth
+                : -1;
+            if (modalIsOpen() && !state?.pocketOverlay) {
+                modalHistoryActive = false;
+                modalHistoryClosePending = false;
+                const backButton = $('#ov .form-screen-arrow');
+                if (backButton) backButton.click();
+                else cl();
+                return
+            }
+            if (state?.pocketOverlay) {
+                if (!modalIsOpen()) restoreModalFromHistory();
+                return
+            }
+            if (state?.pocketOnboardingStep) {
+                if (!onboardingActive) {
+                    if (lastOnboardingHistoryDepth < previousOnboardingDepth) history.back();
+                    else if (lastOnboardingHistoryDepth > previousOnboardingDepth) history.forward();
+                    return
+                }
+                if (ONBOARDING_HISTORY_STEPS.includes(state.pocketOnboardingStep) &&
+                    onboardingState.step !== state.pocketOnboardingStep) {
+                    onboardingState.step = state.pocketOnboardingStep;
+                    persistOnboardingState();
+                    render()
+                }
+                return
+            }
+            const view = state?.pocketView;
+            if (!view || !Object.prototype.hasOwnProperty.call(V, view)) return;
             const previousView = U.v;
-            if (view === 'shop') selectedShoppingListId = '';
+            const shoppingListId = view === 'shop' && D.shoppingLists.some(list =>
+                list.id === state.pocketShoppingListId) ? state.pocketShoppingListId : '';
+            if (view === U.v && shoppingListId === selectedShoppingListId) return;
             if (view === 'tx' && previousView !== 'tx') window.PocketFeatures?.tx?.resetPage?.();
             U.v = view;
+            selectedShoppingListId = shoppingListId;
             render();
             window.scrollTo(0, 0)
         }
@@ -2237,9 +2399,19 @@ function syncDateInput(input) {
         function go(v) {
             const previousView = U.v;
             closeTitleMenu();
-            if (v === 'shop') selectedShoppingListId = '';
+            if (v !== previousView && modalIsOpen()) cl();
+            if (v === 'bud' && previousView !== 'bud') budgetMonthOffset = 0;
+            if (v === 'shop' && previousView === 'shop' && selectedShoppingListId) {
+                selectedShoppingListId = '';
+                if (history.state?.pocketShoppingListId) updateViewHistory(U.v, true)
+            } else if (v === 'shop') selectedShoppingListId = '';
             if (v === 'tx' && previousView !== 'tx') window.PocketFeatures?.tx?.resetPage?.();
-            if (v !== previousView) updateViewHistory(v);
+            if (v !== previousView) {
+                const replaceOverlayState = modalHistoryClosePending && history.state?.pocketOverlay;
+                updateViewHistory(v, Boolean(replaceOverlayState));
+                modalHistoryClosePending = false;
+                modalHistoryActive = false
+            }
             U.v = v;
             render();
             if (v === 'prof') window.scrollTo(0, 0);
@@ -2361,6 +2533,28 @@ function syncDateInput(input) {
             sx = (s, n = 200) => String(s ?? '').slice(0, n),
             ic2 = i => typeof IP[i] === 'string' ? i : 'tag';
 
+        function cleanBudgets(rawBudgets) {
+            const budgets = {},
+                legacyBudgets = {};
+            if (!rawBudgets || typeof rawBudgets !== 'object' || Array.isArray(rawBudgets)) return budgets;
+            Object.entries(rawBudgets).forEach(([key, value]) => {
+                if (/^\d{4}-(0[1-9]|1[0-2])$/.test(key)) {
+                    if (!value || typeof value !== 'object' || Array.isArray(value)) return;
+                    const monthBudgets = Object.fromEntries(Object.entries(value)
+                        .filter(([id, amount]) => okId(id) && nm(amount) > 0)
+                        .map(([id, amount]) => [id, nm(amount)]));
+                    if (Object.keys(monthBudgets).length) budgets[key] = monthBudgets;
+                    return
+                }
+                if (okId(key) && nm(value) > 0) legacyBudgets[key] = nm(value)
+            });
+            if (Object.keys(legacyBudgets).length) {
+                const currentMonth = ym(today());
+                budgets[currentMonth] = { ...legacyBudgets, ...(budgets[currentMonth] || {}) }
+            }
+            return budgets
+        }
+
         function clean(d) {
             if (!d || !Array.isArray(d.acc) || !Array.isArray(d.tx) || !Array.isArray(d.cats)) return null;
             const dashboardWidgets = d.dashboardWidgets && typeof d.dashboardWidgets === 'object' ? d.dashboardWidgets : {};
@@ -2452,8 +2646,7 @@ function syncDateInput(input) {
                     receivedDate: okD(claim.receivedDate) ? claim.receivedDate : '',
                     incomeId: okId(claim.incomeId) ? claim.incomeId : ''
                 })),
-                budgets: Object.fromEntries(Object.entries(d.budgets && typeof d.budgets === 'object' ? d.budgets : {})
-                    .filter(([k, v]) => okId(k) && nm(v) > 0).map(([k, v]) => [k, nm(v)])),
+                budgets: cleanBudgets(d.budgets),
                 goals: (Array.isArray(d.goals) ? d.goals : []).filter(g => g && okId(g.id)).map(g => ({
                     id: g.id,
                     name: sx(g.name),
@@ -2559,7 +2752,19 @@ function syncDateInput(input) {
             if (e.target.id === 'ov') cl()
         };
         restoreCurrentView();
-        updateViewHistory(U.v, true);
+        const onboardingHistoryIndex = ONBOARDING_HISTORY_STEPS.indexOf(onboardingState.step);
+        if (onboardingActive && onboardingHistoryIndex >= 0) {
+            updateViewHistory(U.v, true, {
+                pocketOnboardingStep: ONBOARDING_HISTORY_STEPS[0],
+                pocketOnboardingDepth: 0
+            });
+            for (let index = 1; index <= onboardingHistoryIndex; index++) {
+                updateViewHistory(U.v, false, {
+                    pocketOnboardingStep: ONBOARDING_HISTORY_STEPS[index],
+                    pocketOnboardingDepth: index
+                })
+            }
+        } else updateViewHistory(U.v, true);
         window.addEventListener('popstate', restoreViewFromHistory);
         render();
         const runDueRecurring = () => {

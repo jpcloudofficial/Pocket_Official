@@ -9,7 +9,7 @@
             const visibleAccounts = accounts;
             const accountRows = accounts.map(account => {
                 const balance = bal(account);
-                return `<button type="button" class="accounts-list-row" onclick="accForm('${account.id}')" aria-label="Edit ${esc(account.name)}"><span class="accounts-list-icon">${ic(account.icon || 'wallet')}</span><span class="accounts-list-copy"><b>${esc(account.name)}</b><small>${esc(account.type)} · since ${fd(account.created)}</small></span><b class="accounts-list-balance${balance < 0 ? ' is-negative' : ''}">${pesoBalance(balance)}</b></button>`
+                return `<button type="button" class="accounts-list-row" onclick="accForm('${account.id}')" aria-label="Edit ${esc(account.name)}"><span class="accounts-list-icon">${ic(account.icon || 'wallet')}</span><span class="accounts-list-copy"><b>${esc(account.name)}</b><small>${esc(account.type)}</small></span><b class="accounts-list-balance${balance < 0 ? ' is-negative' : ''}">${pesoBalance(balance)}</b></button>`
             }).join('');
             const cards = visibleAccounts.map((account, index) => {
                 const balance = bal(account);
@@ -19,7 +19,7 @@
                 const actions = isFront ?
                     `<div class="account-stack-actions"><button class="ib" onclick="accForm('${account.id}')" aria-label="Edit ${esc(account.name)}">${ic('pencil')}</button><button class="ib" onclick="delAcc('${account.id}')" aria-label="Delete ${esc(account.name)}">${ic('trash-2')}</button></div>` :
                     '';
-                return `<article class="account-stack-card${isFront ? ' is-front' : ''}" data-account-id="${esc(account.id)}" style="--account-accent:${esc(account.color)};--stack-offset:${index * stackGap}px;z-index:${index}"><div class="account-stack-card-heading"><div class="account-stack-name"><span class="account-stack-icon">${ic(account.icon || 'wallet')}</span><span class="account-stack-name-copy"><b>${esc(account.name)}</b><small>${esc(account.type)} · since ${fd(account.created)}</small></span></div><b class="account-stack-balance" style="color:${balance < 0 ? 'var(--ex)' : 'var(--tx)'}">${pesoBalance(balance)}</b></div><div class="account-stack-card-footer"><small>${balanceNote}</small>${actions}</div></article>`
+                return `<article class="account-stack-card${isFront ? ' is-front' : ''}" data-account-id="${esc(account.id)}" style="--account-accent:${esc(account.color)};--stack-offset:${index * stackGap}px;z-index:${index}"><div class="account-stack-card-heading"><div class="account-stack-name"><span class="account-stack-icon">${ic(account.icon || 'wallet')}</span><span class="account-stack-name-copy"><b>${esc(account.name)}</b><small>${esc(account.type)}</small></span></div><b class="account-stack-balance" style="color:${balance < 0 ? 'var(--ex)' : 'var(--tx)'}">${pesoBalance(balance)}</b></div><div class="account-stack-card-footer"><small>${balanceNote}</small>${actions}</div></article>`
             }).join('');
             const accountCount = `${accounts.length} ${accounts.length === 1 ? 'account' : 'accounts'}`;
             const stackView = accounts.length ?
