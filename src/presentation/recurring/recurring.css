@@ -1,1 +1,323 @@
-﻿:root[data-feature="rec"] {   --pocket-feature-id: "rec"; }
+:root[data-feature="rec"] { --pocket-feature-id: "rec"; }
+html[data-view="rec"] #m .card{
+            border-color: transparent;
+            box-shadow: none
+        }
+html[data-view="rec"] #m .pocket-feature-content >.row:first-child{
+            align-items: flex-start
+        }
+html[data-view="rec"] #m .pocket-feature-content >.row:first-child h2{
+            margin: 0;
+            font-size: 24px;
+            letter-spacing: -.04em
+        }
+html[data-view="rec"] #m .recurring-section-heading{
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin: 22px 0 12px
+        }
+html[data-view="rec"] #m .recurring-section-heading small{
+            color: var(--mu)
+        }
+html[data-view="rec"] #m .pocket-feature-content >.g{
+            grid-template-columns: minmax(0, 1fr)
+        }
+html[data-view="rec"] #m .pocket-feature-content >.g > .card{
+            padding: 18px;
+            border-radius: 19px
+        }
+html[data-theme=dark][data-view="rec"] #m .b1{
+            border-color: transparent;
+            background: #b8ef76;
+            color: #122016
+        }
+html[data-theme=dark][data-view="rec"] #m .b2{
+            border-color: transparent;
+            background: #203329;
+            color: #f2f6f3
+        }
+@media(prefers-color-scheme:dark) {
+html:not([data-theme=light])[data-view="rec"] #m .b1{
+                border-color: transparent;
+                background: #b8ef76;
+                color: #122016
+            }
+}
+@media(prefers-color-scheme:dark) {
+html:not([data-theme=light])[data-view="rec"] #m .b2{
+                border-color: transparent;
+                background: #203329;
+                color: #f2f6f3
+            }
+}
+#m[data-view="rec"] .pocket-feature-content >.recurring-header{
+            align-items: flex-start;
+            margin-top: -24px;
+            padding: 24px 0 0
+        }
+#m[data-view="rec"] .recurring-heading-copy{
+            display: grid;
+            order: 1;
+            gap: 14px;
+            min-width: 0
+        }
+#m[data-view="rec"] .recurring-heading-copy > small{
+            color: var(--in);
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: .04em
+        }
+#m[data-view="rec"] .recurring-heading-copy h2{
+            margin: 0;
+            font-size: 30px;
+            line-height: 1.15;
+            letter-spacing: -.035em
+        }
+#m[data-view="rec"] .recurring-heading-copy p{
+            max-width: 330px;
+            margin: 0;
+            color: var(--mu);
+            font-size: 12px;
+            line-height: 1.5
+        }
+#m[data-view="rec"] .recurring-header .page-menu-toggle{
+            order: 2;
+            margin: 5px 0 0 auto
+        }
+#m[data-view="rec"] .recurring-header .pocket-profile-button{
+            display: none
+        }
+#m[data-view="rec"] .recurring-section-heading{
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin: 24px 0 12px
+        }
+#m[data-view="rec"] .recurring-section-heading b{
+            color: var(--tx);
+            font-size: 16px;
+            font-weight: 650
+        }
+#m[data-view="rec"] .recurring-section-heading small{
+            color: var(--mu);
+            font-size: 12px
+        }
+#m[data-view="rec"] .recurring-list{
+            display: grid;
+            grid-template-columns: minmax(0, 1fr);
+            gap: 12px
+        }
+#m[data-view="rec"] .recurring-card{
+            display: grid;
+            min-width: 0;
+            gap: 16px;
+            padding: 20px;
+            border: 0;
+            border-radius: 20px;
+            background: var(--cd)
+        }
+#m[data-view="rec"] .recurring-card-heading{
+            display: grid;
+            grid-template-columns: 26px minmax(0, 1fr) 32px;
+            align-items: center;
+            gap: 10px
+        }
+#m[data-view="rec"] .recurring-card-icon{
+            display: grid;
+            width: 24px;
+            height: 24px;
+            place-items: center;
+            color: var(--mu)
+        }
+#m[data-view="rec"] .recurring-card-icon .ic{
+            width: 22px;
+            height: 22px
+        }
+#m[data-view="rec"] .recurring-card-title{
+            display: grid;
+            min-width: 0;
+            gap: 4px
+        }
+#m[data-view="rec"] .recurring-card-title b{
+            overflow-wrap: anywhere;
+            color: var(--tx);
+            font-size: 15px;
+            font-weight: 650
+        }
+#m[data-view="rec"] .recurring-card-title small{
+            overflow-wrap: anywhere;
+            color: var(--mu);
+            font-size: 11px
+        }
+#m[data-view="rec"] .recurring-card-menu{
+            position: relative;
+            justify-self: end
+        }
+#m[data-view="rec"] .recurring-card-menu summary{
+            display: grid;
+            width: 32px;
+            height: 32px;
+            place-items: center;
+            border-radius: 10px;
+            color: var(--mu);
+            list-style: none;
+            cursor: pointer
+        }
+#m[data-view="rec"] .recurring-card-menu summary::-webkit-details-marker{
+            display: none
+        }
+#m[data-view="rec"] .recurring-card-menu summary:hover,
+#m[data-view="rec"] .recurring-card-menu[open] summary{
+            background: var(--sq);
+            color: var(--tx)
+        }
+#m[data-view="rec"] .recurring-card-menu summary:focus-visible,
+#m[data-view="rec"] .recurring-card-menu-items button:focus-visible,
+#m[data-view="rec"] .recurring-toggle:focus-visible{
+            outline: 2px solid var(--in);
+            outline-offset: 2px
+        }
+#m[data-view="rec"] .recurring-card-menu summary .dashboard-icon{
+            width: 19px;
+            height: 19px
+        }
+#m[data-view="rec"] .recurring-card-menu-items{
+            position: absolute;
+            top: calc(100% + 5px);
+            right: 0;
+            z-index: 12;
+            display: grid;
+            width: 160px;
+            gap: 4px;
+            padding: 6px;
+            border: 1px solid var(--bd);
+            border-radius: 12px;
+            background: var(--cd);
+            box-shadow: 0 10px 24px #0005
+        }
+#m[data-view="rec"] .recurring-card-menu-items button{
+            min-height: 38px;
+            padding: 8px 10px;
+            border: 0;
+            border-radius: 8px;
+            background: transparent;
+            color: var(--tx);
+            font: inherit;
+            font-size: 12px;
+            text-align: left;
+            cursor: pointer
+        }
+#m[data-view="rec"] .recurring-card-menu-items button:hover{
+            background: var(--sq)
+        }
+#m[data-view="rec"] .recurring-card-menu-items button:last-child{
+            color: var(--ex)
+        }
+#m[data-view="rec"] .recurring-card-amount{
+            color: var(--tx);
+            font-size: 34px;
+            font-weight: 750;
+            letter-spacing: -.04em;
+            line-height: 1.1
+        }
+#m[data-view="rec"] .recurring-card-details{
+            display: grid;
+            gap: 11px
+        }
+#m[data-view="rec"] .recurring-card-detail{
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px
+        }
+#m[data-view="rec"] .recurring-card-detail > span{
+            color: var(--mu);
+            font-size: 12px
+        }
+#m[data-view="rec"] .recurring-card-detail > b{
+            min-width: 0;
+            overflow-wrap: anywhere;
+            color: var(--tx);
+            font-size: 13px;
+            font-weight: 500;
+            text-align: right
+        }
+#m[data-view="rec"] .recurring-card-detail > b.is-waiting{
+            color: var(--ex)
+        }
+#m[data-view="rec"] .recurring-card-start{
+            color: var(--mu);
+            font-size: 11px
+        }
+#m[data-view="rec"] .recurring-toggle{
+            width: 100%;
+            min-height: 52px;
+            padding: 0 14px;
+            border: 0;
+            border-radius: 14px;
+            background: #203329;
+            color: var(--tx);
+            font: inherit;
+            font-size: 14px;
+            font-weight: 650;
+            cursor: pointer
+        }
+#m[data-view="rec"] .recurring-toggle:hover{
+            background: #263a2d
+        }
+#m[data-view="rec"] .recurring-empty{
+            display: flex;
+            align-items: center;
+            gap: 13px;
+            padding: 20px;
+            border: 0;
+            border-radius: 20px;
+            background: var(--cd)
+        }
+#m[data-view="rec"] .recurring-empty-icon{
+            display: grid;
+            width: 42px;
+            height: 42px;
+            flex: none;
+            place-items: center;
+            border-radius: 14px;
+            background: var(--sq);
+            color: var(--in)
+        }
+#m[data-view="rec"] .recurring-empty-icon .ic{
+            width: 20px;
+            height: 20px
+        }
+#m[data-view="rec"] .recurring-empty > div{
+            display: grid;
+            gap: 4px
+        }
+#m[data-view="rec"] .recurring-empty b{
+            color: var(--tx);
+            font-size: 13px
+        }
+#m[data-view="rec"] .recurring-empty small{
+            color: var(--mu);
+            font-size: 11px;
+            line-height: 1.45
+        }
+#m[data-view="rec"] .recurring-note{
+            display: block;
+            margin-top: 12px;
+            color: var(--mu);
+            font-size: 10px;
+            line-height: 1.45
+        }
+@media (max-width: 760px) {
+#m[data-view="rec"]{
+                padding: 20px 24px 154px
+            }
+}
+@media (max-width: 760px) {
+#m[data-view="rec"] .pocket-feature-content >.recurring-header{
+                margin-top: -20px;
+                padding-top: 24px
+            }
+}

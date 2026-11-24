@@ -1,1 +1,505 @@
-﻿:root[data-feature="acc"] {   --pocket-feature-id: "acc"; }
+:root[data-feature="acc"] { --pocket-feature-id: "acc"; }
+.pocket-account-transfer{
+            position: fixed;
+            right: 22px;
+            bottom: 82px;
+            z-index: 21;
+            display: flex;
+            width: 147px;
+            height: 52px;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 0 16px;
+            border: 1px solid var(--bd);
+            border-radius: 28px;
+            background: var(--cd);
+            color: var(--tx);
+            box-shadow: 0 4px 14px #0004;
+            font: inherit;
+            font-weight: 700;
+            cursor: pointer
+        }
+.pocket-account-transfer svg{
+            width: 24px;
+            height: 24px;
+            flex: none
+        }
+body.pocket-modal-open .pocket-account-transfer{
+            display: none !important
+        }
+.pocket-account-transfer{
+            transition: transform .24s ease, opacity .24s ease
+        }
+body.pocket-actions-scroll-hidden .pocket-account-transfer{
+            transform: translateX(calc(100% + 80px));
+            opacity: 0;
+            pointer-events: none
+        }
+html[data-view="acc"] body.pocket-actions-scroll-hidden .fab.pocket-fab-labeled,
+html[data-view="acc"] body.pocket-actions-scroll-hidden .pocket-account-transfer{
+            transform: none
+        }
+@media (max-width: 760px){
+.pocket-account-transfer{
+                right: 14px;
+                bottom: calc(142px + env(safe-area-inset-bottom,0px))
+            }
+}
+@media (prefers-reduced-motion: reduce){
+.pocket-account-transfer{
+                transition: none !important
+            }
+}
+.account-stack-wrap{
+            width: min(100%, 520px);
+            margin: 16px auto 0
+        }
+.account-stack-summary{
+            align-items: flex-start
+        }
+.account-stack-summary-copy{
+            flex: 1;
+            min-width: 0
+        }
+.account-stack-summary-line{
+            display: flex;
+            gap: 4px;
+            min-width: 0;
+            white-space: nowrap
+        }
+.account-stack-summary-line > span{
+            flex: none
+        }
+.account-stack-summary-line > b{
+            flex: 1;
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap
+        }
+.account-stack-summary-count{
+            flex: none;
+            white-space: nowrap
+        }
+.account-stack-card{
+            position: absolute;
+            top: var(--stack-offset);
+            left: 0;
+            right: 0;
+            box-sizing: border-box;
+            height: 160px;
+            padding: 16px;
+            overflow: hidden;
+            border: 1px solid var(--bd);
+            border-top: 4px solid var(--account-accent);
+            border-radius: 20px;
+            background: var(--cd);
+            box-shadow: 0 10px 24px #0003
+        }
+.account-stack-card::before{
+            content: '';
+            position: absolute;
+            inset: 0 0 auto;
+            height: 60px;
+            background: var(--account-accent);
+            opacity: .12;
+            pointer-events: none
+        }
+.account-stack-summary-balances{
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px
+        }
+.account-stack-summary-balances .account-stack-summary-line{
+            display: grid;
+            gap: 2px;
+            white-space: nowrap
+        }
+.account-stack-summary-balances .account-stack-summary-line > span{
+            color: var(--mu);
+            font-size: 11px
+        }
+.account-stack-summary-balances .account-stack-summary-line > b{
+            font-size: 13px
+        }
+.account-stack-card-heading,
+.account-stack-name{
+            display: flex;
+            align-items: center;
+            min-width: 0
+        }
+.account-stack-card-heading{
+            position: relative;
+            justify-content: space-between;
+            gap: 12px
+        }
+.account-stack-name{
+            flex: 1;
+            gap: 10px
+        }
+.account-stack-icon{
+            display: grid;
+            width: 36px;
+            height: 36px;
+            flex: none;
+            place-items: center;
+            border-radius: 12px;
+            background: var(--sq);
+            color: var(--account-accent)
+        }
+.account-stack-name-copy{
+            display: grid;
+            min-width: 0;
+            gap: 4px
+        }
+.account-stack-name-copy b{
+            overflow: hidden;
+            font-size: 16px;
+            text-overflow: ellipsis;
+            white-space: nowrap
+        }
+.account-stack-name-copy small{
+            white-space: nowrap
+        }
+.account-stack-balance{
+            flex: 0 1 auto;
+            min-width: 0;
+            max-width: 48%;
+            overflow: hidden;
+            font-size: 20px;
+            font-weight: 700;
+            text-align: right;
+            text-overflow: ellipsis;
+            white-space: nowrap
+        }
+.account-stack-card-footer{
+            position: absolute;
+            right: 16px;
+            bottom: 14px;
+            left: 16px;
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 12px
+        }
+.account-stack-card-footer > small{
+            flex: 1 1 0;
+            min-width: 0;
+            max-width: 70%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap
+        }
+.account-stack-actions,
+.account-stack-footer{
+            display: flex;
+            align-items: center;
+            gap: 6px
+        }
+.account-stack-footer{
+            justify-content: space-between;
+            flex-wrap: wrap;
+            margin: 0 0 8px
+        }
+.account-stack-footer > small{
+            flex: 1 1 120px
+        }
+.account-balance-row{
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-top: 10px
+        }
+.account-balance-row>small{
+            flex: 1;
+            min-width: 0
+        }
+.account-balance-row>.big{
+            flex: 0 1 50%;
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin: 0;
+            text-align: right;
+            white-space: nowrap
+        }
+:root[data-theme="dark"][data-view="acc"]{
+            color-scheme: dark;
+            --bg: #0b100e;
+            --cd: #142019;
+            --tx: #f2f6f3;
+            --mu: #a8b8af;
+            --bd: #263a28;
+            --sq: #142019;
+            --in: #b8ef76;
+            --ex: #ffa899;
+            --accounts-icon-bg: #223329
+        }
+:root[data-view="acc"]{
+            --accounts-icon-bg: var(--sq)
+        }
+#m[data-view="acc"]{
+            font-family: Inter, 'Plus Jakarta Sans', system-ui, sans-serif
+        }
+#m[data-view="acc"] .pocket-feature-content >.accounts-page{
+            width: min(100%, 520px);
+            margin: 0 auto
+        }
+#m[data-view="acc"] .pocket-feature-content >.accounts-page > .accounts-heading{
+            align-items: center;
+            gap: 12px;
+            margin-top: -24px;
+            padding: 20px 0 18px
+        }
+#m[data-view="acc"] .accounts-heading-copy{
+            display: grid;
+            order: 1;
+            gap: 5px;
+            min-width: 0
+        }
+#m[data-view="acc"] .accounts-eyebrow{
+            color: var(--in);
+            font-size: 9px;
+            font-weight: 700;
+            letter-spacing: .06em;
+            line-height: 1.2
+        }
+#m[data-view="acc"] .accounts-heading h2{
+            overflow: hidden;
+            font-size: 24px !important;
+            line-height: 1.2;
+            text-overflow: ellipsis;
+            white-space: nowrap
+        }
+#m[data-view="acc"] .accounts-heading .page-menu-toggle{
+            display: grid;
+            width: 32px;
+            height: 32px;
+            flex: none;
+            order: 2;
+            place-content: center;
+            gap: 3px;
+            margin-left: auto;
+            border: 0;
+            border-radius: 8px;
+            background: transparent;
+            color: var(--mu);
+            cursor: pointer
+        }
+#m[data-view="acc"] .accounts-heading .page-menu-toggle span{
+            display: block;
+            width: 3px;
+            height: 3px;
+            border-radius: 50%;
+            background: currentColor
+        }
+#m[data-view="acc"] .accounts-heading .page-menu-toggle:focus-visible,
+#m[data-view="acc"] .accounts-view-toggle:focus-visible,
+#m[data-view="acc"] .accounts-list-row:focus-visible,
+html[data-view="acc"] .fab:focus-visible,
+html[data-view="acc"] .pocket-account-transfer:focus-visible{
+            outline: 2px solid var(--in);
+            outline-offset: 3px
+        }
+#m[data-view="acc"] .accounts-balance-card{
+            display: grid;
+            gap: 12px;
+            margin-bottom: 24px;
+            padding: 24px 20px;
+            border-radius: 18px;
+            background: #e8f4e8
+        }
+#m[data-view="acc"] .accounts-balance-card > small{
+            color: var(--mu);
+            font-size: 12px
+        }
+#m[data-view="acc"] .accounts-balance-card > strong{
+            overflow: hidden;
+            font-size: 36px;
+            line-height: 1.2;
+            text-overflow: ellipsis;
+            white-space: nowrap
+        }
+#m[data-view="acc"] .accounts-balance-card > div{
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-top: 2px;
+            color: var(--mu);
+            font-size: 12px
+        }
+#m[data-view="acc"] .accounts-balance-card > div b{
+            color: var(--in);
+            font-size: 12px
+        }
+:root[data-theme="dark"][data-view="acc"] #m .accounts-balance-card{
+            background: #203b29;
+            color: #f2f6f3
+        }
+:root[data-theme="dark"][data-view="acc"] #m .accounts-balance-card > small{
+            color: #a8b8af
+        }
+:root[data-theme="dark"][data-view="acc"] #m .accounts-balance-card > div{
+            color: #d3ded5
+        }
+#m[data-view="acc"] .accounts-list-heading{
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin: 0 0 10px
+        }
+#m[data-view="acc"] .accounts-list-heading h3{
+            margin: 0;
+            font-size: 16px
+        }
+#m[data-view="acc"] .accounts-view-toggle{
+            display: inline-flex;
+            min-height: 32px;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 0 4px 8px;
+            border: 0;
+            background: transparent;
+            color: var(--in);
+            font: inherit;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer
+        }
+#m[data-view="acc"] .accounts-view-toggle span{
+            font-size: 14px
+        }
+#m[data-view="acc"] .accounts-list{
+            padding: 18px 20px;
+            overflow: hidden;
+            border-radius: 18px;
+            background: var(--cd)
+        }
+#m[data-view="acc"] .accounts-list-row{
+            display: grid;
+            width: 100%;
+            min-height: 62px;
+            grid-template-columns: 42px minmax(0, 1fr) auto;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 0;
+            border: 0;
+            border-bottom: 1px solid var(--bd);
+            background: transparent;
+            color: var(--tx);
+            text-align: left;
+            cursor: pointer
+        }
+#m[data-view="acc"] .accounts-list-row:last-child{
+            border-bottom: 0
+        }
+#m[data-view="acc"] .accounts-list-icon{
+            display: grid;
+            width: 42px;
+            height: 42px;
+            place-items: center;
+            border-radius: 12px;
+            background: var(--accounts-icon-bg);
+            color: var(--in)
+        }
+#m[data-view="acc"] .accounts-list-icon .ic{
+            width: 20px;
+            height: 20px
+        }
+#m[data-view="acc"] .accounts-list-copy{
+            display: grid;
+            min-width: 0;
+            gap: 3px
+        }
+#m[data-view="acc"] .accounts-list-copy b{
+            overflow: hidden;
+            font-size: 14px;
+            font-weight: 500;
+            text-overflow: ellipsis;
+            white-space: nowrap
+        }
+#m[data-view="acc"] .accounts-list-copy small{
+            overflow: hidden;
+            color: var(--mu);
+            font-size: 12px;
+            text-overflow: ellipsis;
+            white-space: nowrap
+        }
+#m[data-view="acc"] .accounts-list-balance{
+            max-width: 120px;
+            overflow: hidden;
+            font-size: 14px;
+            font-weight: 600;
+            text-overflow: ellipsis;
+            white-space: nowrap
+        }
+#m[data-view="acc"] .accounts-list-balance.is-negative{
+            color: var(--ex)
+        }
+#m[data-view="acc"] .accounts-empty{
+            padding: 20px;
+            border: 1px solid var(--bd);
+            border-radius: 18px;
+            background: var(--cd);
+            color: var(--mu);
+            text-align: center
+        }
+html[data-view="acc"] .fab.pocket-fab-labeled{
+            align-items: center;
+            justify-content: center;
+            color: #102015
+        }
+html[data-view="acc"] body.pocket-actions-scroll-hidden .fab.pocket-fab-labeled,
+html[data-view="acc"] body.pocket-actions-scroll-hidden .pocket-account-transfer{
+            transform: none
+        }
+html[data-view="acc"] .pocket-fab-menu{
+            display: none !important
+        }
+@media (max-width: 760px) {
+#m[data-view="acc"]{
+                padding: 20px 24px 132px
+            }
+}
+@media (max-width: 760px) {
+#m[data-view="acc"] .pocket-feature-content >.accounts-page > .accounts-heading{
+                top: env(safe-area-inset-top, 0px);
+                margin-top: -20px;
+                padding: 20px 0 18px
+            }
+}
+@media (max-width: 760px) {
+html[data-view="acc"] .fab.pocket-fab-labeled,
+html[data-view="acc"] .pocket-account-transfer{
+                bottom: calc(82px + env(safe-area-inset-bottom, 0px));
+                width: calc(50vw - 21px);
+                height: 52px;
+                border-radius: 28px
+            }
+}
+@media (max-width: 760px) {
+html[data-view="acc"] .fab.pocket-fab-labeled{
+                right: 14px;
+                min-width: 0;
+                justify-content: center;
+                padding: 0 10px
+            }
+}
+@media (max-width: 760px) {
+html[data-view="acc"] .pocket-account-transfer{
+                right: auto;
+                left: 14px;
+                padding: 0 10px
+            }
+}
+#f.pocket-account-form .account-balance-card{
+            margin-bottom: 2px;
+            padding-bottom: 30px
+        }
+#f.pocket-account-form .account-balance-card > label{
+            gap: 3px
+        }

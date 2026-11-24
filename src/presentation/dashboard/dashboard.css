@@ -1,1 +1,623 @@
-﻿:root[data-feature="dash"] {   --pocket-feature-id: "dash"; }
+:root[data-feature="dash"] { --pocket-feature-id: "dash"; }
+.pocket-carousel{
+            display: block;
+            width: 100%;
+            overflow: hidden;
+            margin-top: 16px;
+            touch-action: pan-y;
+            user-select: none;
+            -webkit-user-select: none
+        }
+.pocket-carousel-track{
+            display: flex;
+            width: 100%;
+            transition: transform .35s cubic-bezier(.22,.8,.25,1);
+            will-change: transform
+        }
+.pocket-carousel-track > .hero{
+            position: relative;
+            display: block;
+            flex: 0 0 100%;
+            width: 100%;
+            min-width: 100%;
+            margin: 0;
+            padding-right: 66px
+        }
+.pocket-carousel-track.is-dragging{
+            transition: none !important
+        }
+.pocket-carousel-controls{
+            display: none !important
+        }
+.pocket-privacy-button{
+            position: absolute;
+            top: 14px;
+            right: 14px;
+            z-index: 2;
+            display: grid;
+            width: 40px;
+            height: 40px;
+            place-items: center;
+            padding: 0;
+            border: 1px solid var(--bd);
+            border-radius: 11px;
+            background: var(--cd);
+            color: var(--mu);
+            cursor: pointer
+        }
+.pocket-privacy-button svg{
+            display: block
+        }
+.pocket-privacy-header{
+            margin-bottom: 10px
+        }
+.pocket-privacy-header > .pocket-privacy-button{
+            position: static;
+            flex: 0 0 40px;
+            margin-left: auto
+        }
+#m.pocket-private .pocket-private-amount{
+            user-select: none
+        }
+@media (prefers-reduced-motion: reduce){
+.pocket-carousel-track{
+                transition: none !important
+            }
+}
+.dashboard-shortcuts{
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            gap: 10px;
+            margin-top: 14px
+        }
+.dashboard-shortcuts .sec{
+            margin: 0;
+            font-size: 20px
+        }
+.quick-actions-grid{
+            display: grid;
+            grid-template-columns: repeat(5, minmax(0, 1fr));
+            gap: 6px
+        }
+.quick-action{
+            display: flex;
+            min-width: 0;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            padding: 0 2px;
+            border: 0;
+            background: none;
+            color: var(--mu);
+            font-weight: 500;
+            text-align: center;
+            cursor: pointer
+        }
+.quick-action-icon{
+            display: grid;
+            width: 56px;
+            max-width: 100%;
+            aspect-ratio: 1;
+            place-items: center;
+            border: 1px solid var(--bd);
+            border-radius: 16px;
+            background: var(--cd);
+            box-shadow: 0 1px 3px #0000000a
+        }
+.quick-action-icon .ic{
+            width: 24px;
+            height: 24px
+        }
+.quick-action-budget{
+            color: #2563eb
+        }
+.quick-action-cashback{
+            color: #7c3aed
+        }
+.quick-action-recurring{
+            color: #059669
+        }
+.quick-action-savings{
+            color: #ea8c00
+        }
+.quick-action-shopping{
+            color: #0f9f77
+        }
+@media (min-width: 761px) {
+.dashboard-shortcuts{
+                max-width: 720px;
+                margin-top: 18px
+            }
+}
+@media (min-width: 761px) {
+.dashboard-shortcuts .quick-actions-grid{
+                gap: 10px
+            }
+}
+@media (min-width: 761px) {
+.dashboard-shortcuts .quick-action{
+                min-height: 56px;
+                flex-direction: row;
+                justify-content: flex-start;
+                gap: 10px;
+                padding: 10px 12px;
+                border: 1px solid var(--bd);
+                border-radius: 12px;
+                background: var(--cd);
+                color: var(--tx);
+                font-weight: 600;
+                text-align: left;
+                transition: background-color .18s ease, border-color .18s ease
+            }
+}
+@media (min-width: 761px) {
+.dashboard-shortcuts .quick-action:hover{
+                background: var(--sq)
+            }
+}
+@media (min-width: 761px) {
+.dashboard-shortcuts .quick-action:focus-visible{
+                outline: 2px solid var(--tx);
+                outline-offset: 2px
+            }
+}
+@media (min-width: 761px) {
+.dashboard-shortcuts .quick-action-icon{
+                width: 32px;
+                flex: none;
+                border: 0;
+                border-radius: 0;
+                background: transparent;
+                box-shadow: none
+            }
+}
+@media (min-width: 761px) {
+.dashboard-shortcuts .quick-action-icon .ic{
+                width: 20px;
+                height: 20px
+            }
+}
+.settings-preferences .dashboard-layout-setting{
+            width: 100%;
+            margin: 0;
+            justify-content: flex-start
+        }
+.dashboard-widget-list{
+            display: grid;
+            gap: 8px;
+            margin: 14px 0
+        }
+.dashboard-widget-option{
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 0;
+            padding: 10px 12px;
+            border: 1px solid var(--bd);
+            border-radius: 12px;
+            font-size: 14px;
+            cursor: pointer
+        }
+.dashboard-widget-option input[type=checkbox]{
+            width: 18px;
+            height: 18px;
+            flex: none;
+            margin: 0;
+            padding: 0;
+            accent-color: var(--in)
+        }
+.dashboard-widget-option > span{
+            margin-top: 0
+        }
+.dashboard-empty-reports{
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-top: 14px;
+            padding: 18px
+        }
+.dashboard-empty-reports > span{
+            display: grid;
+            width: 42px;
+            height: 42px;
+            flex: none;
+            place-items: center;
+            border-radius: 12px;
+            background: var(--sq);
+            color: var(--in)
+        }
+.dashboard-empty-reports > span .ic{
+            width: 23px;
+            height: 23px
+        }
+.dashboard-empty-reports > div{
+            display: grid
+        }
+.dashboard-empty-reports small{
+            color: var(--mu)
+        }
+:root[data-theme="dark"][data-view="dash"]{
+            color-scheme: dark;
+            --bg: #0b100e;
+            --cd: #142019;
+            --tx: #f2f6f3;
+            --mu: #a8b8af;
+            --bd: #263a28;
+            --sq: #142019;
+            --in: #b8ef76;
+            --ex: #ffa899;
+            --dashboard-icon-bg: #223329;
+            --dashboard-nav-active: #263a28
+        }
+:root[data-view="dash"]{
+            --dashboard-icon-bg: var(--sq);
+            --dashboard-nav-active: var(--sq)
+        }
+#m[data-view="dash"]{
+            font-family: Inter, 'Plus Jakarta Sans', system-ui, sans-serif
+        }
+#m[data-view="dash"] .pocket-feature-content >.dashboard-heading{
+            align-items: center;
+            gap: 12px;
+            margin-top: -24px;
+            padding: 20px 0 18px
+        }
+#m[data-view="dash"] .dashboard-heading-copy{
+            display: grid;
+            flex: 1;
+            min-width: 0;
+            gap: 12px
+        }
+#m[data-view="dash"] .dashboard-date{
+            color: var(--in);
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: .02em;
+            line-height: 1.2
+        }
+#m[data-view="dash"] h2.dashboard-heading-title,
+#m[data-view="dash"] .dashboard-heading h2{
+            overflow: hidden;
+            font-size: 28px !important;
+            line-height: 1.2;
+            text-overflow: ellipsis;
+            white-space: nowrap
+        }
+#m[data-view="dash"] .dashboard-heading .page-menu-toggle{
+            order: 3;
+            width: 32px;
+            height: 32px;
+            flex: none;
+            margin-left: 0;
+            color: var(--mu)
+        }
+#m[data-view="dash"] .dashboard-heading .pocket-profile-button{
+            display: none !important
+        }
+#m[data-view="dash"] .dashboard-heading .page-menu-toggle .dashboard-icon{
+            display: block;
+            width: 24px;
+            height: 24px
+        }
+#m[data-view="dash"] .dashboard-heading .pocket-profile-button{
+            order: 2;
+            margin-left: auto
+        }
+#m[data-view="dash"] .dashboard-balance-card{
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            margin-top: 0;
+            padding: 20px;
+            overflow: visible;
+            border-radius: 20px;
+            background: #b8ef76;
+            color: #102015
+        }
+#m[data-view="dash"] .dashboard-balance-label{
+            min-height: 24px;
+            display: flex;
+            align-items: center;
+            padding-right: 38px
+        }
+#m[data-view="dash"] .dashboard-balance-label small{
+            color: #102015;
+            font-size: 13px
+        }
+#m[data-view="dash"] .dashboard-balance-card .pocket-privacy-button{
+            top: 14px;
+            right: 12px;
+            width: 36px;
+            height: 36px;
+            border: 0;
+            background: transparent;
+            color: #102015
+        }
+#m[data-view="dash"] .dashboard-balance-card .pocket-privacy-button .dashboard-icon{
+            width: 24px;
+            height: 24px
+        }
+#m[data-view="dash"] .dashboard-balance-card .pocket-privacy-button > svg{
+            display: block;
+            width: 24px;
+            height: 24px
+        }
+#m[data-view="dash"] .dashboard-balance-card .hb{
+            margin: 0;
+            color: #102015;
+            font-size: 38px;
+            line-height: 1.45
+        }
+#m[data-view="dash"] .dashboard-balance-card .pocket-summary-amounts{
+            color: #344831;
+            font-size: 11px
+        }
+#m[data-view="dash"] .dashboard-balance-card .two{
+            margin: 0;
+            gap: 12px
+        }
+#m[data-view="dash"] .dashboard-balance-card .two > div{
+            display: flex;
+            flex-direction: column;
+            gap: 12px
+        }
+#m[data-view="dash"] .dashboard-balance-card .two small{
+            color: #344831;
+            font-size: 11px
+        }
+#m[data-view="dash"] .dashboard-balance-card .hn{
+            color: #102015 !important;
+            font-size: 20px;
+            line-height: 1.35
+        }
+#m[data-view="dash"] .dashboard-add-button{
+            display: flex;
+            width: 100%;
+            min-height: 52px;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 20px;
+            border: 0;
+            border-radius: 14px;
+            background: #b8ef76;
+            color: #102015;
+            font: inherit;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer
+        }
+#m[data-view="dash"] .dashboard-add-button:hover{
+            background: #c5f58f
+        }
+#m[data-view="dash"] .dashboard-add-button:focus-visible,
+#m[data-view="dash"] .dashboard-section-link:focus-visible,
+#m[data-view="dash"] .quick-action:focus-visible{
+            outline: 2px solid var(--in);
+            outline-offset: 3px
+        }
+#m[data-view="dash"] .dashboard-add-button .ic{
+            width: 18px;
+            height: 18px
+        }
+#m[data-view="dash"] .dashboard-section{
+            margin-top: 20px
+        }
+#m[data-view="dash"] .dashboard-section-heading{
+            display: flex;
+            min-height: 24px;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 12px
+        }
+#m[data-view="dash"] .dashboard-section-heading .sec{
+            min-width: 0;
+            margin: 0;
+            font-size: 17px;
+            line-height: 1.3
+        }
+#m[data-view="dash"] .dashboard-section-link{
+            display: inline-flex;
+            flex: none;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 0;
+            border: 0;
+            background: transparent;
+            color: var(--in);
+            font: inherit;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer
+        }
+#m[data-view="dash"] .dashboard-shortcuts{
+            gap: 12px;
+            margin-top: 20px
+        }
+#m[data-view="dash"] .dashboard-shortcuts .dashboard-section-heading{
+            margin-bottom: 0
+        }
+#m[data-view="dash"] .dashboard-shortcuts .sec{
+            font-size: 17px
+        }
+#m[data-view="dash"] .quick-actions-grid{
+            gap: 8px
+        }
+#m[data-view="dash"] .quick-action{
+            gap: 8px;
+            padding: 0;
+            color: var(--mu);
+            font-size: 10px;
+            line-height: 1.2
+        }
+#m[data-view="dash"] .quick-action-icon{
+            width: 48px;
+            border: 0;
+            border-radius: 14px;
+            background: var(--cd);
+            box-shadow: none
+        }
+#m[data-view="dash"] .quick-action-icon .dashboard-icon{
+            display: block;
+            width: 24px;
+            height: 24px
+        }
+#m[data-view="dash"] .dashboard-account-card,
+#m[data-view="dash"] .dashboard-recent-card{
+            overflow: hidden;
+            padding: 20px;
+            border-radius: 20px;
+            background: var(--cd)
+        }
+#m[data-view="dash"] .dashboard-account-row{
+            display: grid;
+            width: 100%;
+            min-height: 62px;
+            grid-template-columns: 42px minmax(0, 1fr) auto;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 0;
+            border: 0;
+            background: transparent;
+            color: var(--tx);
+            text-align: left;
+            cursor: pointer
+        }
+#m[data-view="dash"] .dashboard-account-icon{
+            display: grid;
+            width: 42px;
+            height: 42px;
+            place-items: center;
+            border-radius: 12px;
+            background: var(--dashboard-icon-bg)
+        }
+#m[data-view="dash"] .dashboard-account-icon .dashboard-icon{
+            display: block;
+            width: 24px;
+            height: 24px
+        }
+#m[data-view="dash"] .dashboard-account-copy{
+            display: grid;
+            min-width: 0;
+            gap: 3px
+        }
+#m[data-view="dash"] .dashboard-account-copy b{
+            overflow: hidden;
+            font-size: 14px;
+            font-weight: 500;
+            text-overflow: ellipsis;
+            white-space: nowrap
+        }
+#m[data-view="dash"] .dashboard-account-copy small{
+            font-size: 11px
+        }
+#m[data-view="dash"] .dashboard-account-balance{
+            max-width: 132px;
+            overflow: hidden;
+            font-size: 14px;
+            text-overflow: ellipsis;
+            white-space: nowrap
+        }
+#m[data-view="dash"] .dashboard-account-balance.is-negative{
+            color: var(--ex)
+        }
+#m[data-view="dash"] .dashboard-empty{
+            border: 1px solid var(--bd);
+            border-radius: 16px;
+            background: var(--cd)
+        }
+#m[data-view="dash"] .dashboard-recent-card{
+            padding-top: 10px;
+            padding-bottom: 10px
+        }
+#m[data-view="dash"] .dashboard-recent-card .tx-list-row.recent-link{
+            display: grid;
+            grid-template-columns: 42px minmax(0, 1fr) auto;
+            align-items: center;
+            column-gap: 12px;
+            row-gap: 0;
+            padding: 10px 0;
+            border: 0;
+            border-radius: 0
+        }
+#m[data-view="dash"] .dashboard-recent-card .tx-list-row.recent-link + .tx-list-row.recent-link{
+            border-top: 1px solid var(--bd)
+        }
+#m[data-view="dash"] .dashboard-recent-card .tx-list-row.recent-link > .dot{
+            width: 42px;
+            height: 42px;
+            grid-column: 1;
+            grid-row: 1;
+            align-self: center;
+            border-radius: 12px;
+            background: var(--dashboard-icon-bg) !important
+        }
+#m[data-view="dash"] .dashboard-recent-card .tx-list-row.recent-link > .dot .dashboard-icon{
+            display: block;
+            width: 24px;
+            height: 24px
+        }
+#m[data-view="dash"] .dashboard-recent-card .tx-list-row.recent-link > .tx-copy{
+            min-width: 0;
+            grid-column: 2;
+            grid-row: 1
+        }
+#m[data-view="dash"] .dashboard-recent-card .tx-copy > b{
+            overflow: hidden;
+            font-size: 14px;
+            font-weight: 500;
+            text-overflow: ellipsis;
+            white-space: nowrap
+        }
+#m[data-view="dash"] .dashboard-recent-card .tx-list-row.recent-link .tx-meta{
+            flex-direction: row;
+            gap: 2px 6px;
+            font-size: 11px
+        }
+#m[data-view="dash"] .dashboard-recent-card .tx-list-row.recent-link > .tx-end{
+            min-width: 0;
+            grid-column: 3;
+            grid-row: 1;
+            align-self: center;
+            justify-content: flex-end
+        }
+#m[data-view="dash"] .dashboard-recent-card .tx-amount{
+            max-width: 120px;
+            font-size: 14px
+        }
+html[data-view="dash"] .fab,
+html[data-view="dash"] .pocket-fab-menu,
+html[data-view="dash"] .pocket-account-transfer{
+            display: none !important
+        }
+@media (max-width: 760px) {
+#m[data-view="dash"]{
+                padding: 20px 24px 132px
+            }
+}
+@media (max-width: 760px) {
+#m[data-view="dash"] .pocket-feature-content >.dashboard-heading{
+                top: env(safe-area-inset-top, 0px);
+                margin-top: -20px;
+                padding: 20px 0 18px
+            }
+}
+@media (prefers-reduced-motion: reduce) {
+#m[data-view="dash"] .dashboard-add-button{
+                transition: none
+            }
+}
+html[data-theme=dark] .dashboard-add-button{
+            border-color: transparent;
+            background: #b8ef76;
+            color: #122016
+        }
+@media(prefers-color-scheme:dark) {
+html:not([data-theme=light]) .dashboard-add-button{
+                border-color: transparent;
+                background: #b8ef76;
+                color: #122016
+            }
+}

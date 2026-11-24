@@ -25,9 +25,8 @@
             --sq: #223329;
             --in: #b8ef76;
             --ex: #ffa899
-        }
+        }@media(prefers-color-scheme:dark) {
 
-        @media(prefers-color-scheme:dark) {
             :root:not([data-theme=light]) {
                 --bg: #0b100e;
                 --cd: #142019;
@@ -38,6 +37,18 @@
                 --in: #b8ef76;
                 --ex: #ffa899
             }
+}
+
+
+        html:not([data-view="tx"]),
+        html:not([data-view="tx"]) body {
+            scrollbar-width: none;
+            -ms-overflow-style: none
+        }
+
+        html:not([data-view="tx"])::-webkit-scrollbar,
+        html:not([data-view="tx"]) body::-webkit-scrollbar {
+            display: none
         }
 
         * {
@@ -72,48 +83,6 @@
             overflow: hidden
         }
 
-        html:not([data-view="tx"]),
-        html:not([data-view="tx"]) body {
-            scrollbar-width: none;
-            -ms-overflow-style: none
-        }
-
-        html:not([data-view="tx"])::-webkit-scrollbar,
-        html:not([data-view="tx"]) body::-webkit-scrollbar {
-            display: none
-        }
-
-        html[data-view="tx"],
-        html[data-view="tx"] body {
-            scrollbar-color: var(--mu) var(--bg);
-            scrollbar-width: thin
-        }
-
-        html[data-view="tx"]::-webkit-scrollbar,
-        html[data-view="tx"] body::-webkit-scrollbar {
-            width: 12px;
-            height: 12px
-        }
-
-        html[data-view="tx"]::-webkit-scrollbar-track,
-        html[data-view="tx"] body::-webkit-scrollbar-track {
-            background: transparent
-        }
-
-        html[data-view="tx"]::-webkit-scrollbar-thumb,
-        html[data-view="tx"] body::-webkit-scrollbar-thumb {
-            border: 3px solid transparent;
-            border-radius: 999px;
-            background: var(--mu);
-            background-clip: content-box
-        }
-
-        html[data-view="tx"]::-webkit-scrollbar-thumb:hover,
-        html[data-view="tx"] body::-webkit-scrollbar-thumb:hover {
-            background: var(--tx);
-            background-clip: content-box
-        }
-
         .app {
             display: flex;
             min-height: 100vh;
@@ -130,17 +99,19 @@
             height: 100vh;
             height: 100dvh;
             border-right: 1px solid var(--bd)
-        }
+        }@media (min-width: 761px) {
 
-        @media (min-width: 761px) {
             .app {
                 justify-content: center
             }
+}@media (min-width: 761px) {
+
 
             .app > aside {
                 display: none
             }
-        }
+}
+
 
         main {
             flex: 1;
@@ -149,8 +120,8 @@
             min-width: 0
         }
 
-        #m > .row:first-child,
-        #m > h2:first-child {
+        #m .pocket-feature-content >.row:first-child,
+        #m .pocket-feature-content >h2:first-child {
             position: sticky;
             top: env(safe-area-inset-top, 0px);
             margin-top: -24px;
@@ -167,7 +138,7 @@
             cursor: default
         }
 
-        #m > h2.page-menu-title:first-child {
+        #m .pocket-feature-content >h2.page-menu-title:first-child {
             width: 100%
         }
 
@@ -344,10 +315,6 @@
 
         .g2 {
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr))
-        }
-
-        .profile-layout {
-            grid-template-columns: repeat(2, minmax(0, 1fr))
         }
 
         .g5 {
@@ -563,18 +530,6 @@
             gap: 2px 6px
         }
 
-        .transaction-date-group + .transaction-date-group {
-            margin-top: 16px
-        }
-
-        .transaction-date-heading {
-            margin: 0 0 4px;
-            color: var(--mu);
-            font-size: 14px;
-            font-weight: 700;
-            text-align: center
-        }
-
         #tl {
             width: 100%;
             max-width: 760px;
@@ -585,37 +540,6 @@
             height: 1px
         }
 
-        .transaction-scroll-month {
-            position: fixed;
-            top: 50%;
-            right: 16px;
-            z-index: 21;
-            min-width: 112px;
-            padding: 9px 16px;
-            border: 1px solid var(--bd);
-            border-radius: 999px;
-            background: var(--cd);
-            box-shadow: 0 6px 20px #0005;
-            color: var(--tx);
-            font-size: 15px;
-            font-weight: 700;
-            text-align: center;
-            opacity: 0;
-            transform: translate(8px, -50%);
-            pointer-events: none;
-            transition: opacity .16s ease, transform .16s ease
-        }
-
-        .transaction-scroll-month.is-visible {
-            opacity: 1;
-            transform: translate(0, -50%)
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-            .transaction-scroll-month {
-                transition: none
-            }
-        }
 
         .tx-end,
         .tx-actions {
@@ -686,325 +610,6 @@
             font-size: 11px
         }
 
-        .report-filters {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            align-items: end;
-            gap: 10px;
-            margin-top: 12px
-        }
-
-        .report-filters label {
-            display: grid;
-            gap: 5px;
-            margin: 0;
-            color: var(--mu);
-            font-size: 12px
-        }
-
-        .report-filters select,
-        .report-filters input {
-            width: 100%;
-            min-width: 0;
-            padding: 9px 10px;
-            border: 1px solid var(--bd);
-            border-radius: 9px;
-            background: var(--bg)
-        }
-
-        .report-period-label {
-            grid-column: 1 / -1;
-            width: fit-content;
-            padding: 6px 9px;
-            border-radius: 999px;
-            background: var(--bg);
-            color: var(--mu)
-        }
-
-        .report-filter-toolbar {
-            display: none;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px;
-            margin-top: 12px
-        }
-
-        .report-filter-toolbar-copy {
-            display: grid;
-            gap: 3px;
-            min-width: 0
-        }
-
-        .report-filter-toolbar-copy small {
-            overflow: hidden;
-            color: var(--mu);
-            text-overflow: ellipsis;
-            white-space: nowrap
-        }
-
-        .report-filter-toolbar-copy b {
-            font-size: 13px
-        }
-
-        .report-filter-toolbar .b2 {
-            flex-shrink: 0;
-            gap: 7px
-        }
-
-        .report-filter-count {
-            display: inline-grid;
-            width: 18px;
-            height: 18px;
-            place-items: center;
-            border-radius: 50%;
-            background: var(--in);
-            color: #fff;
-            font-size: 11px
-        }
-
-        .report-filter-sheet {
-            display: grid;
-            gap: 16px
-        }
-
-        .report-filter-sheet-header {
-            display: flex;
-            align-items: flex-start;
-            justify-content: space-between;
-            gap: 12px
-        }
-
-        .report-filter-sheet-header h3 {
-            margin: 0 0 4px
-        }
-
-        .report-filter-sheet-header small {
-            color: var(--mu)
-        }
-
-        .report-filter-sheet-fields {
-            display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 14px 12px
-        }
-
-        .report-filter-sheet-fields label {
-            display: grid;
-            gap: 6px;
-            min-width: 0;
-            margin: 0;
-            color: var(--mu);
-            font-size: 12px
-        }
-
-        .report-filter-sheet-fields input {
-            width: 100%;
-            min-width: 0
-        }
-
-        .report-filter-sheet-category,
-        .report-filter-custom-range {
-            grid-column: 1 / -1
-        }
-
-        .report-filter-custom-range {
-            display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 12px
-        }
-
-        .report-filter-custom-range[hidden],
-        .report-filter-error[hidden] {
-            display: none
-        }
-
-        .report-filter-error {
-            margin: 0;
-            color: var(--ex)
-        }
-
-        .report-filter-sheet-actions {
-            padding-top: 12px;
-            border-top: 1px solid var(--bd)
-        }
-
-        .report-grid {
-            grid-template-columns: repeat(2, minmax(0, 1fr))
-        }
-
-        .report-card {
-            min-width: 0;
-            overflow: hidden
-        }
-
-        .report-chart {
-            display: block;
-            overflow: visible
-        }
-
-        .report-gridline {
-            stroke: var(--bd);
-            stroke-width: 1
-        }
-
-        .report-mark {
-            cursor: pointer
-        }
-
-        .report-mark:focus {
-            outline: none
-        }
-
-        .report-mark:focus-visible circle,
-        .report-mark:focus-visible rect {
-            stroke: var(--tx);
-            stroke-width: 2
-        }
-
-        .report-legend {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px 14px;
-            margin-top: 8px;
-            color: var(--mu);
-            font-size: 12px
-        }
-
-        .report-legend span,
-        .report-category span {
-            display: inline-flex;
-            align-items: center;
-            gap: 7px;
-            min-width: 0
-        }
-
-        .report-legend i,
-        .report-category i {
-            flex: none;
-            width: 9px;
-            height: 9px;
-            border-radius: 50%;
-            background: var(--report-color)
-        }
-
-        .report-empty {
-            padding: 26px 8px
-        }
-
-        .report-donut-wrap {
-            display: grid;
-            gap: 18px
-        }
-
-        .report-donut-wrap.has-selection .report-category.is-dimmed {
-            opacity: .28
-        }
-
-        .report-donut-stage {
-            position: relative;
-            width: min(100%, 380px);
-            height: clamp(240px, 72vw, 340px);
-            margin-inline: auto
-        }
-
-        .report-donut-canvas,
-        .report-line-canvas {
-            display: block;
-            width: 100% !important;
-            height: 100% !important
-        }
-
-        .report-line-chart {
-            position: relative;
-            height: clamp(220px, 42vw, 290px)
-        }
-
-        .report-category-list {
-            display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 8px
-        }
-
-        .report-category {
-            display: flex;
-            min-width: 0;
-            min-height: 68px;
-            align-items: center;
-            justify-content: space-between;
-            gap: 8px;
-            padding: 10px;
-            border: 1px solid transparent;
-            border-radius: 12px;
-            background: var(--cd);
-            color: var(--tx);
-            text-align: left;
-            transition: opacity .16s ease, border-color .16s ease, transform .16s ease
-        }
-
-        .report-category > span {
-            min-width: 0
-        }
-
-        .report-category-name {
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap
-        }
-
-        .report-category b {
-            flex: none;
-            line-height: 1.15
-        }
-
-        .report-category b small {
-            display: block;
-            margin-top: 2px;
-            color: var(--mu);
-            text-align: right
-        }
-
-        .report-category.is-selected {
-            border-color: var(--report-color, var(--bd));
-            transform: translateY(-1px)
-        }
-
-        .report-category.is-dimmed {
-            transition: opacity .16s ease
-        }
-
-        .report-category {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 8px;
-            width: 100%;
-            padding: 6px 4px;
-            border: 0;
-            border-radius: 7px;
-            background: transparent;
-            color: var(--tx);
-            text-align: left;
-            cursor: pointer
-        }
-
-        .report-category:hover,
-        .report-category:focus-visible {
-            background: var(--sq)
-        }
-
-        .report-category b {
-            white-space: nowrap
-        }
-
-        .report-category small {
-            color: var(--mu)
-        }
-
-        .report-account-chart text {
-            fill: var(--mu);
-            font-size: 11px
-        }
-
         .bar {
             height: 8px;
             border-radius: 9px;
@@ -1017,51 +622,6 @@
             display: block;
             height: 100%;
             border-radius: 9px
-        }
-
-        .goal-card {
-            display: flex;
-            flex-direction: column
-        }
-
-        .goal-heading {
-            flex-wrap: nowrap
-        }
-
-        .goal-amount {
-            max-width: 100%;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap
-        }
-
-        .goal-amount small {
-            font-size: 12px;
-            font-weight: 400
-        }
-
-        .goal-details-row {
-            display: grid;
-            grid-template-columns: minmax(0, 1fr) auto;
-            align-items: center;
-            gap: 8px;
-            margin-top: 8px
-        }
-
-        .goal-details-row small {
-            min-width: 0;
-            line-height: 1.4
-        }
-
-        .goal-details-row .chip {
-            white-space: nowrap
-        }
-
-        .goal-estimate {
-            display: block;
-            margin-top: auto;
-            padding-top: 8px;
-            min-height: 16px
         }
 
         .ip {
@@ -1148,410 +708,6 @@
             margin: 26px 0 12px
         }
 
-        .cashback-subtitle {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 16px;
-            margin: 18px 0 10px
-        }
-
-        .cashback-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px
-        }
-
-        .cashback-section-heading {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px;
-            margin: 18px 0 10px
-        }
-
-        .cashback-section-heading .cashback-subtitle {
-            margin: 0
-        }
-
-        .cashback-total {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            flex: 0 1 auto;
-            min-width: 0;
-            white-space: nowrap
-        }
-
-        .cashback-total b,
-        .cashback-amount {
-            color: var(--in)
-        }
-
-        .cashback-total b {
-            min-width: 0;
-            overflow: hidden;
-            font-size: 17px;
-            text-overflow: ellipsis
-        }
-
-        .cashback-count {
-            display: inline-grid;
-            min-width: 24px;
-            height: 24px;
-            place-items: center;
-            padding: 0 7px;
-            border-radius: 99px;
-            background: var(--sq);
-            color: var(--mu);
-            font-size: 12px
-        }
-
-        .cashback-list {
-            margin-top: 0
-        }
-
-        .cashback-card {
-            display: grid;
-            gap: 12px
-        }
-
-        .cashback-card-heading {
-            display: grid;
-            grid-template-columns: 44px minmax(0, 1fr) auto;
-            align-items: center;
-            gap: 10px
-        }
-
-        .cashback-amount {
-            min-width: 0;
-            max-width: 32vw;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap
-        }
-
-        .cashback-card-title {
-            display: grid;
-            min-width: 0;
-            gap: 4px
-        }
-
-        .cashback-card-title b,
-        .cashback-card-meta b {
-            overflow-wrap: anywhere
-        }
-
-        .cashback-card-meta {
-            display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr)) auto;
-            align-items: center;
-            gap: 12px;
-            padding-top: 10px;
-            border-top: 1px solid var(--bd)
-        }
-
-        .cashback-card-meta span {
-            display: grid;
-            gap: 4px
-        }
-
-        .cashback-card-meta b {
-            font-size: 13px
-        }
-
-        .cashback-card-meta .ib {
-            padding: 6px
-        }
-
-        .cashback-card-actions {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px
-        }
-
-        .cashback-empty {
-            grid-column: 1 / -1
-        }
-
-        .dashboard-shortcuts {
-            display: flex;
-            flex-direction: column;
-            align-items: stretch;
-            gap: 10px;
-            margin-top: 14px
-        }
-
-        .dashboard-shortcuts .sec {
-            margin: 0;
-            font-size: 20px
-        }
-
-        .quick-actions-grid {
-            display: grid;
-            grid-template-columns: repeat(5, minmax(0, 1fr));
-            gap: 6px
-        }
-
-        .quick-action {
-            display: flex;
-            min-width: 0;
-            flex-direction: column;
-            align-items: center;
-            gap: 6px;
-            padding: 0 2px;
-            border: 0;
-            background: none;
-            color: var(--mu);
-            font-weight: 500;
-            text-align: center;
-            cursor: pointer
-        }
-
-        .quick-action-icon {
-            display: grid;
-            width: 56px;
-            max-width: 100%;
-            aspect-ratio: 1;
-            place-items: center;
-            border: 1px solid var(--bd);
-            border-radius: 16px;
-            background: var(--cd);
-            box-shadow: 0 1px 3px #0000000a
-        }
-
-        .quick-action-icon .ic {
-            width: 24px;
-            height: 24px
-        }
-
-        .quick-action-budget {
-            color: #2563eb
-        }
-
-        .quick-action-cashback {
-            color: #7c3aed
-        }
-
-        .quick-action-recurring {
-            color: #059669
-        }
-
-        .quick-action-savings {
-            color: #ea8c00
-        }
-
-        .quick-action-shopping {
-            color: #0f9f77
-        }
-
-        .shopping-lists {
-            align-items: start
-        }
-
-        .shopping-list-summary {
-            display: flex;
-            width: 100%;
-            min-width: 0;
-            align-items: center;
-            justify-content: space-between;
-            gap: 16px;
-            padding: 18px;
-            border: 1px solid var(--bd);
-            border-radius: 16px;
-            background: var(--cd);
-            color: var(--tx);
-            font: inherit;
-            text-align: left;
-            cursor: pointer;
-            transition: background-color .18s ease, border-color .18s ease
-        }
-
-        .shopping-list-summary:hover {
-            background: var(--sq)
-        }
-
-        .shopping-list-summary:focus-visible {
-            outline: 2px solid var(--tx);
-            outline-offset: 2px
-        }
-
-        .shopping-list-summary span {
-            min-width: 0;
-            overflow-wrap: anywhere;
-            font-weight: 600
-        }
-
-        .shopping-list-summary b {
-            flex: none;
-            color: var(--in);
-            font-size: 16px
-        }
-
-        .shopping-list-detail {
-            display: flex;
-            flex-direction: column;
-            gap: 12px
-        }
-
-        .shopping-list-heading {
-            display: flex;
-            align-items: center;
-            gap: 10px
-        }
-
-        .shopping-list-heading h3 {
-            margin: 0 0 3px;
-            font-size: 16px
-        }
-
-        .shopping-list-heading small {
-            color: var(--mu)
-        }
-
-        .shopping-list-total {
-            padding: 10px 0;
-            border-top: 1px solid var(--bd);
-            border-bottom: 1px solid var(--bd);
-            color: var(--mu)
-        }
-
-        .shopping-list-total b {
-            color: var(--tx)
-        }
-
-        .shopping-list-expense {
-            display: grid;
-            grid-template-columns: minmax(0, 1fr) auto;
-            align-items: center;
-            gap: 8px 12px
-        }
-
-        .shopping-list-expense small {
-            min-width: 0;
-            color: var(--mu)
-        }
-
-        .shopping-list-items {
-            display: grid;
-            gap: 2px
-        }
-
-        .shopping-list-item {
-            display: grid;
-            grid-template-columns: minmax(0, 1fr) auto auto auto;
-            align-items: center;
-            gap: 8px;
-            min-height: 42px;
-            border-bottom: 1px solid var(--bd)
-        }
-
-        .shopping-list-item:last-child {
-            border-bottom: 0
-        }
-
-        .shopping-list-item label {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            min-width: 0;
-            width: 100%;
-            margin: 0;
-            cursor: pointer
-        }
-
-        .shopping-list-item input[type="checkbox"] {
-            width: 16px;
-            height: 16px;
-            flex: none;
-            margin: 0;
-            padding: 0
-        }
-
-        .shopping-list-item label span {
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap
-        }
-
-        .shopping-list-item-amount {
-            flex: none;
-            color: var(--mu);
-            font-size: 13px
-        }
-
-        .shopping-list-item.is-checked label span {
-            color: var(--mu);
-            text-decoration: line-through
-        }
-
-        .shopping-list-empty {
-            display: grid;
-            gap: 4px;
-            padding: 12px;
-            border: 1px dashed var(--bd);
-            border-radius: 12px;
-            text-align: left
-        }
-
-        .shopping-list-empty b {
-            color: var(--tx)
-        }
-
-        .shopping-list-empty small {
-            color: var(--mu)
-        }
-
-        @media (min-width: 761px) {
-            .dashboard-shortcuts {
-                max-width: 720px;
-                margin-top: 18px
-            }
-
-            .dashboard-shortcuts .quick-actions-grid {
-                gap: 10px
-            }
-
-            .dashboard-shortcuts .quick-action {
-                min-height: 56px;
-                flex-direction: row;
-                justify-content: flex-start;
-                gap: 10px;
-                padding: 10px 12px;
-                border: 1px solid var(--bd);
-                border-radius: 12px;
-                background: var(--cd);
-                color: var(--tx);
-                font-weight: 600;
-                text-align: left;
-                transition: background-color .18s ease, border-color .18s ease
-            }
-
-            .dashboard-shortcuts .quick-action:hover {
-                background: var(--sq)
-            }
-
-            .dashboard-shortcuts .quick-action:focus-visible {
-                outline: 2px solid var(--tx);
-                outline-offset: 2px
-            }
-
-            .dashboard-shortcuts .quick-action-icon {
-                width: 32px;
-                flex: none;
-                border: 0;
-                border-radius: 0;
-                background: transparent;
-                box-shadow: none
-            }
-
-            .dashboard-shortcuts .quick-action-icon .ic {
-                width: 20px;
-                height: 20px
-            }
-        }
 
         .account-carousel {
             margin-top: 12px;
@@ -1577,44 +733,6 @@
             scroll-snap-stop: always
         }
 
-        .account-stack-wrap {
-            width: min(100%, 520px);
-            margin: 16px auto 0
-        }
-
-        .account-stack-summary {
-            align-items: flex-start
-        }
-
-        .account-stack-summary-copy {
-            flex: 1;
-            min-width: 0
-        }
-
-        .account-stack-summary-line {
-            display: flex;
-            gap: 4px;
-            min-width: 0;
-            white-space: nowrap
-        }
-
-        .account-stack-summary-line > span {
-            flex: none
-        }
-
-        .account-stack-summary-line > b {
-            flex: 1;
-            min-width: 0;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap
-        }
-
-        .account-stack-summary-count {
-            flex: none;
-            white-space: nowrap
-        }
-
         .account-stack {
             position: relative;
             isolation: isolate;
@@ -1628,148 +746,6 @@
             outline: 2px solid var(--in);
             outline-offset: 4px;
             border-radius: 20px
-        }
-
-        .account-stack-card {
-            position: absolute;
-            top: var(--stack-offset);
-            left: 0;
-            right: 0;
-            box-sizing: border-box;
-            height: 160px;
-            padding: 16px;
-            overflow: hidden;
-            border: 1px solid var(--bd);
-            border-top: 4px solid var(--account-accent);
-            border-radius: 20px;
-            background: var(--cd);
-            box-shadow: 0 10px 24px #0003
-        }
-
-        .account-stack-card::before {
-            content: '';
-            position: absolute;
-            inset: 0 0 auto;
-            height: 60px;
-            background: var(--account-accent);
-            opacity: .12;
-            pointer-events: none
-        }
-
-        .account-stack-summary-balances {
-            display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 12px
-        }
-
-        .account-stack-summary-balances .account-stack-summary-line {
-            display: grid;
-            gap: 2px;
-            white-space: nowrap
-        }
-
-        .account-stack-summary-balances .account-stack-summary-line > span {
-            color: var(--mu);
-            font-size: 11px
-        }
-
-        .account-stack-summary-balances .account-stack-summary-line > b {
-            font-size: 13px
-        }
-
-        .account-stack-card-heading,
-        .account-stack-name {
-            display: flex;
-            align-items: center;
-            min-width: 0
-        }
-
-        .account-stack-card-heading {
-            position: relative;
-            justify-content: space-between;
-            gap: 12px
-        }
-
-        .account-stack-name {
-            flex: 1;
-            gap: 10px
-        }
-
-        .account-stack-icon {
-            display: grid;
-            width: 36px;
-            height: 36px;
-            flex: none;
-            place-items: center;
-            border-radius: 12px;
-            background: var(--sq);
-            color: var(--account-accent)
-        }
-
-        .account-stack-name-copy {
-            display: grid;
-            min-width: 0;
-            gap: 4px
-        }
-
-        .account-stack-name-copy b {
-            overflow: hidden;
-            font-size: 16px;
-            text-overflow: ellipsis;
-            white-space: nowrap
-        }
-
-        .account-stack-name-copy small {
-            white-space: nowrap
-        }
-
-        .account-stack-balance {
-            flex: 0 1 auto;
-            min-width: 0;
-            max-width: 48%;
-            overflow: hidden;
-            font-size: 20px;
-            font-weight: 700;
-            text-align: right;
-            text-overflow: ellipsis;
-            white-space: nowrap
-        }
-
-        .account-stack-card-footer {
-            position: absolute;
-            right: 16px;
-            bottom: 14px;
-            left: 16px;
-            display: flex;
-            align-items: flex-end;
-            justify-content: space-between;
-            gap: 12px
-        }
-
-        .account-stack-card-footer > small {
-            flex: 1 1 0;
-            min-width: 0;
-            max-width: 70%;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap
-        }
-
-        .account-stack-actions,
-        .account-stack-footer {
-            display: flex;
-            align-items: center;
-            gap: 6px
-        }
-
-        .account-stack-footer {
-            justify-content: space-between;
-            flex-wrap: wrap;
-            margin: 0 0 8px
-        }
-
-        .account-stack-footer > small {
-            flex: 1 1 120px
         }
 
         .ag {
@@ -1803,385 +779,6 @@
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap
-        }
-
-        .account-balance-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px;
-            margin-top: 10px
-        }
-
-        .account-balance-row>small {
-            flex: 1;
-            min-width: 0
-        }
-
-        .account-balance-row>.big {
-            flex: 0 1 50%;
-            min-width: 0;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            margin: 0;
-            text-align: right;
-            white-space: nowrap
-        }
-
-        .settings-actions {
-            display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 8px
-        }
-
-        .settings-actions .b2 {
-            width: 100%;
-            min-height: 44px;
-            justify-content: flex-start;
-            padding: 8px 10px;
-            font-size: 12px;
-            text-align: left;
-            white-space: normal
-        }
-
-        .settings-preference-list {
-            display: grid
-        }
-
-        .settings-preference-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px;
-            min-height: 44px;
-            padding: 8px 0;
-            border-bottom: 1px solid var(--bd)
-        }
-
-        .settings-preference-row:last-child {
-            border-bottom: 0
-        }
-
-        .settings-preference-row>span {
-            color: var(--mu);
-            font-size: 13px
-        }
-
-        .settings-preference-row>b {
-            text-align: right
-        }
-
-        .settings-preference-row>.b2 {
-            flex: none
-        }
-
-        .settings-preference-row>select {
-            flex: none;
-            width: auto;
-            min-width: 140px
-        }
-
-        .settings-preference-row>.form-select-trigger {
-            flex: none;
-            width: auto;
-            min-width: 140px
-        }
-
-        .settings-name-input {
-            flex: 1;
-            min-width: 0;
-            max-width: 220px;
-            text-align: right
-        }
-
-        .profile-card {
-            border-top: 3px solid var(--profile-accent)
-        }
-
-        .profile-summary {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin: 4px 0 16px
-        }
-
-        .profile-avatar {
-            position: relative;
-            display: grid;
-            place-items: center;
-            flex: none;
-            width: 60px;
-            height: 60px;
-            overflow: hidden;
-            border-radius: 50%;
-            background: var(--profile-accent);
-            color: #fff;
-            font-size: 21px;
-            font-weight: 700
-        }
-
-        .profile-avatar img {
-            position: absolute;
-            inset: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: cover
-        }
-
-        .profile-identity {
-            display: grid;
-            gap: 3px;
-            min-width: 0
-        }
-
-        .profile-identity strong {
-            overflow-wrap: anywhere;
-            font-size: 16px
-        }
-
-        .profile-photo-actions {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 6px;
-            margin-top: 3px
-        }
-
-        .profile-photo-input {
-            display: none
-        }
-
-        .profile-photo-note {
-            line-height: 1.35
-        }
-
-        .profile-identity small,
-        .profile-email-row>span,
-        .profile-color-setting>span {
-            color: var(--mu)
-        }
-
-        .profile-name-field {
-            display: grid;
-            gap: 6px;
-            margin-bottom: 12px;
-            color: var(--mu);
-            font-size: 13px
-        }
-
-        .profile-email-row {
-            display: grid;
-            gap: 4px;
-            padding: 12px 0;
-            border-top: 1px solid var(--bd);
-            font-size: 13px
-        }
-
-        .profile-email-row strong {
-            overflow-wrap: anywhere;
-            font-weight: 500
-        }
-
-        .profile-color-setting {
-            display: grid;
-            gap: 8px;
-            padding-top: 12px;
-            border-top: 1px solid var(--bd);
-            font-size: 13px
-        }
-
-        .profile-color-options {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 6px
-        }
-
-        .profile-color-swatch {
-            display: grid;
-            place-items: center;
-            flex: none;
-            width: 40px;
-            height: 40px;
-            padding: 4px;
-            border: 2px solid transparent;
-            border-radius: 50%;
-            background: transparent;
-            cursor: pointer
-        }
-
-        .profile-color-swatch::before {
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            background: var(--profile-swatch);
-            content: ''
-        }
-
-        .profile-color-swatch[aria-pressed=true] {
-            border-color: var(--tx)
-        }
-
-        .settings-preference-dashboard {
-            display: grid;
-            gap: 8px;
-            margin-top: 8px;
-            padding-top: 14px;
-            border-top: 1px solid var(--bd)
-        }
-
-        .settings-preference-dashboard>small {
-            color: var(--mu);
-            font-size: 12px;
-            font-weight: 700;
-            letter-spacing: .04em;
-            text-transform: uppercase
-        }
-
-        .settings-preferences .dashboard-layout-setting {
-            width: 100%;
-            margin: 0;
-            justify-content: flex-start
-        }
-
-        .dashboard-widget-list {
-            display: grid;
-            gap: 8px;
-            margin: 14px 0
-        }
-
-        .dashboard-widget-option {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin: 0;
-            padding: 10px 12px;
-            border: 1px solid var(--bd);
-            border-radius: 12px;
-            font-size: 14px;
-            cursor: pointer
-        }
-
-        .dashboard-widget-option input[type=checkbox] {
-            width: 18px;
-            height: 18px;
-            flex: none;
-            margin: 0;
-            padding: 0;
-            accent-color: var(--in)
-        }
-
-        .dashboard-widget-option > span {
-            margin-top: 0
-        }
-
-        .settings-note {
-            display: block;
-            margin-top: 10px
-        }
-
-        .cloud-sync-card {
-            display: grid;
-            gap: 12px
-        }
-
-        .cloud-sync-intro {
-            display: grid;
-            gap: 4px
-        }
-
-        .cloud-sync-intro h3,
-        .cloud-sync-intro .settings-note,
-        .cloud-sync-status,
-        .cloud-sync-error {
-            margin: 0
-        }
-
-        .cloud-sync-intro .settings-note {
-            color: var(--mu)
-        }
-
-        .cloud-sync-status {
-            padding: 10px 12px;
-            border: 1px solid var(--bd);
-            border-radius: 12px;
-            color: var(--mu);
-            font-size: 13px
-        }
-
-        .cloud-account-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px;
-            padding: 12px;
-            border: 1px solid var(--bd);
-            border-radius: 12px;
-            background: var(--sq)
-        }
-
-        .cloud-account-copy {
-            display: grid;
-            min-width: 0;
-            gap: 4px
-        }
-
-        .cloud-account-copy small {
-            color: var(--mu)
-        }
-
-        .cloud-account-copy strong {
-            overflow-wrap: anywhere
-        }
-
-        .cloud-account-row .b2 {
-            flex: none;
-            min-height: 44px;
-            margin: 0
-        }
-
-        .cloud-login-options {
-            display: grid;
-            gap: 12px
-        }
-
-        .cloud-sync-card form:not([hidden]),
-        .cloud-sync-card #cloud-user-controls:not([hidden]) {
-            display: grid;
-            gap: 12px
-        }
-
-        .cloud-sync-card label {
-            display: grid;
-            gap: 6px;
-            color: var(--mu);
-            font-size: 13px
-        }
-
-        .cloud-sync-card input {
-            width: 100%
-        }
-
-        .cloud-google-button {
-            width: 100%;
-            justify-content: center
-        }
-
-        .cloud-email-options {
-            border-top: 1px solid var(--bd);
-            padding-top: 10px
-        }
-
-        .cloud-email-options summary {
-            color: var(--mu);
-            cursor: pointer;
-            font-size: 13px
-        }
-
-        .cloud-sync-error {
-            color: var(--ex)
-        }
-
-        .cloud-conflict {
-            margin-top: 12px
         }
 
         .mo {
@@ -2315,13 +912,13 @@
 
         .pocket-transaction-form .form-field-pair {
             grid-column: auto
-        }
+        }@media (max-width: 380px) {
 
-        @media (max-width: 380px) {
             .pocket-transaction-form .form-fields {
                 column-gap: 8px
             }
-        }
+}
+
 
         #m.pocket-private .hb,
         #m.pocket-private .hn,
@@ -2411,27 +1008,26 @@
                 opacity: 0;
                 transform: translateY(-4px) scale(.99)
             }
-        }
+        }@media(prefers-reduced-motion:reduce) {
 
-        @media(prefers-reduced-motion:reduce) {
             .page-title-menu-backdrop,
             .page-title-menu {
                 transition: none
             }
+}@media(prefers-reduced-motion:reduce) {
+
 
             .pocket-select-menu {
                 animation-duration: .01ms
             }
+}@media(prefers-reduced-motion:reduce) {
+
 
             .pocket-select-menu.is-closing {
                 animation-duration: .01ms
             }
+}
 
-            .pocket-select-menu.cashback-transaction-picker,
-            .pocket-select-menu.cashback-transaction-picker.is-closing {
-                animation-duration: .01ms
-            }
-        }
 
         .pocket-select-menu::-webkit-scrollbar {
             display: none
@@ -2456,152 +1052,6 @@
             font-weight: 700
         }
 
-        .pocket-select-overlay.cashback-transaction-overlay {
-            display: flex;
-            align-items: flex-end;
-            justify-content: center;
-            padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px));
-            background: #0009
-        }
-
-        .pocket-select-menu.cashback-transaction-picker {
-            display: flex;
-            width: 100%;
-            max-width: 520px;
-            flex-direction: column;
-            gap: 12px;
-            overflow: hidden;
-            padding: 20px;
-            border-radius: 22px;
-            background: var(--cd);
-            box-shadow: 0 20px 60px #0008;
-            transform-origin: bottom center;
-            animation: cashback-transaction-picker-in .18s ease-out both
-        }
-
-        .pocket-select-menu.cashback-transaction-picker.is-closing {
-            animation: cashback-transaction-picker-out .12s ease-in both
-        }
-
-        .cashback-transaction-picker-header {
-            display: flex;
-            align-items: flex-start;
-            justify-content: space-between;
-            gap: 12px
-        }
-
-        .cashback-transaction-picker-heading {
-            display: grid;
-            gap: 4px
-        }
-
-        .cashback-transaction-picker-heading small {
-            color: var(--in);
-            font-size: 10px;
-            font-weight: 650;
-            letter-spacing: .08em
-        }
-
-        .cashback-transaction-picker-heading h2 {
-            margin: 0;
-            color: var(--tx);
-            font-size: 20px;
-            line-height: 1.2
-        }
-
-        .cashback-transaction-picker-close {
-            display: grid;
-            flex: none;
-            width: 36px;
-            height: 36px;
-            place-items: center;
-            border: 0;
-            border-radius: 11px;
-            background: var(--sq);
-            color: var(--tx);
-            cursor: pointer
-        }
-
-        .cashback-transaction-picker-close .ic {
-            width: 19px;
-            height: 19px
-        }
-
-        .cashback-transaction-picker-close:focus-visible {
-            outline: 2px solid var(--in);
-            outline-offset: 2px
-        }
-
-        .cashback-transaction-picker-search {
-            display: flex;
-            min-height: 48px;
-            align-items: center;
-            gap: 9px;
-            padding: 0 13px;
-            border: 1px solid var(--bd);
-            border-radius: 14px;
-            background: var(--bg);
-            color: var(--mu)
-        }
-
-        .cashback-transaction-picker-search > span {
-            display: grid;
-            flex: none;
-            place-items: center
-        }
-
-        .cashback-transaction-picker-search .ic {
-            width: 18px;
-            height: 18px
-        }
-
-        .cashback-transaction-picker-search input {
-            width: 100%;
-            min-width: 0;
-            padding: 0;
-            border: 0;
-            outline: 0;
-            background: transparent;
-            color: var(--tx);
-            font: inherit;
-            font-size: 13px
-        }
-
-        .cashback-transaction-picker-search input::placeholder {
-            color: var(--mu);
-            opacity: 1
-        }
-
-        .cashback-transaction-picker-options {
-            min-height: 0;
-            flex: 1;
-            overflow-y: auto;
-            overscroll-behavior: contain;
-            border: 1px solid var(--bd);
-            border-radius: 14px;
-            background: var(--bg)
-        }
-
-        .cashback-transaction-picker-options .pocket-select-option {
-            min-height: 48px;
-            padding: 12px 14px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap
-        }
-
-        .cashback-transaction-picker-options .pocket-select-option[hidden] {
-            display: none
-        }
-
-        .cashback-transaction-picker-empty {
-            margin: 0;
-            padding: 22px 12px;
-            color: var(--mu);
-            font-size: 13px;
-            text-align: center
-        }
-
         @keyframes cashback-transaction-picker-in {
             from {
                 opacity: 0;
@@ -2624,12 +1074,6 @@
                 opacity: 0;
                 transform: translateY(12px)
             }
-        }
-
-        .pocket-select-menu.transaction-filter-menu .pocket-select-option {
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap
         }
 
         .date-input-wrap {
@@ -2765,93 +1209,36 @@
 
         .fab.pocket-fab-labeled .fab-label {
             display: inline
-        }
+        }@media(max-width:760px) {
 
-        @media(max-width:760px) {
-
-            .report-filters {
-                display: none
-            }
-
-            .report-filter-toolbar {
-                display: flex
-            }
-
-            #ov.report-filter-open {
-                align-items: flex-end;
-                padding: 0
-            }
-
-            #ov.report-filter-open>div {
-                width: 100%;
-                max-width: none;
-                max-height: 88vh;
-                padding: 20px 16px calc(18px + env(safe-area-inset-bottom, 0px));
-                border-radius: 20px 20px 0 0
-            }
-
-            .report-grid {
-                grid-template-columns: minmax(0, 1fr)
-            }
-
-            .report-donut-wrap {
-                gap: 14px
-            }
-
-            .report-category-list {
-                grid-template-columns: minmax(0, 1fr);
-                gap: 0
-            }
-
-            .report-category {
-                min-height: 44px;
-                padding: 8px 2px;
-                border-bottom: 1px solid var(--bd);
-                border-radius: 0
-            }
-
-            .report-category:last-child {
-                border-bottom: 0
-            }
-
-            .report-category b small {
-                display: inline;
-                margin: 0 0 0 6px
-            }
-
-            .profile-layout {
-                grid-template-columns: 1fr
-            }
 
             .hb {
                 font-size: clamp(20px, 7vw, 28px)
             }
+}
+            @media(max-width:760px) {
 
-            @media(max-width:560px) {
-                .report-filters {
-                    grid-template-columns: repeat(2, minmax(0, 1fr));
-                    gap: 12px
-                }
-
-                .report-filters label:nth-of-type(3) {
-                    grid-column: 1 / -1
-                }
-            }
 
             input,
             select,
             textarea {
                 font-size: 16px
             }
+}@media(max-width:760px) {
+
 
             .date-input-value,
             .date-input-placeholder {
                 font-size: 16px
             }
+}@media(max-width:760px) {
+
 
             .ib {
                 padding: 11px
             }
+}@media(max-width:760px) {
+
 
             .tx-list-row {
                 display: grid;
@@ -2859,22 +1246,30 @@
                 column-gap: 10px;
                 row-gap: 3px
             }
+}@media(max-width:760px) {
+
 
             .tx-list-row>.dot {
                 grid-column: 1;
                 grid-row: 1 / 3;
                 align-self: center
             }
+}@media(max-width:760px) {
+
 
             .tx-list-row>.tx-copy {
                 grid-column: 2;
                 grid-row: 1
             }
+}@media(max-width:760px) {
+
 
             .tx-list-row .tx-meta {
                 flex-direction: column;
                 align-items: flex-start
             }
+}@media(max-width:760px) {
+
 
             .tx-list-row>.tx-end {
                 grid-column: 2;
@@ -2884,39 +1279,55 @@
                 justify-content: flex-start;
                 gap: 0
             }
+}@media(max-width:760px) {
+
 
             .tx-list-row:not(.recent-link) {
                 grid-template-columns: 44px minmax(0, 1fr) max-content;
                 row-gap: 0
             }
+}@media(max-width:760px) {
+
 
             .tx-list-row:not(.recent-link)>.dot {
                 grid-row: 1;
                 align-self: center
             }
+}@media(max-width:760px) {
+
 
             .tx-list-row:not(.recent-link)>.tx-end {
                 grid-column: 3;
                 grid-row: 1
             }
+}@media(max-width:760px) {
+
 
             .tx-list-row:not(.recent-link) .tx-actions {
                 order: -1
             }
+}@media(max-width:760px) {
+
 
             .tx-list-row.recent-link {
                 grid-template-columns: 44px minmax(0, 1fr) auto;
                 row-gap: 0
             }
+}@media(max-width:760px) {
+
 
             .tx-list-row.recent-link>.dot {
                 grid-row: 1
             }
+}@media(max-width:760px) {
+
 
             .tx-list-row.recent-link>.tx-copy {
                 grid-column: 2;
                 grid-row: 1
             }
+}@media(max-width:760px) {
+
 
             .tx-list-row.recent-link>.tx-end {
                 grid-column: 3;
@@ -2924,6 +1335,8 @@
                 justify-content: flex-end;
                 align-self: center
             }
+}@media(max-width:760px) {
+
 
             aside {
                 position: fixed;
@@ -2941,30 +1354,41 @@
                 box-shadow: 0 10px 30px #0006;
                 z-index: 5
             }
+}@media(max-width:760px) {
+
 
             .dm {
                 display: none !important
             }
+}@media(max-width:760px) {
+
 
             .mo {
                 display: flex
             }
+}@media(max-width:760px) {
+
 
             main {
                 padding: 16px 16px 130px
             }
+}@media(max-width:760px) {
 
-            #m > .row:first-child,
-            #m > h2:first-child {
+
+            #m .pocket-feature-content >.row:first-child,
+            #m .pocket-feature-content >h2:first-child {
                 top: env(safe-area-inset-top, 0px);
                 margin-top: -16px;
                 padding-top: 24px
             }
+}@media(max-width:760px) {
+
 
             .fab {
                 bottom: calc(82px + env(safe-area-inset-bottom, 0px))
             }
-        }
+}
+
 
         body.pocket-onboarding-active {
             overflow-x: hidden
@@ -2994,570 +1418,6 @@
         body.pocket-onboarding-active #m {
             max-width: 760px;
             margin: 0 auto
-        }
-
-        .onboarding-shell {
-            overflow: hidden;
-            border: 1px solid var(--bd);
-            border-radius: 24px;
-            background: var(--cd);
-            box-shadow: 0 12px 40px #0002
-        }
-
-        .onboarding-hero {
-            padding: clamp(24px, 6vw, 44px) clamp(20px, 6vw, 52px) 28px;
-            background: #153b2a;
-            color: #fff;
-            text-align: center
-        }
-
-        .onboarding-brand {
-            display: inline-flex;
-            align-items: center;
-            gap: 9px;
-            font-size: 18px;
-            font-weight: 800
-        }
-
-        .onboarding-brand-icon {
-            display: grid;
-            width: 48px;
-            height: 48px;
-            place-items: center;
-            border-radius: 16px;
-            background: #28523b;
-            color: #fff
-        }
-
-        .onboarding-brand-icon .ic {
-            width: 26px;
-            height: 26px
-        }
-
-        .onboarding-hero h1 {
-            margin: 18px 0 4px;
-            font-size: clamp(24px, 5vw, 32px)
-        }
-
-        .onboarding-hero p {
-            max-width: 520px;
-            margin: 8px auto 0;
-            color: #e5eee8
-        }
-
-        .onboarding-hero .onboarding-tagline {
-            margin-top: 0;
-            color: #fff;
-            font-weight: 700
-        }
-
-        .onboarding-panel {
-            padding: clamp(18px, 4vw, 32px);
-            background: var(--cd)
-        }
-
-        .onboarding-panel h1 {
-            margin: 0;
-            font-size: 24px
-        }
-
-        .onboarding-panel h2 {
-            font-size: 20px
-        }
-
-        .onboarding-muted,
-        .onboarding-step-description {
-            margin: 6px 0 16px;
-            color: var(--mu)
-        }
-
-        .onboarding-feature-list {
-            display: grid;
-            gap: 9px;
-            margin: 20px 0
-        }
-
-        .onboarding-feature-list > div {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 12px;
-            border: 1px solid var(--bd);
-            border-radius: 13px;
-            background: var(--bg)
-        }
-
-        .onboarding-feature-list > div > span {
-            display: grid;
-            width: 36px;
-            height: 36px;
-            flex: none;
-            place-items: center;
-            border-radius: 10px;
-            background: var(--sq);
-            color: var(--in)
-        }
-
-        .onboarding-feature-list .ic {
-            width: 20px;
-            height: 20px
-        }
-
-        .onboarding-feature-list b,
-        .onboarding-feature-list small {
-            display: block
-        }
-
-        .onboarding-feature-list small {
-            margin-top: 2px;
-            color: var(--mu)
-        }
-
-        .onboarding-primary {
-            min-height: 46px;
-            justify-content: center;
-            background: #166534;
-            color: #fff
-        }
-
-        .onboarding-welcome .onboarding-primary {
-            width: 100%
-        }
-
-        .onboarding-welcome-actions {
-            display: grid;
-            width: 100%;
-            grid-template-columns: minmax(0, 1fr);
-            justify-content: center;
-            gap: 8px;
-            margin-top: 12px
-        }
-
-        .onboarding-welcome-actions .b2 {
-            width: 100%;
-            min-height: 46px;
-            justify-content: center;
-            border: 1px solid var(--bd);
-            background: var(--bg);
-            border-radius: 10px
-        }
-
-        .onboarding-flow-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px;
-            padding: 18px clamp(18px, 4vw, 32px);
-            border-bottom: 1px solid var(--bd)
-        }
-
-        .onboarding-flow-header > span {
-            color: var(--mu);
-            font-size: 12px;
-            font-weight: 700
-        }
-
-        .onboarding-progress {
-            height: 4px;
-            background: var(--sq)
-        }
-
-        .onboarding-progress > span {
-            display: block;
-            height: 100%;
-            border-radius: 0 4px 4px 0;
-            background: var(--in);
-            transition: width .2s ease
-        }
-
-        .onboarding-step-panel {
-            padding-top: 24px
-        }
-
-        .onboarding-account-grid,
-        .onboarding-fields {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(min(100%, 210px), 1fr));
-            gap: 10px
-        }
-
-        .onboarding-account-card {
-            display: grid;
-            gap: 10px;
-            padding: 12px;
-            border: 1px solid var(--bd);
-            border-radius: 14px;
-            background: var(--bg)
-        }
-
-        .onboarding-account-card.is-selected {
-            border-color: var(--in)
-        }
-
-        .onboarding-account-choice {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            min-height: 38px;
-            cursor: pointer
-        }
-
-        .onboarding-account-choice input,
-        .onboarding-category-choice input {
-            width: 18px;
-            height: 18px;
-            flex: none;
-            accent-color: var(--in)
-        }
-
-        .onboarding-account-icon {
-            display: grid;
-            width: 34px;
-            height: 34px;
-            flex: none;
-            place-items: center;
-            border-radius: 10px;
-            background: var(--sq);
-            color: var(--in)
-        }
-
-        .onboarding-account-choice b,
-        .onboarding-account-choice small {
-            display: block
-        }
-
-        .onboarding-account-choice small {
-            color: var(--mu)
-        }
-
-        .onboarding-field {
-            display: grid;
-            min-width: 0;
-            gap: 5px;
-            color: var(--tx);
-            font-size: 13px;
-            font-weight: 600
-        }
-
-        .onboarding-field input,
-        .onboarding-field select {
-            min-width: 0
-        }
-
-        .onboarding-custom-section,
-        .onboarding-category-group,
-        .onboarding-preference-block,
-        .onboarding-optional-section {
-            margin-top: 20px;
-            padding-top: 16px;
-            border-top: 1px solid var(--bd)
-        }
-
-        .onboarding-custom-section h3,
-        .onboarding-category-group h3,
-        .onboarding-optional-section h3 {
-            margin-bottom: 10px
-        }
-
-        .onboarding-custom-section > .b2 {
-            min-height: 46px;
-            margin-top: 10px
-        }
-
-        .onboarding-optional-section .b2 {
-            min-height: 46px
-        }
-
-        .onboarding-custom-account,
-        .onboarding-custom-category {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-top: 10px;
-            padding: 10px;
-            border: 1px solid var(--bd);
-            border-radius: 12px
-        }
-
-        .onboarding-custom-account .onboarding-fields {
-            flex: 1
-        }
-
-        .onboarding-category-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr));
-            gap: 8px
-        }
-
-        .onboarding-category-choice {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            min-width: 0;
-            min-height: 44px;
-            padding: 8px 10px;
-            border: 1px solid var(--bd);
-            border-radius: 11px;
-            background: var(--bg);
-            cursor: pointer
-        }
-
-        .onboarding-category-choice span {
-            flex: 1;
-            min-width: 0
-        }
-
-        .onboarding-category-choice small {
-            font-size: 10px
-        }
-
-        .onboarding-category-note {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin: 14px 0 0;
-            color: var(--mu)
-        }
-
-        .onboarding-category-note .ic {
-            flex: none;
-            width: 18px;
-            height: 18px
-        }
-
-        .onboarding-custom-category > span {
-            display: flex;
-            align-items: center;
-            flex: 1;
-            gap: 8px;
-            min-width: 0
-        }
-
-        .onboarding-custom-category .ic {
-            flex: none;
-            width: 18px;
-            height: 18px;
-            color: var(--in)
-        }
-
-        .onboarding-preference-card {
-            display: grid;
-            grid-template-columns: 1fr minmax(150px, .75fr);
-            align-items: center;
-            gap: 8px 16px;
-            padding: 14px;
-            border: 1px solid var(--bd);
-            border-radius: 14px;
-            background: var(--bg)
-        }
-
-        .onboarding-preference-card > div b,
-        .onboarding-preference-card > div small {
-            display: block
-        }
-
-        .onboarding-preference-card small,
-        .onboarding-preference-block > small {
-            color: var(--mu)
-        }
-
-        .onboarding-preference-block > b {
-            display: block;
-            margin-bottom: 8px
-        }
-
-        .onboarding-choice-row {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px
-        }
-
-        .onboarding-choice {
-            display: inline-flex;
-            min-width: 110px;
-            min-height: 44px;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            padding: 8px 14px;
-            border: 1px solid var(--bd);
-            border-radius: 11px;
-            background: var(--bg);
-            color: var(--tx);
-            cursor: pointer
-        }
-
-        .onboarding-choice.is-selected {
-            border-color: var(--in);
-            box-shadow: inset 0 0 0 1px var(--in)
-        }
-
-        .onboarding-optional-section summary {
-            min-height: 44px;
-            color: var(--tx);
-            font-weight: 700;
-            cursor: pointer
-        }
-
-        .onboarding-budget-list {
-            display: grid;
-            gap: 8px;
-            margin-top: 10px
-        }
-
-        .onboarding-budget-row {
-            display: grid;
-            grid-template-columns: 1fr minmax(120px, 180px);
-            align-items: center;
-            gap: 10px
-        }
-
-        .onboarding-goal-row {
-            display: grid;
-            grid-template-columns: minmax(0, 1fr) minmax(140px, .7fr) auto;
-            align-items: end;
-            gap: 8px;
-            margin-top: 12px
-        }
-
-        .onboarding-navigation {
-            display: grid;
-            grid-template-columns: 84px minmax(0, 1fr);
-            align-items: center;
-            gap: 8px;
-            margin-top: 18px;
-            padding: 10px 0 calc(10px + env(safe-area-inset-bottom, 0px));
-            border-top: 1px solid var(--bd);
-            background: var(--cd);
-            position: sticky;
-            bottom: 0;
-            z-index: 5
-        }
-
-        .onboarding-navigation > .onboarding-text-button:first-child {
-            grid-column: 1;
-            grid-row: 1;
-            justify-self: start
-        }
-
-        .onboarding-navigation > .onboarding-text-button:not(:first-child) {
-            grid-column: 2;
-            grid-row: 1;
-            justify-self: end
-        }
-
-        .onboarding-navigation.with-options {
-            grid-template-rows: auto auto
-        }
-
-        .onboarding-navigation.with-options > .onboarding-text-button:first-child {
-            grid-row: 2
-        }
-
-        .onboarding-navigation.with-options > .onboarding-text-button:not(:first-child) {
-            grid-column: 1 / -1;
-            grid-row: 1;
-            justify-self: end
-        }
-
-        .onboarding-navigation.with-options > button:last-child {
-            grid-row: 2
-        }
-
-        .onboarding-navigation > button:last-child {
-            grid-column: 2;
-            grid-row: 1;
-            width: 100%;
-            min-height: 46px
-        }
-
-        .onboarding-navigation > .b2,
-        .onboarding-navigation > .b1 {
-            min-height: 46px
-        }
-
-        .onboarding-text-button {
-            min-height: 46px;
-            padding: 8px;
-            border: 0;
-            background: transparent;
-            color: var(--mu);
-            font: inherit;
-            cursor: pointer
-        }
-
-        .onboarding-inline-error,
-        .onboarding-storage-warning {
-            min-height: 18px;
-            margin: 8px 0 0;
-            color: var(--ex);
-            font-size: 12px
-        }
-
-        .onboarding-storage-warning {
-            padding: 10px;
-            border-radius: 10px;
-            background: var(--sq)
-        }
-
-        .onboarding-complete-mark {
-            display: grid;
-            width: 54px;
-            height: 54px;
-            margin: 22px auto 0;
-            place-items: center;
-            border-radius: 50%;
-            background: #28523b;
-            color: #fff
-        }
-
-        .onboarding-complete-mark .ic {
-            width: 28px;
-            height: 28px
-        }
-
-        .onboarding-completion-stats {
-            display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 10px
-        }
-
-        .onboarding-completion-stats > div {
-            display: grid;
-            gap: 2px;
-            padding: 14px;
-            border-radius: 12px;
-            background: var(--bg)
-        }
-
-        .onboarding-completion-stats b {
-            font-size: 22px
-        }
-
-        .onboarding-first-transaction {
-            display: flex;
-            align-items: flex-start;
-            gap: 12px;
-            margin-top: 16px;
-            padding: 14px;
-            border-radius: 12px;
-            background: var(--sq)
-        }
-
-        .onboarding-first-transaction > span {
-            color: var(--in)
-        }
-
-        .onboarding-first-transaction p,
-        .onboarding-first-transaction b,
-        .onboarding-first-transaction small {
-            display: block;
-            margin: 0
-        }
-
-        .onboarding-first-transaction small {
-            margin-top: 3px;
-            color: var(--mu)
         }
 
         .demo-mode-banner {
@@ -3640,1003 +1500,26 @@
 
         .getting-started-copy small {
             color: var(--mu)
-        }
+        }@media (max-width: 560px) {
 
-        .dashboard-empty-reports {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            margin-top: 14px;
-            padding: 18px
-        }
-
-        .dashboard-empty-reports > span {
-            display: grid;
-            width: 42px;
-            height: 42px;
-            flex: none;
-            place-items: center;
-            border-radius: 12px;
-            background: var(--sq);
-            color: var(--in)
-        }
-
-        .dashboard-empty-reports > span .ic {
-            width: 23px;
-            height: 23px
-        }
-
-        .dashboard-empty-reports > div {
-            display: grid
-        }
-
-        .dashboard-empty-reports small {
-            color: var(--mu)
-        }
-
-        @media (max-width: 560px) {
             body.pocket-onboarding-active main {
                 padding: 12px
             }
+}@media (max-width: 560px) {
 
-            .onboarding-shell {
-                border-radius: 18px
-            }
-
-            .onboarding-preference-card {
-                grid-template-columns: 1fr
-            }
-
-            .onboarding-goal-row {
-                grid-template-columns: minmax(0, 1fr) auto
-            }
-
-            .onboarding-goal-row .onboarding-field:nth-child(2) {
-                grid-column: 1
-            }
-
-            .onboarding-goal-row .ib {
-                grid-column: 2;
-                grid-row: 1
-            }
 
             .demo-mode-banner {
                 align-items: flex-start;
                 flex-direction: column
             }
-        }
+}
 
-        @media (max-width: 380px) {
-            .onboarding-navigation {
-                align-items: stretch
-            }
 
-            .onboarding-navigation > button:last-child {
-                width: 100%
-            }
 
-            .onboarding-budget-row {
-                grid-template-columns: 1fr 120px
-            }
-        }
 
-        :root[data-theme="dark"][data-view="dash"] {
-            color-scheme: dark;
-            --bg: #0b100e;
-            --cd: #142019;
-            --tx: #f2f6f3;
-            --mu: #a8b8af;
-            --bd: #263a28;
-            --sq: #142019;
-            --in: #b8ef76;
-            --ex: #ffa899;
-            --dashboard-icon-bg: #223329;
-            --dashboard-alert-bg: #302819;
-            --dashboard-alert-text: #f4d08a;
-            --dashboard-nav-active: #263a28
-        }
-
-        :root[data-view="dash"] {
-            --dashboard-icon-bg: var(--sq);
-            --dashboard-alert-bg: #fff7e6;
-            --dashboard-alert-text: #745114;
-            --dashboard-nav-active: var(--sq)
-        }
-
-        #m[data-view="dash"] {
-            font-family: Inter, 'Plus Jakarta Sans', system-ui, sans-serif
-        }
-
-        #m[data-view="dash"] > .dashboard-heading {
-            align-items: center;
-            gap: 12px;
-            margin-top: -24px;
-            padding: 20px 0 18px
-        }
-
-        #m[data-view="dash"] .dashboard-heading-copy {
-            display: grid;
-            flex: 1;
-            min-width: 0;
-            gap: 12px
-        }
-
-        #m[data-view="dash"] .dashboard-date {
-            color: var(--in);
-            font-size: 11px;
-            font-weight: 600;
-            letter-spacing: .02em;
-            line-height: 1.2
-        }
-
-        #m[data-view="dash"] h2.dashboard-heading-title,
-        #m[data-view="dash"] .dashboard-heading h2 {
-            overflow: hidden;
-            font-size: 28px !important;
-            line-height: 1.2;
-            text-overflow: ellipsis;
-            white-space: nowrap
-        }
-
-        #m[data-view="dash"] .dashboard-heading .page-menu-toggle {
-            order: 3;
-            width: 32px;
-            height: 32px;
-            flex: none;
-            margin-left: 0;
-            color: var(--mu)
-        }
-
-        #m[data-view="dash"] .dashboard-heading .pocket-profile-button {
-            display: none !important
-        }
-
-        #m[data-view="dash"] .dashboard-heading .page-menu-toggle .dashboard-icon {
-            display: block;
-            width: 24px;
-            height: 24px
-        }
-
-        #m[data-view="dash"] .dashboard-heading .pocket-profile-button {
-            order: 2;
-            margin-left: auto
-        }
-
-        #m[data-view="dash"] .dashboard-balance-card {
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-            margin-top: 0;
-            padding: 20px;
-            overflow: visible;
-            border-radius: 20px;
-            background: #b8ef76;
-            color: #102015
-        }
-
-        #m[data-view="dash"] .dashboard-balance-label {
-            min-height: 24px;
-            display: flex;
-            align-items: center;
-            padding-right: 38px
-        }
-
-        #m[data-view="dash"] .dashboard-balance-label small {
-            color: #102015;
-            font-size: 13px
-        }
-
-        #m[data-view="dash"] .dashboard-balance-card .pocket-privacy-button {
-            top: 14px;
-            right: 12px;
-            width: 36px;
-            height: 36px;
-            border: 0;
-            background: transparent;
-            color: #102015
-        }
-
-        #m[data-view="dash"] .dashboard-balance-card .pocket-privacy-button .dashboard-icon {
-            width: 24px;
-            height: 24px
-        }
-
-        #m[data-view="dash"] .dashboard-balance-card .pocket-privacy-button > svg {
-            display: block;
-            width: 24px;
-            height: 24px
-        }
-
-        #m[data-view="dash"] .dashboard-balance-card .hb {
-            margin: 0;
-            color: #102015;
-            font-size: 38px;
-            line-height: 1.45
-        }
-
-        #m[data-view="dash"] .dashboard-balance-card .pocket-summary-amounts {
-            color: #344831;
-            font-size: 11px
-        }
-
-        #m[data-view="dash"] .dashboard-balance-card .two {
-            margin: 0;
-            gap: 12px
-        }
-
-        #m[data-view="dash"] .dashboard-balance-card .two > div {
-            display: flex;
-            flex-direction: column;
-            gap: 12px
-        }
-
-        #m[data-view="dash"] .dashboard-balance-card .two small {
-            color: #344831;
-            font-size: 11px
-        }
-
-        #m[data-view="dash"] .dashboard-balance-card .hn {
-            color: #102015 !important;
-            font-size: 20px;
-            line-height: 1.35
-        }
-
-        #m[data-view="dash"] .dashboard-add-button {
-            display: flex;
-            width: 100%;
-            min-height: 52px;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            margin-top: 20px;
-            border: 0;
-            border-radius: 14px;
-            background: #b8ef76;
-            color: #102015;
-            font: inherit;
-            font-size: 15px;
-            font-weight: 700;
-            cursor: pointer
-        }
-
-        #m[data-view="dash"] .dashboard-add-button:hover {
-            background: #c5f58f
-        }
-
-        #m[data-view="dash"] .dashboard-add-button:focus-visible,
-        #m[data-view="dash"] .dashboard-section-link:focus-visible,
-        #m[data-view="dash"] .quick-action:focus-visible {
-            outline: 2px solid var(--in);
-            outline-offset: 3px
-        }
-
-        #m[data-view="dash"] .dashboard-add-button .ic {
-            width: 18px;
-            height: 18px
-        }
-
-        #m[data-view="dash"] .dashboard-alerts {
-            display: grid;
-            gap: 8px;
-            margin-top: 20px
-        }
-
-        #m[data-view="dash"] .dashboard-alerts .warn {
-            padding: 14px 16px;
-            border: 0;
-            border-radius: 20px;
-            background: var(--dashboard-alert-bg);
-            color: var(--dashboard-alert-text)
-        }
-
-        #m[data-view="dash"] .dashboard-alerts .warn .ic {
-            color: var(--dashboard-alert-text)
-        }
-
-        #m[data-view="dash"] #pocket-monthly-budget-alerts {
-            margin: 20px 0 0
-        }
-
-        #m[data-view="dash"] #pocket-monthly-budget-alerts .pocket-budget-alert {
-            border: 0;
-            border-radius: 20px;
-            background: var(--dashboard-alert-bg);
-            color: var(--dashboard-alert-text)
-        }
-
-        #m[data-view="dash"] .dashboard-section {
-            margin-top: 20px
-        }
-
-        #m[data-view="dash"] .dashboard-section-heading {
-            display: flex;
-            min-height: 24px;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px;
-            margin-bottom: 12px
-        }
-
-        #m[data-view="dash"] .dashboard-section-heading .sec {
-            min-width: 0;
-            margin: 0;
-            font-size: 17px;
-            line-height: 1.3
-        }
-
-        #m[data-view="dash"] .dashboard-section-link {
-            display: inline-flex;
-            flex: none;
-            align-items: center;
-            gap: 4px;
-            padding: 4px 0;
-            border: 0;
-            background: transparent;
-            color: var(--in);
-            font: inherit;
-            font-size: 12px;
-            font-weight: 600;
-            cursor: pointer
-        }
-
-        #m[data-view="dash"] .dashboard-shortcuts {
-            gap: 12px;
-            margin-top: 20px
-        }
-
-        #m[data-view="dash"] .dashboard-shortcuts .dashboard-section-heading {
-            margin-bottom: 0
-        }
-
-        #m[data-view="dash"] .dashboard-shortcuts .sec {
-            font-size: 17px
-        }
-
-        #m[data-view="dash"] .quick-actions-grid {
-            gap: 8px
-        }
-
-        #m[data-view="dash"] .quick-action {
-            gap: 8px;
-            padding: 0;
-            color: var(--mu);
-            font-size: 10px;
-            line-height: 1.2
-        }
-
-        #m[data-view="dash"] .quick-action-icon {
-            width: 48px;
-            border: 0;
-            border-radius: 14px;
-            background: var(--cd);
-            box-shadow: none
-        }
-
-        #m[data-view="dash"] .quick-action-icon .dashboard-icon {
-            display: block;
-            width: 24px;
-            height: 24px
-        }
-
-        #m[data-view="dash"] .dashboard-account-card,
-        #m[data-view="dash"] .dashboard-recent-card {
-            overflow: hidden;
-            padding: 20px;
-            border-radius: 20px;
-            background: var(--cd)
-        }
-
-        #m[data-view="dash"] .dashboard-account-row {
-            display: grid;
-            width: 100%;
-            min-height: 62px;
-            grid-template-columns: 42px minmax(0, 1fr) auto;
-            align-items: center;
-            gap: 12px;
-            padding: 8px 0;
-            border: 0;
-            background: transparent;
-            color: var(--tx);
-            text-align: left;
-            cursor: pointer
-        }
-
-        #m[data-view="dash"] .dashboard-account-icon {
-            display: grid;
-            width: 42px;
-            height: 42px;
-            place-items: center;
-            border-radius: 12px;
-            background: var(--dashboard-icon-bg)
-        }
-
-        #m[data-view="dash"] .dashboard-account-icon .dashboard-icon {
-            display: block;
-            width: 24px;
-            height: 24px
-        }
-
-        #m[data-view="dash"] .dashboard-account-copy {
-            display: grid;
-            min-width: 0;
-            gap: 3px
-        }
-
-        #m[data-view="dash"] .dashboard-account-copy b {
-            overflow: hidden;
-            font-size: 14px;
-            font-weight: 500;
-            text-overflow: ellipsis;
-            white-space: nowrap
-        }
-
-        #m[data-view="dash"] .dashboard-account-copy small {
-            font-size: 11px
-        }
-
-        #m[data-view="dash"] .dashboard-account-balance {
-            max-width: 132px;
-            overflow: hidden;
-            font-size: 14px;
-            text-overflow: ellipsis;
-            white-space: nowrap
-        }
-
-        #m[data-view="dash"] .dashboard-account-balance.is-negative {
-            color: var(--ex)
-        }
-
-        #m[data-view="dash"] .dashboard-empty {
-            border: 1px solid var(--bd);
-            border-radius: 16px;
-            background: var(--cd)
-        }
-
-        #m[data-view="dash"] .dashboard-recent-card {
-            padding-top: 10px;
-            padding-bottom: 10px
-        }
-
-        #m[data-view="dash"] .dashboard-recent-card .tx-list-row.recent-link {
-            display: grid;
-            grid-template-columns: 42px minmax(0, 1fr) auto;
-            align-items: center;
-            column-gap: 12px;
-            row-gap: 0;
-            padding: 10px 0;
-            border: 0;
-            border-radius: 0
-        }
-
-        #m[data-view="dash"] .dashboard-recent-card .tx-list-row.recent-link + .tx-list-row.recent-link {
-            border-top: 1px solid var(--bd)
-        }
-
-        #m[data-view="dash"] .dashboard-recent-card .tx-list-row.recent-link > .dot {
-            width: 42px;
-            height: 42px;
-            grid-column: 1;
-            grid-row: 1;
-            align-self: center;
-            border-radius: 12px;
-            background: var(--dashboard-icon-bg) !important
-        }
-
-        #m[data-view="dash"] .dashboard-recent-card .tx-list-row.recent-link > .dot .dashboard-icon {
-            display: block;
-            width: 24px;
-            height: 24px
-        }
-
-        #m[data-view="dash"] .dashboard-recent-card .tx-list-row.recent-link > .tx-copy {
-            min-width: 0;
-            grid-column: 2;
-            grid-row: 1
-        }
-
-        #m[data-view="dash"] .dashboard-recent-card .tx-copy > b {
-            overflow: hidden;
-            font-size: 14px;
-            font-weight: 500;
-            text-overflow: ellipsis;
-            white-space: nowrap
-        }
-
-        #m[data-view="dash"] .dashboard-recent-card .tx-list-row.recent-link .tx-meta {
-            flex-direction: row;
-            gap: 2px 6px;
-            font-size: 11px
-        }
-
-        #m[data-view="dash"] .dashboard-recent-card .tx-list-row.recent-link > .tx-end {
-            min-width: 0;
-            grid-column: 3;
-            grid-row: 1;
-            align-self: center;
-            justify-content: flex-end
-        }
-
-        #m[data-view="dash"] .dashboard-recent-card .tx-amount {
-            max-width: 120px;
-            font-size: 14px
-        }
-
-        html[data-view="dash"] .fab,
-        html[data-view="dash"] .pocket-fab-menu,
-        html[data-view="dash"] .pocket-account-transfer {
-            display: none !important
-        }
 
         @media (max-width: 760px) {
-            #m[data-view="dash"] {
-                padding: 20px 24px 132px
-            }
 
-            #m[data-view="dash"] > .dashboard-heading {
-                top: env(safe-area-inset-top, 0px);
-                margin-top: -20px;
-                padding: 20px 0 18px
-            }
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-            #m[data-view="dash"] .dashboard-add-button {
-                transition: none
-            }
-        }
-
-        :root[data-theme="dark"][data-view="tx"] {
-            color-scheme: dark;
-            --bg: #0b100e;
-            --cd: #142019;
-            --tx: #f2f6f3;
-            --mu: #a8b8af;
-            --bd: #263a28;
-            --sq: #142019;
-            --in: #b8ef76;
-            --ex: #ffa899;
-            --dashboard-icon-bg: #223329;
-            --dashboard-nav-active: #263a28;
-            --transaction-icon-bg: #223329
-        }
-
-        :root[data-view="tx"] {
-            --dashboard-icon-bg: var(--sq);
-            --dashboard-nav-active: var(--sq);
-            --transaction-icon-bg: var(--sq)
-        }
-
-        #m[data-view="tx"] {
-            font-family: Inter, 'Plus Jakarta Sans', system-ui, sans-serif
-        }
-
-        #m[data-view="tx"] > .transaction-page-heading {
-            align-items: center;
-            gap: 12px;
-            margin-top: -24px;
-            padding: 20px 0 18px
-        }
-
-        #m[data-view="tx"] .transaction-heading-copy {
-            display: grid;
-            flex: 1;
-            min-width: 0;
-            gap: 12px
-        }
-
-        #m[data-view="tx"] .transaction-heading-copy > small {
-            color: var(--in);
-            font-size: 11px;
-            font-weight: 600;
-            letter-spacing: .02em;
-            line-height: 1.2
-        }
-
-        #m[data-view="tx"] .transaction-heading-copy h2 {
-            margin: 0;
-            overflow: hidden;
-            font-size: 28px !important;
-            line-height: 1.2;
-            text-overflow: ellipsis;
-            white-space: nowrap
-        }
-
-        #m[data-view="tx"] .transaction-page-heading .page-menu-toggle {
-            order: 3;
-            width: 32px;
-            height: 32px;
-            flex: none;
-            margin-left: auto;
-            color: var(--mu)
-        }
-
-        #m[data-view="tx"] .transaction-page-heading .page-menu-toggle .dashboard-icon {
-            display: block;
-            width: 24px;
-            height: 24px
-        }
-
-        #m[data-view="tx"] .transaction-page-heading .pocket-profile-button {
-            display: none !important
-        }
-
-        #m[data-view="tx"] > .f.transaction-filters {
-            display: flex;
-            max-width: 760px;
-            flex-direction: column;
-            gap: 12px;
-            margin: 4px auto 16px
-        }
-
-        #m[data-view="tx"] .transaction-search {
-            display: flex;
-            width: 100%;
-            min-width: 0;
-            height: 52px;
-            align-items: center;
-            gap: 12px;
-            padding: 0 14px;
-            border: 1px solid var(--bd);
-            border-radius: 14px;
-            background: var(--cd)
-        }
-
-        #m[data-view="tx"] .transaction-search img {
-            display: block;
-            width: 24px;
-            height: 24px;
-            flex: none
-        }
-
-        #m[data-view="tx"] .transaction-search input {
-            width: 100%;
-            min-width: 0;
-            height: 100%;
-            padding: 0;
-            border: 0;
-            outline: 0;
-            background: transparent;
-            color: var(--tx);
-            font: inherit;
-            font-size: 14px
-        }
-
-        #m[data-view="tx"] .transaction-search input::placeholder {
-            color: var(--mu);
-            opacity: 1
-        }
-
-        #m[data-view="tx"] .transaction-search:focus-within {
-            border-color: var(--in)
-        }
-
-        #m[data-view="tx"] .transaction-filter-row {
-            position: relative;
-            z-index: 6;
-            display: grid;
-            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
-            gap: 8px
-        }
-
-        #m[data-view="tx"] .transaction-filter-chip,
-        #m[data-view="tx"] .transaction-filters-toggle {
-            display: flex;
-            min-width: 0;
-            min-height: 40px;
-            align-items: center;
-            justify-content: center;
-            border: 0;
-            border-radius: 999px;
-            background: var(--sq)
-        }
-
-        #m[data-view="tx"] .transaction-filter-chip select {
-            width: 100%;
-            min-width: 0;
-            height: 40px;
-            padding: 0 12px;
-            overflow: hidden;
-            border: 0;
-            border-radius: 999px;
-            appearance: none;
-            -webkit-appearance: none;
-            background: transparent;
-            background-image: none;
-            color: var(--tx);
-            font: inherit;
-            font-size: 11px;
-            text-overflow: ellipsis;
-            white-space: nowrap
-        }
-
-        #m[data-view="tx"] .transaction-filter-chip .form-select-trigger {
-            width: 100%;
-            min-width: 0;
-            height: 40px;
-            padding: 0 12px;
-            overflow: hidden;
-            border: 0;
-            border-radius: 999px;
-            background-color: transparent;
-            background-image: none;
-            color: var(--tx);
-            font-size: 11px;
-            line-height: 1;
-            text-align: center;
-            text-overflow: ellipsis;
-            white-space: nowrap
-        }
-
-        #m[data-view="tx"] .transaction-filter-chip select:focus-visible,
-        #m[data-view="tx"] .transaction-filters-toggle:focus-visible,
-        #m[data-view="tx"] .transaction-add-button:focus-visible {
-            outline: 2px solid var(--in);
-            outline-offset: 3px
-        }
-
-        #m[data-view="tx"] .transaction-filters-toggle {
-            gap: 6px;
-            padding: 0 12px;
-            color: var(--tx);
-            font: inherit;
-            font-size: 11px;
-            font-weight: 500;
-            cursor: pointer
-        }
-
-        #m[data-view="tx"] .transaction-filters-toggle svg {
-            display: block;
-            width: 16px;
-            height: 16px;
-            flex: none;
-            fill: none;
-            stroke: currentColor;
-            stroke-linecap: round;
-            stroke-width: 1.6
-        }
-
-        #m[data-view="tx"] .transaction-date-range {
-            display: grid;
-            grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
-            align-items: center;
-            gap: 8px
-        }
-
-        #m[data-view="tx"] .transaction-date-range .date-input-wrap,
-        #m[data-view="tx"] .transaction-date-range input[type="date"] {
-            height: 48px
-        }
-
-        #m[data-view="tx"] .transaction-date-range input[type="date"] {
-            padding: 0 38px 0 11px;
-            border: 1px solid var(--bd);
-            border-radius: 12px;
-            background-color: var(--cd)
-        }
-
-        #m[data-view="tx"] .transaction-date-range .date-input-value,
-        #m[data-view="tx"] .transaction-date-range .date-input-placeholder {
-            right: 38px;
-            left: 11px;
-            font-size: 12px
-        }
-
-        #m[data-view="tx"] .transaction-date-separator {
-            color: var(--in);
-            font-size: 16px
-        }
-
-        #m[data-view="tx"] .transaction-advanced-filters {
-            position: absolute;
-            top: calc(100% + 8px);
-            right: 0;
-            z-index: 10;
-            width: min(260px, calc(100vw - 48px));
-            padding: 12px;
-            border: 1px solid var(--bd);
-            border-radius: 14px;
-            background: var(--cd);
-            box-shadow: 0 10px 28px #0006
-        }
-
-        #m[data-view="tx"] .transaction-advanced-filters[hidden] {
-            display: none
-        }
-
-        #m[data-view="tx"] .transaction-advanced-filters label {
-            display: grid;
-            gap: 6px;
-            color: var(--mu);
-            font-size: 12px
-        }
-
-        #m[data-view="tx"] .transaction-advanced-filters select {
-            width: 100%;
-            min-width: 0
-        }
-
-        #m[data-view="tx"] #tl.transaction-list {
-            width: 100%;
-            max-width: 760px;
-            margin: 0 auto
-        }
-
-        #m[data-view="tx"] .transaction-date-group + .transaction-date-group {
-            margin-top: 20px
-        }
-
-        #m[data-view="tx"] .transaction-date-group-heading {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px;
-            margin-bottom: 12px
-        }
-
-        #m[data-view="tx"] .transaction-date-heading {
-            min-width: 0;
-            margin: 0;
-            color: var(--tx);
-            font-size: 17px;
-            font-weight: 600;
-            text-align: left
-        }
-
-        #m[data-view="tx"] .transaction-count {
-            flex: none;
-            color: var(--in);
-            font-size: 12px;
-            font-weight: 500;
-            white-space: nowrap
-        }
-
-        #m[data-view="tx"] .transaction-date-card {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-            padding: 10px 20px;
-            overflow: hidden;
-            border-radius: 20px;
-            background: var(--cd)
-        }
-
-        #m[data-view="tx"] .transaction-date-card .tx-list-row {
-            display: grid;
-            grid-template-columns: 42px minmax(0, 1fr) auto;
-            align-items: center;
-            column-gap: 12px;
-            row-gap: 0;
-            padding: 10px 0;
-            border: 0;
-            border-radius: 0
-        }
-
-        #m[data-view="tx"] .transaction-date-card .tx-list-row > .dot {
-            display: grid;
-            width: 42px;
-            height: 42px;
-            grid-column: 1;
-            grid-row: 1;
-            place-items: center;
-            border-radius: 12px;
-            background: var(--transaction-icon-bg) !important;
-            color: var(--tx)
-        }
-
-        #m[data-view="tx"] .transaction-date-card .tx-list-row > .dot .dashboard-icon {
-            display: block;
-            width: 24px;
-            height: 24px
-        }
-
-        #m[data-view="tx"] .transaction-date-card .tx-list-row > .tx-copy {
-            min-width: 0;
-            grid-column: 2;
-            grid-row: 1;
-            gap: 3px
-        }
-
-        #m[data-view="tx"] .transaction-date-card .tx-copy > b {
-            overflow: hidden;
-            font-size: 14px;
-            font-weight: 500;
-            text-overflow: ellipsis;
-            white-space: nowrap
-        }
-
-        #m[data-view="tx"] .transaction-date-card .tx-meta {
-            overflow: hidden;
-            color: var(--mu);
-            font-size: 11px;
-            text-overflow: ellipsis;
-            white-space: nowrap
-        }
-
-        #m[data-view="tx"] .transaction-date-card .tx-list-row > .tx-end {
-            min-width: 0;
-            grid-column: 3;
-            grid-row: 1;
-            justify-content: flex-end;
-            gap: 5px
-        }
-
-        #m[data-view="tx"] .transaction-date-card .tx-amount {
-            max-width: 108px;
-            font-size: 14px
-        }
-
-        #m[data-view="tx"] .transaction-date-card .tx-actions {
-            gap: 2px
-        }
-
-        #m[data-view="tx"] .transaction-date-card .tx-actions .ib {
-            width: 24px;
-            height: 24px;
-            padding: 4px
-        }
-
-        #m[data-view="tx"] .transaction-date-card .tx-actions .ic {
-            width: 15px;
-            height: 15px
-        }
-
-        #m[data-view="tx"] .transaction-empty {
-            padding: 20px;
-            border: 1px solid var(--bd);
-            border-radius: 18px;
-            background: var(--cd);
-            color: var(--mu);
-            text-align: center
-        }
-
-        #m[data-view="tx"] .transaction-add-button {
-            display: flex;
-            width: 100%;
-            max-width: 760px;
-            min-height: 52px;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            margin: 20px auto 0;
-            border: 0;
-            border-radius: 14px;
-            background: #b8ef76;
-            color: #102015;
-            font: inherit;
-            font-size: 15px;
-            font-weight: 700;
-            cursor: pointer
-        }
-
-        #m[data-view="tx"] .transaction-add-button:hover {
-            background: #c5f58f
-        }
-
-        html[data-view="tx"] .fab,
-        html[data-view="tx"] .pocket-fab-menu,
-        html[data-view="tx"] .pocket-account-transfer {
-            display: none !important
-        }
-
-        @media (max-width: 760px) {
-            #m[data-view="tx"] {
-                padding: 20px 24px 132px
-            }
-
-            #m[data-view="tx"] > .transaction-page-heading {
-                top: env(safe-area-inset-top, 0px);
-                margin-top: -20px;
-                padding: 20px 0 18px
-            }
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-            #m[data-view="tx"] .transaction-add-button {
-                transition: none
-            }
-        }
-
-        @media (max-width: 760px) {
             .app > .pocket-navbar-host {
                 position: fixed;
                 top: auto;
@@ -4653,6 +1536,8 @@
                 box-shadow: none;
                 z-index: 5
             }
+}@media (max-width: 760px) {
+
 
             .pocket-navbar-frame {
                 display: block;
@@ -4663,540 +1548,19 @@
                 background: #142019;
                 overflow: hidden
             }
-        }
+}
 
-        :root[data-theme="dark"][data-view="acc"] {
-            color-scheme: dark;
-            --bg: #0b100e;
-            --cd: #142019;
-            --tx: #f2f6f3;
-            --mu: #a8b8af;
-            --bd: #263a28;
-            --sq: #142019;
-            --in: #b8ef76;
-            --ex: #ffa899;
-            --accounts-icon-bg: #223329
-        }
 
-        :root[data-view="acc"] {
-            --accounts-icon-bg: var(--sq)
-        }
-
-        #m[data-view="acc"] {
-            font-family: Inter, 'Plus Jakarta Sans', system-ui, sans-serif
-        }
-
-        #m[data-view="acc"] > .accounts-page {
-            width: min(100%, 520px);
-            margin: 0 auto
-        }
-
-        #m[data-view="acc"] > .accounts-page > .accounts-heading {
-            align-items: center;
-            gap: 12px;
-            margin-top: -24px;
-            padding: 20px 0 18px
-        }
-
-        #m[data-view="acc"] .accounts-heading-copy {
-            display: grid;
-            order: 1;
-            gap: 5px;
-            min-width: 0
-        }
-
-        #m[data-view="acc"] .accounts-eyebrow {
-            color: var(--in);
-            font-size: 9px;
-            font-weight: 700;
-            letter-spacing: .06em;
-            line-height: 1.2
-        }
-
-        #m[data-view="acc"] .accounts-heading h2 {
-            overflow: hidden;
-            font-size: 24px !important;
-            line-height: 1.2;
-            text-overflow: ellipsis;
-            white-space: nowrap
-        }
-
-        #m[data-view="acc"] .accounts-heading .page-menu-toggle {
-            display: grid;
-            width: 32px;
-            height: 32px;
-            flex: none;
-            order: 2;
-            place-content: center;
-            gap: 3px;
-            margin-left: auto;
-            border: 0;
-            border-radius: 8px;
-            background: transparent;
-            color: var(--mu);
-            cursor: pointer
-        }
-
-        #m[data-view="acc"] .accounts-heading .page-menu-toggle span {
-            display: block;
-            width: 3px;
-            height: 3px;
-            border-radius: 50%;
-            background: currentColor
-        }
-
-        #m[data-view="acc"] .accounts-heading .page-menu-toggle:focus-visible,
-        #m[data-view="acc"] .accounts-view-toggle:focus-visible,
-        #m[data-view="acc"] .accounts-list-row:focus-visible,
-        html[data-view="acc"] .fab:focus-visible,
-        html[data-view="acc"] .pocket-account-transfer:focus-visible {
-            outline: 2px solid var(--in);
-            outline-offset: 3px
-        }
-
-        #m[data-view="acc"] .accounts-balance-card {
-            display: grid;
-            gap: 12px;
-            margin-bottom: 24px;
-            padding: 24px 20px;
-            border-radius: 18px;
-            background: #e8f4e8
-        }
-
-        #m[data-view="acc"] .accounts-balance-card > small {
-            color: var(--mu);
-            font-size: 12px
-        }
-
-        #m[data-view="acc"] .accounts-balance-card > strong {
-            overflow: hidden;
-            font-size: 36px;
-            line-height: 1.2;
-            text-overflow: ellipsis;
-            white-space: nowrap
-        }
-
-        #m[data-view="acc"] .accounts-balance-card > div {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px;
-            margin-top: 2px;
-            color: var(--mu);
-            font-size: 12px
-        }
-
-        #m[data-view="acc"] .accounts-balance-card > div b {
-            color: var(--in);
-            font-size: 12px
-        }
-
-        :root[data-theme="dark"][data-view="acc"] #m .accounts-balance-card {
-            background: #203b29;
-            color: #f2f6f3
-        }
-
-        :root[data-theme="dark"][data-view="acc"] #m .accounts-balance-card > small {
-            color: #a8b8af
-        }
-
-        :root[data-theme="dark"][data-view="acc"] #m .accounts-balance-card > div {
-            color: #d3ded5
-        }
-
-        #m[data-view="acc"] .accounts-list-heading {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px;
-            margin: 0 0 10px
-        }
-
-        #m[data-view="acc"] .accounts-list-heading h3 {
-            margin: 0;
-            font-size: 16px
-        }
-
-        #m[data-view="acc"] .accounts-view-toggle {
-            display: inline-flex;
-            min-height: 32px;
-            align-items: center;
-            gap: 5px;
-            padding: 4px 0 4px 8px;
-            border: 0;
-            background: transparent;
-            color: var(--in);
-            font: inherit;
-            font-size: 11px;
-            font-weight: 600;
-            cursor: pointer
-        }
-
-        #m[data-view="acc"] .accounts-view-toggle span {
-            font-size: 14px
-        }
-
-        #m[data-view="acc"] .accounts-list {
-            padding: 18px 20px;
-            overflow: hidden;
-            border-radius: 18px;
-            background: var(--cd)
-        }
-
-        #m[data-view="acc"] .accounts-list-row {
-            display: grid;
-            width: 100%;
-            min-height: 62px;
-            grid-template-columns: 42px minmax(0, 1fr) auto;
-            align-items: center;
-            gap: 10px;
-            padding: 8px 0;
-            border: 0;
-            border-bottom: 1px solid var(--bd);
-            background: transparent;
-            color: var(--tx);
-            text-align: left;
-            cursor: pointer
-        }
-
-        #m[data-view="acc"] .accounts-list-row:last-child {
-            border-bottom: 0
-        }
-
-        #m[data-view="acc"] .accounts-list-icon {
-            display: grid;
-            width: 42px;
-            height: 42px;
-            place-items: center;
-            border-radius: 12px;
-            background: var(--accounts-icon-bg);
-            color: var(--in)
-        }
-
-        #m[data-view="acc"] .accounts-list-icon .ic {
-            width: 20px;
-            height: 20px
-        }
-
-        #m[data-view="acc"] .accounts-list-copy {
-            display: grid;
-            min-width: 0;
-            gap: 3px
-        }
-
-        #m[data-view="acc"] .accounts-list-copy b {
-            overflow: hidden;
-            font-size: 14px;
-            font-weight: 500;
-            text-overflow: ellipsis;
-            white-space: nowrap
-        }
-
-        #m[data-view="acc"] .accounts-list-copy small {
-            overflow: hidden;
-            color: var(--mu);
-            font-size: 12px;
-            text-overflow: ellipsis;
-            white-space: nowrap
-        }
-
-        #m[data-view="acc"] .accounts-list-balance {
-            max-width: 120px;
-            overflow: hidden;
-            font-size: 14px;
-            font-weight: 600;
-            text-overflow: ellipsis;
-            white-space: nowrap
-        }
-
-        #m[data-view="acc"] .accounts-list-balance.is-negative {
-            color: var(--ex)
-        }
-
-        #m[data-view="acc"] .accounts-empty {
-            padding: 20px;
-            border: 1px solid var(--bd);
-            border-radius: 18px;
-            background: var(--cd);
-            color: var(--mu);
-            text-align: center
-        }
-
-        html[data-view="acc"] .fab.pocket-fab-labeled {
-            align-items: center;
-            justify-content: center;
-            color: #102015
-        }
-
-        html[data-view="acc"] body.pocket-actions-scroll-hidden .fab.pocket-fab-labeled,
-        html[data-view="acc"] body.pocket-actions-scroll-hidden .pocket-account-transfer {
-            transform: none
-        }
-
-        html[data-view="acc"] .pocket-fab-menu {
-            display: none !important
-        }
-
-        @media (max-width: 760px) {
-            #m[data-view="acc"] {
-                padding: 20px 24px 132px
-            }
-
-            #m[data-view="acc"] > .accounts-page > .accounts-heading {
-                top: env(safe-area-inset-top, 0px);
-                margin-top: -20px;
-                padding: 20px 0 18px
-            }
-
-            html[data-view="acc"] .fab.pocket-fab-labeled,
-            html[data-view="acc"] .pocket-account-transfer {
-                bottom: calc(82px + env(safe-area-inset-bottom, 0px));
-                width: calc(50vw - 21px);
-                height: 52px;
-                border-radius: 28px
-            }
-
-            html[data-view="acc"] .fab.pocket-fab-labeled {
-                right: 14px;
-                min-width: 0;
-                justify-content: center;
-                padding: 0 10px
-            }
-
-            html[data-view="acc"] .pocket-account-transfer {
-                right: auto;
-                left: 14px;
-                padding: 0 10px
-            }
-        }
 
         :root[data-theme=dark] {
             --tr: #91c6af
-        }
+        }@media(prefers-color-scheme:dark) {
 
-        @media(prefers-color-scheme:dark) {
             :root:not([data-theme=light]) {
                 --tr: #91c6af
             }
-        }
+}
 
-        html[data-view="bud"] #m .card,
-        html[data-view="goal"] #m .card,
-        html[data-view="shop"] #m .card,
-        html[data-view="rec"] #m .card,
-        html[data-view="cash"] #m .card,
-        html[data-view="rep"] #m .card,
-        html[data-view="set"] #m .card,
-        html[data-view="prof"] #m .card {
-            border-color: transparent;
-            box-shadow: none
-        }
-
-        html[data-view="bud"] #m > .row:first-child,
-        html[data-view="goal"] #m > .row:first-child,
-        html[data-view="shop"] #m > .row:first-child,
-        html[data-view="rec"] #m > .row:first-child,
-        html[data-view="cash"] #m > .row:first-child,
-        html[data-view="rep"] #m > .row:first-child,
-        html[data-view="set"] #m > .row:first-child,
-        html[data-view="prof"] #m > .row:first-child {
-            align-items: flex-start
-        }
-
-        html[data-view="bud"] #m > .row:first-child h2,
-        html[data-view="goal"] #m > .row:first-child h2,
-        html[data-view="shop"] #m > .row:first-child h2,
-        html[data-view="rec"] #m > .row:first-child h2,
-        html[data-view="cash"] #m > .row:first-child h2,
-        html[data-view="rep"] #m > .row:first-child h2,
-        html[data-view="set"] #m > .row:first-child h2,
-        html[data-view="prof"] #m > .row:first-child h2 {
-            margin: 0;
-            font-size: 24px;
-            letter-spacing: -.04em
-        }
-
-        html[data-view="rep"] #m .report-filter-toolbar {
-            display: flex;
-            min-height: 84px;
-            margin: 8px 0 18px;
-            padding: 18px;
-            border: 0;
-            border-radius: 20px;
-            background: var(--cd)
-        }
-
-        html[data-view="rep"] #m .report-filter-toolbar-copy small {
-            font-size: 12px
-        }
-
-        html[data-view="rep"] #m .report-filter-toolbar-copy b {
-            font-size: 15px
-        }
-
-        html[data-view="rep"] #m .report-card {
-            padding: 18px;
-            border-radius: 20px
-        }
-
-        html[data-view="rep"] #m .report-card h3 {
-            margin-top: 0;
-            font-size: 15px
-        }
-
-        html[data-view="rep"] #m .report-filter-toolbar .b2 {
-            min-height: 42px;
-            padding: 0 13px;
-            border: 0;
-            border-radius: 14px
-        }
-
-        html[data-view="cash"] #m .cashback-summary {
-            display: grid;
-            grid-template-columns: auto 1fr;
-            align-items: center;
-            gap: 5px 13px;
-            margin: 20px 0 22px;
-            padding: 22px;
-            border-radius: 22px
-        }
-
-        html[data-view="cash"] #m .cashback-summary-icon {
-            display: grid;
-            grid-row: span 3;
-            width: 48px;
-            height: 48px;
-            place-items: center;
-            border-radius: 16px;
-            background: var(--sq);
-            color: var(--in)
-        }
-
-        html[data-view="cash"] #m .cashback-summary-icon svg {
-            width: 23px;
-            height: 23px
-        }
-
-        html[data-view="cash"] #m .cashback-summary small,
-        html[data-view="cash"] #m .cashback-summary span {
-            color: var(--mu);
-            font-size: 12px
-        }
-
-        html[data-view="cash"] #m .cashback-summary b {
-            font-size: 25px;
-            letter-spacing: -.04em
-        }
-
-        html[data-view="cash"] #m .cashback-subtitle {
-            margin: 22px 0 12px;
-            font-size: 16px
-        }
-
-        html[data-view="cash"] #m .cashback-list {
-            grid-template-columns: minmax(0, 1fr)
-        }
-
-        html[data-view="shop"] #m .shopping-lists {
-            grid-template-columns: minmax(0, 1fr)
-        }
-
-        html[data-view="shop"] #m .shopping-list-summary {
-            justify-content: flex-start;
-            gap: 13px;
-            min-height: 82px;
-            padding: 15px 16px;
-            border: 0;
-            border-radius: 18px;
-            background: var(--cd)
-        }
-
-        html[data-view="shop"] #m .shopping-list-summary-icon {
-            display: grid;
-            flex: 0 0 46px;
-            width: 46px;
-            height: 46px;
-            place-items: center;
-            border-radius: 15px;
-            background: var(--sq);
-            color: var(--in)
-        }
-
-        html[data-view="shop"] #m .shopping-list-summary-icon svg,
-        html[data-view="shop"] #m .shopping-list-summary > svg {
-            width: 19px;
-            height: 19px
-        }
-
-        html[data-view="shop"] #m .shopping-list-summary-copy {
-            display: grid;
-            flex: 1;
-            gap: 3px;
-            font-weight: 400
-        }
-
-        html[data-view="shop"] #m .shopping-list-summary-copy b {
-            overflow-wrap: anywhere;
-            color: var(--tx);
-            font-size: 14px
-        }
-
-        html[data-view="shop"] #m .shopping-list-summary-copy small {
-            color: var(--mu);
-            font-size: 11px
-        }
-
-        html[data-view="shop"] #m .shopping-list-summary .shopping-list-summary-amount {
-            color: var(--in);
-            font-size: 14px
-        }
-
-        html[data-view="shop"] #m .shopping-list-summary > svg {
-            flex: none;
-            color: var(--mu)
-        }
-
-        html[data-view="shop"] #m .shopping-list-detail {
-            gap: 16px;
-            padding: 18px;
-            border-radius: 20px
-        }
-
-        html[data-view="shop"] #m .shopping-list-total {
-            padding: 16px;
-            border-radius: 15px;
-            background: var(--sq)
-        }
-
-        html[data-view="shop"] #m .shopping-list-total b {
-            color: var(--in);
-            font-size: 19px
-        }
-
-        html[data-view="shop"] #m .shopping-list-expense {
-            flex-wrap: wrap;
-            gap: 10px
-        }
-
-        html[data-view="rec"] #m .recurring-section-heading {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin: 22px 0 12px
-        }
-
-        html[data-view="rec"] #m .recurring-section-heading small {
-            color: var(--mu)
-        }
-
-        html[data-view="rec"] #m > .g {
-            grid-template-columns: minmax(0, 1fr)
-        }
-
-        html[data-view="rec"] #m > .g > .card {
-            padding: 18px;
-            border-radius: 19px
-        }
 
         #ov.form-open {
             background: var(--bg)
@@ -5614,14 +1978,15 @@
             border-radius: 14px;
             background: var(--sq);
             color: var(--tx)
-        }
+        }@media(max-width:760px) {
 
-        @media(max-width:760px) {
             #ov.form-open,
             #ov.quick-add-open {
                 align-items: stretch;
                 padding: 0
             }
+}@media(max-width:760px) {
+
 
             #ov.form-open > div,
             #ov.quick-add-open > div {
@@ -5631,27 +1996,33 @@
                 border: 0;
                 border-radius: 0
             }
+}@media(max-width:760px) {
+
 
             #f {
                 padding-bottom: env(safe-area-inset-bottom, 0px)
             }
+}@media(max-width:760px) {
+
 
             .form-screen-header {
                 padding-top: calc(8px + env(safe-area-inset-top, 0px))
             }
+}@media(max-width:760px) {
+
 
             #f > .row.end {
                 padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px))
             }
+}@media(max-width:760px) {
+
 
             .quick-add-options {
                 padding-top: 16px
             }
-        }
-
+}
         :root[data-theme=dark] #f > .row.end .b1,
-        :root[data-theme=dark] #ov.quick-add-open .quick-add-options > button:hover,
-        html[data-theme=dark][data-view="rep"] #m .report-filter-toolbar .b2 {
+:root[data-theme=dark] #ov.quick-add-open .quick-add-options > button:hover{
             border-color: transparent;
             background: #b8ef76;
             color: #122016
@@ -5663,16 +2034,15 @@
             border-color: transparent;
             background: #203329;
             color: #f2f6f3
-        }
-
-        @media(prefers-color-scheme:dark) {
-            :root:not([data-theme=light]) #f > .row.end .b1,
-            :root:not([data-theme=light]) #ov.quick-add-open .quick-add-options > button:hover,
-            html:not([data-theme=light])[data-view="rep"] #m .report-filter-toolbar .b2 {
+        }@media(prefers-color-scheme:dark) {
+:root:not([data-theme=light]) #f > .row.end .b1,
+:root:not([data-theme=light]) #ov.quick-add-open .quick-add-options > button:hover{
                 border-color: transparent;
                 background: #b8ef76;
                 color: #122016
             }
+}@media(prefers-color-scheme:dark) {
+
 
             :root:not([data-theme=light]) #f > .row.end .b2,
             :root:not([data-theme=light]) .form-screen-header button,
@@ -5681,152 +2051,20 @@
                 background: #203329;
                 color: #f2f6f3
             }
-        }
+}
 
-        html[data-view="bud"] #m > .g.g2,
-        html[data-view="goal"] #m > .g.g2,
-        html[data-view="set"] #m > .g.g2,
-        html[data-view="prof"] #m > .g.g2 {
-            align-items: start;
-            gap: 14px
-        }
-
-        html[data-view="bud"] #m > .g > .card,
-        html[data-view="goal"] #m .goal-card,
-        html[data-view="set"] #m > .g > .card,
-        html[data-view="prof"] #m .profile-layout > .card {
-            padding: 18px;
-            border-radius: 20px
-        }
-
-        html[data-view="bud"] #m .bar,
-        html[data-view="goal"] #m .bar {
-            height: 10px;
-            margin: 14px 0 10px;
-            background: var(--sq)
-        }
-
-        html[data-view="goal"] #m .goal-amount {
-            margin: 15px 0 0;
-            font-size: 28px;
-            font-weight: 750;
-            letter-spacing: -.04em
-        }
-
-        html[data-view="goal"] #m .goal-details-row {
-            margin-top: 12px
-        }
-
-        html[data-view="goal"] #m .goal-details-row .chip {
-            min-height: 38px;
-            padding: 8px 12px;
-            border: 0;
-            border-radius: 13px
-        }
-
-        html[data-view="goal"] #m .goal-estimate {
-            margin-top: 10px;
-            color: var(--mu)
-        }
-
-        html[data-view="set"] #m .card h3,
-        html[data-view="prof"] #m .card h3 {
-            margin-top: 0;
-            font-size: 15px
-        }
-
-        html[data-view="set"] #m .settings-preference-row {
-            min-height: 52px;
-            border-color: var(--bd)
-        }
-
-        html[data-view="set"] #m .settings-actions {
-            gap: 9px
-        }
-
-        html[data-view="set"] #m .settings-actions .b2 {
-            min-height: 46px;
-            border-radius: 14px
-        }
-
-        html[data-view="prof"] #m .profile-layout > .profile-card {
-            border-top: 0
-        }
-
-        @media(max-width:760px) {
-            html[data-view="bud"] #m > .g.g2,
-            html[data-view="goal"] #m > .g.g2,
-            html[data-view="set"] #m > .g.g2,
-            html[data-view="prof"] #m > .g.g2 {
-                grid-template-columns: minmax(0, 1fr)
-            }
-
-            html[data-view="set"] #m .settings-actions {
-                grid-template-columns: minmax(0, 1fr)
-            }
-        }
-
-        html[data-theme=dark][data-view="bud"] #m .b1,
-        html[data-theme=dark][data-view="goal"] #m .b1,
-        html[data-theme=dark][data-view="shop"] #m .b1,
-        html[data-theme=dark][data-view="rec"] #m .b1,
-        html[data-theme=dark][data-view="cash"] #m .b1,
-        html[data-theme=dark][data-view="rep"] #m .b1,
-        html[data-theme=dark][data-view="set"] #m .b1,
-        html[data-theme=dark][data-view="prof"] #m .b1,
-        html[data-theme=dark] .dashboard-add-button,
-        html[data-theme=dark] .transaction-add-button,
-        html[data-theme=dark] body > .fab,
-        html[data-theme=dark][data-view="onboarding"] #m .onboarding-primary {
+        html[data-theme=dark] body > .fab{
             border-color: transparent;
             background: #b8ef76;
             color: #122016
-        }
-
-        html[data-theme=dark][data-view="bud"] #m .b2,
-        html[data-theme=dark][data-view="goal"] #m .b2,
-        html[data-theme=dark][data-view="shop"] #m .b2,
-        html[data-theme=dark][data-view="rec"] #m .b2,
-        html[data-theme=dark][data-view="cash"] #m .b2,
-        html[data-theme=dark][data-view="rep"] #m .b2,
-        html[data-theme=dark][data-view="set"] #m .b2,
-        html[data-theme=dark][data-view="prof"] #m .b2 {
-            border-color: transparent;
-            background: #203329;
-            color: #f2f6f3
-        }
-
-        @media(prefers-color-scheme:dark) {
-            html:not([data-theme=light])[data-view="bud"] #m .b1,
-            html:not([data-theme=light])[data-view="goal"] #m .b1,
-            html:not([data-theme=light])[data-view="shop"] #m .b1,
-            html:not([data-theme=light])[data-view="rec"] #m .b1,
-            html:not([data-theme=light])[data-view="cash"] #m .b1,
-            html:not([data-theme=light])[data-view="rep"] #m .b1,
-            html:not([data-theme=light])[data-view="set"] #m .b1,
-            html:not([data-theme=light])[data-view="prof"] #m .b1,
-            html:not([data-theme=light]) .dashboard-add-button,
-            html:not([data-theme=light]) .transaction-add-button,
-            html:not([data-theme=light]) body > .fab,
-            html:not([data-theme=light])[data-view="onboarding"] #m .onboarding-primary {
+        }@media(prefers-color-scheme:dark) {
+html:not([data-theme=light]) body > .fab{
                 border-color: transparent;
                 background: #b8ef76;
                 color: #122016
             }
+}
 
-            html:not([data-theme=light])[data-view="bud"] #m .b2,
-            html:not([data-theme=light])[data-view="goal"] #m .b2,
-            html:not([data-theme=light])[data-view="shop"] #m .b2,
-            html:not([data-theme=light])[data-view="rec"] #m .b2,
-            html:not([data-theme=light])[data-view="cash"] #m .b2,
-            html:not([data-theme=light])[data-view="rep"] #m .b2,
-            html:not([data-theme=light])[data-view="set"] #m .b2,
-            html:not([data-theme=light])[data-view="prof"] #m .b2 {
-                border-color: transparent;
-                background: #203329;
-                color: #f2f6f3
-            }
-        }
 
         #f.pocket-account-form .form-screen-header {
             min-height: 64px;
@@ -5874,11 +2112,6 @@
             background: var(--cd)
         }
 
-        #f.pocket-account-form .account-balance-card {
-            margin-bottom: 2px;
-            padding-bottom: 30px
-        }
-
         #f.pocket-account-form .account-form-card label {
             display: grid;
             min-width: 0;
@@ -5886,10 +2119,6 @@
             color: var(--mu);
             font-size: 12px;
             font-weight: 600
-        }
-
-        #f.pocket-account-form .account-balance-card > label {
-            gap: 3px
         }
 
         #f.pocket-account-form .account-color-card {
@@ -5977,20 +2206,22 @@
         #f.pocket-account-form .color-swatch[aria-pressed=true] {
             padding: 2px;
             border-color: var(--tx)
-        }
+        }@media(max-width:380px) {
 
-        @media(max-width:380px) {
             #f.pocket-account-form .color-swatches {
                 grid-template-columns: repeat(6, minmax(0, 1fr));
                 column-gap: 12px
             }
+}@media(max-width:380px) {
+
 
             #f.pocket-account-form .color-swatch {
                 width: 100%;
                 height: auto;
                 min-width: 0
             }
-        }
+}
+
 
         #f.pocket-account-form .account-color-code-row {
             display: block
@@ -6084,315 +2315,6 @@
             border-radius: 14px
         }
 
-        #m[data-view="bud"] > .budgets-heading {
-            align-items: flex-start
-        }
-
-        #m[data-view="bud"] .budgets-heading-copy {
-            display: grid;
-            gap: 5px;
-            min-width: 0
-        }
-
-        #m[data-view="bud"] .budgets-heading-copy > small {
-            color: var(--mu);
-            font-size: 10px;
-            font-weight: 700;
-            letter-spacing: .12em
-        }
-
-        #m[data-view="bud"] .budgets-heading-copy h2 {
-            margin: 0;
-            font-size: 30px;
-            letter-spacing: -.04em
-        }
-
-        .budgets-page {
-            width: 100%;
-            max-width: 640px;
-            margin: 0 auto;
-            padding-bottom: 140px
-        }
-
-        .budgets-month {
-            display: flex;
-            min-height: 48px;
-            align-items: center;
-            justify-content: center;
-            gap: 18px;
-            margin: 0 0 16px
-        }
-
-        .budgets-month > strong {
-            min-width: 148px;
-            color: var(--tx);
-            font-size: 16px;
-            text-align: center
-        }
-
-        .budgets-month-button {
-            display: grid;
-            width: 36px;
-            height: 36px;
-            place-items: center;
-            padding: 0;
-            border: 1px solid var(--bd);
-            border-radius: 11px;
-            background: var(--cd);
-            color: var(--mu);
-            cursor: pointer
-        }
-
-        .budgets-month-button:hover,
-        .budgets-month-button:focus-visible {
-            color: var(--tx)
-        }
-
-        .budgets-month-button:focus-visible,
-        .budget-card-menu summary:focus-visible,
-        .budget-card-menu-options button:focus-visible {
-            outline: 2px solid var(--in);
-            outline-offset: 2px
-        }
-
-        .budgets-month-button .ic {
-            width: 18px;
-            height: 18px
-        }
-
-        .budgets-overview-alert {
-            display: flex;
-            align-items: flex-start;
-            gap: 12px;
-            margin: 0 0 16px;
-            padding: 15px 16px;
-            border: 1px solid #554829;
-            border-radius: 17px;
-            background: #30291b;
-            color: #f0cf75
-        }
-
-        .budgets-overview-alert-icon {
-            display: grid;
-            width: 22px;
-            height: 22px;
-            flex: none;
-            place-items: center;
-            margin-top: 1px
-        }
-
-        .budgets-overview-alert-icon .ic {
-            width: 19px;
-            height: 19px
-        }
-
-        .budgets-overview-alert > div {
-            display: grid;
-            gap: 3px;
-            min-width: 0
-        }
-
-        .budgets-overview-alert b {
-            font-size: 14px
-        }
-
-        .budgets-overview-alert small {
-            color: #d6bd79;
-            font-size: 12px;
-            line-height: 1.45
-        }
-
-        .budgets-list {
-            display: grid;
-            gap: 12px
-        }
-
-        #m[data-view="bud"] .budget-card {
-            min-width: 0;
-            padding: 16px 18px;
-            border: 1px solid var(--bd);
-            border-radius: 18px;
-            background: var(--cd);
-            box-shadow: none
-        }
-
-        .budget-card-heading {
-            display: flex;
-            min-height: 30px;
-            align-items: center;
-            gap: 10px
-        }
-
-        .budget-card-icon {
-            display: grid;
-            width: 24px;
-            height: 24px;
-            flex: none;
-            place-items: center;
-            color: var(--budget-icon-color)
-        }
-
-        .budget-card-icon .ic {
-            width: 21px;
-            height: 21px
-        }
-
-        .budget-card-heading > b {
-            min-width: 0;
-            overflow: hidden;
-            color: var(--tx);
-            font-size: 15px;
-            font-weight: 650;
-            text-overflow: ellipsis;
-            white-space: nowrap
-        }
-
-        .budget-card-menu {
-            position: relative;
-            flex: none;
-            margin-left: auto
-        }
-
-        .budget-card-menu summary {
-            display: grid;
-            width: 32px;
-            height: 32px;
-            place-items: center;
-            border-radius: 9px;
-            color: var(--mu);
-            cursor: pointer;
-            list-style: none
-        }
-
-        .budget-card-menu summary::-webkit-details-marker {
-            display: none
-        }
-
-        .budget-card-menu summary:hover,
-        .budget-card-menu[open] summary {
-            background: var(--sq);
-            color: var(--tx)
-        }
-
-        .budget-card-menu summary .ic {
-            width: 19px;
-            height: 19px
-        }
-
-        .budget-card-menu-options {
-            position: absolute;
-            top: calc(100% + 5px);
-            right: 0;
-            z-index: 8;
-            display: grid;
-            width: 172px;
-            gap: 3px;
-            padding: 6px;
-            border: 1px solid var(--bd);
-            border-radius: 12px;
-            background: var(--cd);
-            box-shadow: 0 10px 24px #0005
-        }
-
-        .budget-card-menu-options button {
-            display: flex;
-            min-height: 38px;
-            align-items: center;
-            gap: 9px;
-            padding: 7px 9px;
-            border: 0;
-            border-radius: 8px;
-            background: transparent;
-            color: var(--tx);
-            font: inherit;
-            font-size: 13px;
-            text-align: left;
-            cursor: pointer
-        }
-
-        .budget-card-menu-options button:hover {
-            background: var(--sq)
-        }
-
-        .budget-card-menu-options button:last-child {
-            color: var(--ex)
-        }
-
-        .budget-card-menu-options .ic {
-            width: 17px;
-            height: 17px;
-            flex: none
-        }
-
-        .budget-card-amounts {
-            display: flex;
-            align-items: flex-end;
-            justify-content: space-between;
-            gap: 12px;
-            margin-top: 8px
-        }
-
-        .budget-card-amounts > div {
-            display: grid;
-            gap: 2px
-        }
-
-        .budget-card-amounts small,
-        .budget-card-footer small {
-            color: var(--mu);
-            font-size: 11px
-        }
-
-        .budget-card-amounts strong {
-            color: var(--tx);
-            font-size: 18px;
-            font-weight: 700;
-            letter-spacing: -.025em
-        }
-
-        .budget-card-amounts > small {
-            padding-bottom: 2px;
-            text-align: right
-        }
-
-        .budget-card-amounts > small b {
-            color: var(--tx);
-            font-weight: 600
-        }
-
-        #m[data-view="bud"] .budget-card .bar {
-            height: 7px;
-            margin: 11px 0 8px;
-            overflow: hidden;
-            border-radius: 999px;
-            background: var(--sq)
-        }
-
-        #m[data-view="bud"] .budget-card .bar i {
-            display: block;
-            height: 100%;
-            border-radius: inherit
-        }
-
-        .budget-card-footer {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px
-        }
-
-        .budget-card-footer > b {
-            font-size: 12px;
-            font-weight: 700
-        }
-
-        #m[data-view="bud"] .budgets-empty {
-            padding: 24px 18px;
-            border: 1px dashed var(--bd);
-            color: var(--mu);
-            text-align: center
-        }
-
         #f.pocket-budget-form .form-screen-header {
             min-height: 64px;
             padding: 8px 24px 4px
@@ -6417,100 +2339,6 @@
             margin-top: 7px;
             font-size: 13px;
             line-height: 1.5
-        }
-
-        #f.pocket-budget-form .budget-form-fields {
-            display: flex;
-            flex-direction: column;
-            gap: 14px;
-            padding: 0 24px 12px
-        }
-
-        #f.pocket-budget-form .budget-form-fields > .er {
-            width: 100%;
-            margin: 0;
-            padding: 0 2px
-        }
-
-        #f.pocket-budget-form .budget-form-fields > .er[hidden] {
-            display: none
-        }
-
-        #f.pocket-budget-form .budget-form-card {
-            display: grid;
-            gap: 17px;
-            padding: 20px;
-            border-radius: 20px;
-            background: var(--cd)
-        }
-
-        #f.pocket-budget-form .budget-form-card > label {
-            display: grid;
-            min-width: 0;
-            gap: 8px;
-            margin: 0;
-            color: var(--mu);
-            font-size: 12px;
-            font-weight: 600
-        }
-
-        #f.pocket-budget-form .budget-amount-input {
-            display: flex;
-            min-width: 0;
-            min-height: 52px;
-            align-items: center;
-            gap: 7px;
-            padding: 0 14px;
-            border: 1px solid var(--bd);
-            border-radius: 12px;
-            background: var(--sq);
-            color: var(--mu);
-            font-size: 14px
-        }
-
-        #f.pocket-budget-form .budget-amount-input input {
-            width: 100%;
-            min-width: 0;
-            min-height: 0;
-            padding: 0;
-            border: 0;
-            outline: 0;
-            background: transparent;
-            color: var(--tx);
-            font: inherit;
-            font-size: 14px
-        }
-
-        #f.pocket-budget-form .budget-amount-input:focus-within {
-            border-color: var(--in);
-            box-shadow: 0 0 0 2px color-mix(in srgb, var(--in) 18%, transparent)
-        }
-
-        #f.pocket-budget-form .budget-form-note {
-            display: flex;
-            align-items: flex-start;
-            padding: 16px;
-            border: 1px solid color-mix(in srgb, var(--in) 20%, transparent);
-            border-radius: 17px;
-            background: color-mix(in srgb, var(--in) 10%, var(--cd))
-        }
-
-        #f.pocket-budget-form .budget-form-note > div {
-            display: grid;
-            gap: 4px;
-            padding-top: 1px
-        }
-
-        #f.pocket-budget-form .budget-form-note b {
-            color: var(--tx);
-            font-size: 13px
-        }
-
-        #f.pocket-budget-form .budget-form-note p {
-            margin: 0;
-            color: var(--mu);
-            font-size: 12px;
-            line-height: 1.45
         }
 
         #f.pocket-budget-form > .row.end {
@@ -6607,673 +2435,15 @@
             width: 100%;
             min-height: 52px;
             border-radius: 14px
-        }
+        }@media (max-width: 760px) {
 
-        @media (max-width: 760px) {
-            #m[data-view="bud"] {
-                padding: 20px 24px 154px
-            }
-
-            #m[data-view="bud"] .budgets-page {
-                padding-bottom: 8px
-            }
-
-            html[data-view="bud"] .fab.pocket-fab-labeled {
-                right: 24px;
-                bottom: calc(96px + env(safe-area-inset-bottom, 0px));
-                left: 24px;
-                width: auto;
-                min-width: 0;
-                height: 52px;
-                justify-content: center;
-                padding: 0 16px;
-                border-radius: 15px
-            }
 
             #f.pocket-budget-form .form-screen-intro p {
                 max-width: 320px
             }
-        }
+}
 
-        #m[data-view="cash"] > .cashback-header {
-            align-items: flex-start;
-            margin-top: -24px;
-            padding: 24px 0 0
-        }
 
-        #m[data-view="cash"] .cashback-heading-copy {
-            display: grid;
-            order: 1;
-            gap: 14px;
-            min-width: 0
-        }
-
-        #m[data-view="cash"] .cashback-eyebrow {
-            color: var(--in);
-            font-size: 10px;
-            font-weight: 600;
-            letter-spacing: .04em
-        }
-
-        #m[data-view="cash"] .cashback-heading-copy h2 {
-            margin: 0;
-            font-size: 30px;
-            line-height: 1.15;
-            letter-spacing: -.035em
-        }
-
-        #m[data-view="cash"] .cashback-header .page-menu-toggle {
-            order: 2;
-            margin: 5px 0 0 auto
-        }
-
-        #m[data-view="cash"] .cashback-header .pocket-profile-button {
-            display: none
-        }
-
-        html[data-view="cash"] #m .cashback-summary {
-            display: grid;
-            grid-template-columns: minmax(0, 1fr);
-            align-content: space-between;
-            gap: 0;
-            min-height: 152px;
-            margin: 34px 0 21px;
-            padding: 22px 20px;
-            border: 0;
-            border-radius: 20px;
-            background: #203c2a
-        }
-
-        html[data-view="cash"] #m .cashback-summary > small,
-        html[data-view="cash"] #m .cashback-summary > span {
-            color: var(--mu);
-            font-size: 12px
-        }
-
-        html[data-view="cash"] #m .cashback-summary > b {
-            color: var(--in);
-            font-size: 36px;
-            line-height: 1.15;
-            letter-spacing: -.04em
-        }
-
-        #m[data-view="cash"] .cashback-section-heading {
-            align-items: center;
-            justify-content: flex-start;
-            gap: 8px;
-            margin: 22px 0 23px
-        }
-
-        #m[data-view="cash"] .cashback-section-heading .cashback-subtitle {
-            margin: 0;
-            color: var(--tx);
-            font-size: 16px;
-            font-weight: 650
-        }
-
-        #m[data-view="cash"] .cashback-count {
-            min-width: 0;
-            height: auto;
-            padding: 0;
-            background: transparent;
-            color: var(--in);
-            font-size: 12px
-        }
-
-        #m[data-view="cash"] .cashback-section-menu {
-            position: relative;
-            flex: none;
-            margin-left: auto
-        }
-
-        #m[data-view="cash"] .cashback-section-menu summary {
-            display: grid;
-            width: 32px;
-            height: 32px;
-            place-items: center;
-            border-radius: 9px;
-            color: var(--mu);
-            cursor: pointer;
-            list-style: none
-        }
-
-        #m[data-view="cash"] .cashback-section-menu summary::-webkit-details-marker {
-            display: none
-        }
-
-        #m[data-view="cash"] .cashback-section-menu summary:hover,
-        #m[data-view="cash"] .cashback-section-menu[open] summary {
-            background: var(--sq);
-            color: var(--tx)
-        }
-
-        #m[data-view="cash"] .cashback-section-menu summary:focus-visible,
-        #m[data-view="cash"] .cashback-section-menu-actions button:focus-visible {
-            outline: 2px solid var(--in);
-            outline-offset: 2px
-        }
-
-        #m[data-view="cash"] .cashback-section-menu summary .ic {
-            width: 19px;
-            height: 19px
-        }
-
-        #m[data-view="cash"] .cashback-section-menu-options {
-            position: absolute;
-            top: calc(100% + 5px);
-            right: 0;
-            z-index: 12;
-            display: grid;
-            width: min(260px, calc(100vw - 48px));
-            max-height: min(60vh, 360px);
-            overflow-y: auto;
-            gap: 4px;
-            padding: 6px;
-            border: 1px solid var(--bd);
-            border-radius: 12px;
-            background: var(--cd);
-            box-shadow: 0 10px 24px #0005
-        }
-
-        #m[data-view="cash"] .cashback-section-menu-item {
-            display: grid;
-            gap: 6px;
-            padding: 7px
-        }
-
-        #m[data-view="cash"] .cashback-section-menu-item + .cashback-section-menu-item {
-            border-top: 1px solid var(--bd)
-        }
-
-        #m[data-view="cash"] .cashback-section-menu-item-label {
-            display: flex;
-            align-items: flex-start;
-            justify-content: space-between;
-            gap: 8px
-        }
-
-        #m[data-view="cash"] .cashback-section-menu-item-label b {
-            min-width: 0;
-            overflow-wrap: anywhere;
-            color: var(--tx);
-            font-size: 12px;
-            font-weight: 600
-        }
-
-        #m[data-view="cash"] .cashback-section-menu-item-label span {
-            flex: none;
-            color: var(--in);
-            font-size: 12px;
-            font-weight: 650
-        }
-
-        #m[data-view="cash"] .cashback-section-menu-actions {
-            display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 5px
-        }
-
-        #m[data-view="cash"] .cashback-section-menu-actions button {
-            display: flex;
-            min-width: 0;
-            min-height: 36px;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            padding: 6px;
-            border: 0;
-            border-radius: 8px;
-            background: var(--sq);
-            color: var(--tx);
-            font: inherit;
-            font-size: 12px;
-            cursor: pointer
-        }
-
-        #m[data-view="cash"] .cashback-section-menu-actions button:last-child {
-            color: var(--ex)
-        }
-
-        #m[data-view="cash"] .cashback-section-menu-actions .ic {
-            width: 15px;
-            height: 15px;
-            flex: none
-        }
-
-        #m[data-view="cash"] .cashback-list {
-            grid-template-columns: minmax(0, 1fr);
-            gap: 12px
-        }
-
-        #m[data-view="cash"] .cashback-card {
-            display: grid;
-            gap: 16px;
-            min-width: 0;
-            padding: 20px;
-            border: 0;
-            border-radius: 20px;
-            background: var(--cd)
-        }
-
-        #m[data-view="cash"] .cashback-card-heading {
-            grid-template-columns: 26px minmax(0, 1fr) auto;
-            gap: 10px
-        }
-
-        #m[data-view="cash"] .cashback-card-icon {
-            display: grid;
-            width: 24px;
-            height: 24px;
-            place-items: center;
-            color: var(--mu)
-        }
-
-        #m[data-view="cash"] .cashback-card-icon .ic {
-            width: 22px;
-            height: 22px
-        }
-
-        #m[data-view="cash"] .cashback-card-title {
-            gap: 4px
-        }
-
-        #m[data-view="cash"] .cashback-card-title b {
-            color: var(--tx);
-            font-size: 15px;
-            font-weight: 650
-        }
-
-        #m[data-view="cash"] .cashback-card-title small {
-            color: var(--mu);
-            font-size: 11px
-        }
-
-        #m[data-view="cash"] .cashback-amount {
-            max-width: none;
-            color: var(--in);
-            font-size: 19px;
-            font-weight: 700
-        }
-
-        #m[data-view="cash"] .cashback-card-meta {
-            display: grid;
-            grid-template-columns: minmax(0, 1fr);
-            gap: 10px;
-            padding: 0;
-            border: 0
-        }
-
-        #m[data-view="cash"] .cashback-card-meta > div {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px
-        }
-
-        #m[data-view="cash"] .cashback-card-meta small {
-            color: var(--mu);
-            font-size: 12px
-        }
-
-        #m[data-view="cash"] .cashback-card-meta b {
-            color: var(--tx);
-            font-size: 13px;
-            font-weight: 500;
-            text-align: right
-        }
-
-        #m[data-view="cash"] .cashback-card-actions button {
-            width: 100%;
-            min-height: 52px;
-            padding: 0 14px;
-            border: 0;
-            border-radius: 14px;
-            background: #203329;
-            color: var(--tx);
-            font: inherit;
-            font-size: 14px;
-            font-weight: 650;
-            cursor: pointer
-        }
-
-        #m[data-view="cash"] .cashback-card-actions button:hover {
-            background: #263a2d
-        }
-
-        #m[data-view="cash"] .cashback-empty {
-            padding: 20px;
-            border: 1px solid var(--bd);
-            border-radius: 20px;
-            background: var(--cd);
-            color: var(--mu);
-            line-height: 1.5
-        }
-
-        @media (max-width: 760px) {
-            #m[data-view="cash"] {
-                padding: 20px 24px 154px
-            }
-
-            #m[data-view="cash"] > .cashback-header {
-                margin-top: -20px;
-                padding-top: 24px
-            }
-
-            html[data-view="cash"] .fab.pocket-fab-labeled {
-                right: 24px;
-                bottom: calc(96px + env(safe-area-inset-bottom, 0px));
-                left: 24px;
-                width: auto;
-                min-width: 0;
-                height: 52px;
-                justify-content: center;
-                padding: 0 16px;
-                border-radius: 15px
-            }
-        }
-
-        #m[data-view="rec"] > .recurring-header {
-            align-items: flex-start;
-            margin-top: -24px;
-            padding: 24px 0 0
-        }
-
-        #m[data-view="rec"] .recurring-heading-copy {
-            display: grid;
-            order: 1;
-            gap: 14px;
-            min-width: 0
-        }
-
-        #m[data-view="rec"] .recurring-heading-copy > small {
-            color: var(--in);
-            font-size: 10px;
-            font-weight: 600;
-            letter-spacing: .04em
-        }
-
-        #m[data-view="rec"] .recurring-heading-copy h2 {
-            margin: 0;
-            font-size: 30px;
-            line-height: 1.15;
-            letter-spacing: -.035em
-        }
-
-        #m[data-view="rec"] .recurring-heading-copy p {
-            max-width: 330px;
-            margin: 0;
-            color: var(--mu);
-            font-size: 12px;
-            line-height: 1.5
-        }
-
-        #m[data-view="rec"] .recurring-header .page-menu-toggle {
-            order: 2;
-            margin: 5px 0 0 auto
-        }
-
-        #m[data-view="rec"] .recurring-header .pocket-profile-button {
-            display: none
-        }
-
-        #m[data-view="rec"] .recurring-section-heading {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px;
-            margin: 24px 0 12px
-        }
-
-        #m[data-view="rec"] .recurring-section-heading b {
-            color: var(--tx);
-            font-size: 16px;
-            font-weight: 650
-        }
-
-        #m[data-view="rec"] .recurring-section-heading small {
-            color: var(--mu);
-            font-size: 12px
-        }
-
-        #m[data-view="rec"] .recurring-list {
-            display: grid;
-            grid-template-columns: minmax(0, 1fr);
-            gap: 12px
-        }
-
-        #m[data-view="rec"] .recurring-card {
-            display: grid;
-            min-width: 0;
-            gap: 16px;
-            padding: 20px;
-            border: 0;
-            border-radius: 20px;
-            background: var(--cd)
-        }
-
-        #m[data-view="rec"] .recurring-card-heading {
-            display: grid;
-            grid-template-columns: 26px minmax(0, 1fr) 32px;
-            align-items: center;
-            gap: 10px
-        }
-
-        #m[data-view="rec"] .recurring-card-icon {
-            display: grid;
-            width: 24px;
-            height: 24px;
-            place-items: center;
-            color: var(--mu)
-        }
-
-        #m[data-view="rec"] .recurring-card-icon .ic {
-            width: 22px;
-            height: 22px
-        }
-
-        #m[data-view="rec"] .recurring-card-title {
-            display: grid;
-            min-width: 0;
-            gap: 4px
-        }
-
-        #m[data-view="rec"] .recurring-card-title b {
-            overflow-wrap: anywhere;
-            color: var(--tx);
-            font-size: 15px;
-            font-weight: 650
-        }
-
-        #m[data-view="rec"] .recurring-card-title small {
-            overflow-wrap: anywhere;
-            color: var(--mu);
-            font-size: 11px
-        }
-
-        #m[data-view="rec"] .recurring-card-menu {
-            position: relative;
-            justify-self: end
-        }
-
-        #m[data-view="rec"] .recurring-card-menu summary {
-            display: grid;
-            width: 32px;
-            height: 32px;
-            place-items: center;
-            border-radius: 10px;
-            color: var(--mu);
-            list-style: none;
-            cursor: pointer
-        }
-
-        #m[data-view="rec"] .recurring-card-menu summary::-webkit-details-marker {
-            display: none
-        }
-
-        #m[data-view="rec"] .recurring-card-menu summary:hover,
-        #m[data-view="rec"] .recurring-card-menu[open] summary {
-            background: var(--sq);
-            color: var(--tx)
-        }
-
-        #m[data-view="rec"] .recurring-card-menu summary:focus-visible,
-        #m[data-view="rec"] .recurring-card-menu-items button:focus-visible,
-        #m[data-view="rec"] .recurring-toggle:focus-visible {
-            outline: 2px solid var(--in);
-            outline-offset: 2px
-        }
-
-        #m[data-view="rec"] .recurring-card-menu summary .dashboard-icon {
-            width: 19px;
-            height: 19px
-        }
-
-        #m[data-view="rec"] .recurring-card-menu-items {
-            position: absolute;
-            top: calc(100% + 5px);
-            right: 0;
-            z-index: 12;
-            display: grid;
-            width: 160px;
-            gap: 4px;
-            padding: 6px;
-            border: 1px solid var(--bd);
-            border-radius: 12px;
-            background: var(--cd);
-            box-shadow: 0 10px 24px #0005
-        }
-
-        #m[data-view="rec"] .recurring-card-menu-items button {
-            min-height: 38px;
-            padding: 8px 10px;
-            border: 0;
-            border-radius: 8px;
-            background: transparent;
-            color: var(--tx);
-            font: inherit;
-            font-size: 12px;
-            text-align: left;
-            cursor: pointer
-        }
-
-        #m[data-view="rec"] .recurring-card-menu-items button:hover {
-            background: var(--sq)
-        }
-
-        #m[data-view="rec"] .recurring-card-menu-items button:last-child {
-            color: var(--ex)
-        }
-
-        #m[data-view="rec"] .recurring-card-amount {
-            color: var(--tx);
-            font-size: 34px;
-            font-weight: 750;
-            letter-spacing: -.04em;
-            line-height: 1.1
-        }
-
-        #m[data-view="rec"] .recurring-card-details {
-            display: grid;
-            gap: 11px
-        }
-
-        #m[data-view="rec"] .recurring-card-detail {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px
-        }
-
-        #m[data-view="rec"] .recurring-card-detail > span {
-            color: var(--mu);
-            font-size: 12px
-        }
-
-        #m[data-view="rec"] .recurring-card-detail > b {
-            min-width: 0;
-            overflow-wrap: anywhere;
-            color: var(--tx);
-            font-size: 13px;
-            font-weight: 500;
-            text-align: right
-        }
-
-        #m[data-view="rec"] .recurring-card-detail > b.is-waiting {
-            color: var(--ex)
-        }
-
-        #m[data-view="rec"] .recurring-card-start {
-            color: var(--mu);
-            font-size: 11px
-        }
-
-        #m[data-view="rec"] .recurring-toggle {
-            width: 100%;
-            min-height: 52px;
-            padding: 0 14px;
-            border: 0;
-            border-radius: 14px;
-            background: #203329;
-            color: var(--tx);
-            font: inherit;
-            font-size: 14px;
-            font-weight: 650;
-            cursor: pointer
-        }
-
-        #m[data-view="rec"] .recurring-toggle:hover {
-            background: #263a2d
-        }
-
-        #m[data-view="rec"] .recurring-empty {
-            display: flex;
-            align-items: center;
-            gap: 13px;
-            padding: 20px;
-            border: 0;
-            border-radius: 20px;
-            background: var(--cd)
-        }
-
-        #m[data-view="rec"] .recurring-empty-icon {
-            display: grid;
-            width: 42px;
-            height: 42px;
-            flex: none;
-            place-items: center;
-            border-radius: 14px;
-            background: var(--sq);
-            color: var(--in)
-        }
-
-        #m[data-view="rec"] .recurring-empty-icon .ic {
-            width: 20px;
-            height: 20px
-        }
-
-        #m[data-view="rec"] .recurring-empty > div {
-            display: grid;
-            gap: 4px
-        }
-
-        #m[data-view="rec"] .recurring-empty b {
-            color: var(--tx);
-            font-size: 13px
-        }
-
-        #m[data-view="rec"] .recurring-empty small {
-            color: var(--mu);
-            font-size: 11px;
-            line-height: 1.45
-        }
-
-        #m[data-view="rec"] .recurring-note {
-            display: block;
-            margin-top: 12px;
-            color: var(--mu);
-            font-size: 10px;
-            line-height: 1.45
-        }
 
         #f.pocket-recurring-form .form-screen-header {
             min-height: 64px;
@@ -7392,15 +2562,4 @@
             width: 100%;
             min-height: 52px;
             border-radius: 14px
-        }
-
-        @media (max-width: 760px) {
-            #m[data-view="rec"] {
-                padding: 20px 24px 154px
-            }
-
-            #m[data-view="rec"] > .recurring-header {
-                margin-top: -20px;
-                padding-top: 24px
-            }
         }
