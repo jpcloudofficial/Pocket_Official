@@ -1,4 +1,12 @@
 :root[data-feature="tx"] { --pocket-feature-id: "tx"; }
+#f.pocket-transaction-form label[data-field="amount"]{
+    min-height: 150px;
+    padding: 14px 18px 16px;
+    border: 1px solid var(--bd);
+    border-radius: 20px;
+    background: var(--cd);
+    box-shadow: 0 12px 28px rgba(0, 0, 0, .20)
+}
 .pocket-fab-menu{
             position: fixed;
             right: 22px;
@@ -306,8 +314,7 @@ html[data-view="tx"] body::-webkit-scrollbar-thumb:hover{
             white-space: nowrap
         }
 #m[data-view="tx"] .transaction-filter-chip select:focus-visible,
-#m[data-view="tx"] .transaction-filters-toggle:focus-visible,
-#m[data-view="tx"] .transaction-add-button:focus-visible{
+#m[data-view="tx"] .transaction-filters-toggle:focus-visible{
             outline: 2px solid var(--in);
             outline-offset: 3px
         }
@@ -497,28 +504,6 @@ html[data-view="tx"] body::-webkit-scrollbar-thumb:hover{
             color: var(--mu);
             text-align: center
         }
-#m[data-view="tx"] .transaction-add-button{
-            display: flex;
-            width: 100%;
-            max-width: 760px;
-            min-height: 52px;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            margin: 20px auto 0;
-            border: 0;
-            border-radius: 14px;
-            background: #b8ef76;
-            color: #102015;
-            font: inherit;
-            font-size: 15px;
-            font-weight: 700;
-            cursor: pointer
-        }
-#m[data-view="tx"] .transaction-add-button:hover{
-            background: #c5f58f
-        }
-html[data-view="tx"] .fab,
 html[data-view="tx"] .pocket-fab-menu,
 html[data-view="tx"] .pocket-account-transfer{
             display: none !important
@@ -533,22 +518,5 @@ html[data-view="tx"] .pocket-account-transfer{
                 top: env(safe-area-inset-top, 0px);
                 margin-top: -20px;
                 padding: 20px 0 18px
-            }
-}
-@media (prefers-reduced-motion: reduce) {
-#m[data-view="tx"] .transaction-add-button{
-                transition: none
-            }
-}
-html[data-theme=dark] .transaction-add-button{
-            border-color: transparent;
-            background: #b8ef76;
-            color: #122016
-        }
-@media(prefers-color-scheme:dark) {
-html:not([data-theme=light]) .transaction-add-button{
-                border-color: transparent;
-                background: #b8ef76;
-                color: #122016
             }
 }

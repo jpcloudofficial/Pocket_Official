@@ -1,33 +1,4 @@
 :root[data-feature="rec"] { --pocket-feature-id: "rec"; }
-html[data-view="rec"] body > .fab{
-            right: 24px;
-            bottom: calc(88px + env(safe-area-inset-bottom, 0px));
-            left: 24px;
-            width: auto;
-            min-width: 0;
-            height: 52px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            padding: 0 16px;
-            border-radius: 15px;
-            background: #b8ef76;
-            color: #122016;
-            box-shadow: 0 4px 14px #0004;
-            font-size: 14px;
-            font-weight: 700;
-            transition: none;
-            transform: none
-        }
-html[data-view="rec"] body > .fab .fab-label{
-            display: inline;
-            font-weight: 700
-        }
-html[data-view="rec"] body > .fab svg{
-            width: 24px;
-            height: 24px
-        }
 html[data-view="rec"] #m .card{
             border-color: transparent;
             box-shadow: none

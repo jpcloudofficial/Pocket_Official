@@ -355,12 +355,17 @@
         }
         if (main.dataset.view === 'cash') {
           closeMenu(menu, fab);
-          if (typeof window.cashbackForm === 'function') window.cashbackForm();
+          if (typeof window.PocketFeatures?.cash?.openForm === 'function') window.PocketFeatures.cash.openForm();
           return;
         }
         if (main.dataset.view === 'shop') {
           closeMenu(menu, fab);
           if (typeof window.shoppingListFabAction === 'function') window.shoppingListFabAction();
+          return;
+        }
+        if (main.dataset.view === 'tx') {
+          closeMenu(menu, fab);
+          if (typeof window.primaryAdd === 'function') window.primaryAdd();
           return;
         }
         const opening = menu.classList.contains('pocket-hidden');
@@ -381,10 +386,10 @@
     const budgetPage = main.dataset.view === 'bud';
     const cashbackPage = main.dataset.view === 'cash';
     const shoppingPage = main.dataset.view === 'shop';
-    const hideFab = main.dataset.view === 'set' || main.dataset.view === 'rep' || main.dataset.view === 'prof' || shoppingPage;
+    const hideFab = main.dataset.view === 'set' || main.dataset.view === 'rep' || main.dataset.view === 'prof';
     const shoppingFabLabel = shoppingPage && typeof window.shoppingListFabLabel === 'function' ? window.shoppingListFabLabel() : 'Add list';
     const fabLabel = accountPage ? 'Add account' : recurringPage ? 'Add schedule' : categoryPage ? 'New category' : goalPage ? 'New goal' : budgetPage ? 'Add budget' : cashbackPage ? 'Add cashback' : shoppingPage ? shoppingFabLabel : 'Add transaction';
-    fab.classList.toggle('pocket-fab-labeled', accountPage || categoryPage || goalPage || budgetPage || cashbackPage || shoppingPage);
+    fab.classList.toggle('pocket-fab-labeled', !hideFab);
     fab.classList.toggle('pocket-hidden', hideFab);
     fab.setAttribute('aria-label', fabLabel);
     fab.title = fabLabel;

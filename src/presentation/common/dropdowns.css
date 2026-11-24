@@ -1,0 +1,307 @@
+.form-select-trigger {
+    width: 100%;
+    padding: 8px 36px 8px 10px;
+    border: 1px solid var(--bd);
+    border-radius: 10px;
+    background-color: var(--bg);
+    background-image: linear-gradient(45deg, transparent 50%, var(--mu) 50%), linear-gradient(135deg, var(--mu) 50%, transparent 50%);
+    background-position: calc(100% - 17px) 50%, calc(100% - 12px) 50%;
+    background-size: 5px 5px, 5px 5px;
+    background-repeat: no-repeat;
+    color: var(--tx);
+    font: inherit;
+    text-align: left;
+    cursor: pointer
+}
+
+.form-select-trigger:focus-visible,
+.pocket-select-option:focus-visible {
+    outline: 2px solid var(--in);
+    outline-offset: 2px
+}
+
+.pocket-select-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    background: transparent
+}
+
+.pocket-select-menu {
+    position: absolute;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    border: 1px solid var(--bd);
+    border-radius: 10px;
+    background: var(--cd);
+    box-shadow: 0 10px 28px #0006;
+    transform-origin: top center;
+    animation: pocket-dropdown-in .16s ease-out both
+}
+
+.pocket-select-menu.is-closing {
+    pointer-events: none;
+    animation: pocket-dropdown-out .12s ease-in both
+}
+
+@keyframes pocket-dropdown-in {
+    from {
+        opacity: 0;
+        transform: translateY(-5px) scale(.99)
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1)
+    }
+}
+
+@keyframes pocket-dropdown-out {
+    from {
+        opacity: 1;
+        transform: translateY(0) scale(1)
+    }
+
+    to {
+        opacity: 0;
+        transform: translateY(-4px) scale(.99)
+    }
+}
+
+.pocket-select-menu.opens-up {
+    transform-origin: bottom center;
+    animation-name: pocket-dropdown-in-up
+}
+
+.pocket-select-menu.opens-up.is-closing {
+    animation-name: pocket-dropdown-out-up
+}
+
+@keyframes pocket-dropdown-in-up {
+    from {
+        opacity: 0;
+        transform: translateY(5px) scale(.99)
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1)
+    }
+}
+
+@keyframes pocket-dropdown-out-up {
+    from {
+        opacity: 1;
+        transform: translateY(0) scale(1)
+    }
+
+    to {
+        opacity: 0;
+        transform: translateY(4px) scale(.99)
+    }
+}
+
+.pocket-select-menu::-webkit-scrollbar {
+    display: none
+}
+
+.pocket-select-option {
+    display: block;
+    width: 100%;
+    min-height: 48px;
+    padding: 12px 18px;
+    border: 0;
+    border-bottom: 1px solid var(--bd);
+    background: transparent;
+    color: var(--tx);
+    font: inherit;
+    text-align: left;
+    cursor: pointer
+}
+
+.pocket-select-option[aria-selected="true"] {
+    background: var(--sq);
+    font-weight: 700
+}
+
+.pocket-select-search-overlay {
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px));
+    background: #0009
+}
+
+.pocket-select-search-menu {
+    display: flex;
+    width: 100%;
+    max-width: 520px;
+    flex-direction: column;
+    gap: 12px;
+    overflow: hidden;
+    padding: 20px;
+    border-radius: 22px;
+    background: var(--cd);
+    box-shadow: 0 20px 60px #0008;
+    transform-origin: bottom center;
+    animation: pocket-select-search-in .18s ease-out both
+}
+
+.pocket-select-search-menu.is-closing {
+    animation: pocket-select-search-out .12s ease-in both
+}
+
+@keyframes pocket-select-search-in {
+    from {
+        opacity: 0;
+        transform: translateY(12px)
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0)
+    }
+}
+
+@keyframes pocket-select-search-out {
+    from {
+        opacity: 1;
+        transform: translateY(0)
+    }
+
+    to {
+        opacity: 0;
+        transform: translateY(12px)
+    }
+}
+
+.pocket-select-search-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px
+}
+
+.pocket-select-search-heading {
+    display: grid;
+    gap: 4px
+}
+
+.pocket-select-search-heading small {
+    color: var(--in);
+    font-size: 10px;
+    font-weight: 650;
+    letter-spacing: .08em
+}
+
+.pocket-select-search-heading h2 {
+    margin: 0;
+    color: var(--tx);
+    font-size: 20px;
+    line-height: 1.2
+}
+
+.pocket-select-search-close {
+    display: grid;
+    flex: none;
+    width: 36px;
+    height: 36px;
+    place-items: center;
+    border: 0;
+    border-radius: 11px;
+    background: var(--sq);
+    color: var(--tx);
+    cursor: pointer
+}
+
+.pocket-select-search-close .ic {
+    width: 19px;
+    height: 19px
+}
+
+.pocket-select-search-close:focus-visible {
+    outline: 2px solid var(--in);
+    outline-offset: 2px
+}
+
+.pocket-select-search-field {
+    display: flex;
+    min-height: 48px;
+    align-items: center;
+    gap: 9px;
+    padding: 0 13px;
+    border: 1px solid var(--bd);
+    border-radius: 14px;
+    background: var(--bg);
+    color: var(--mu)
+}
+
+.pocket-select-search-field > span {
+    display: grid;
+    flex: none;
+    place-items: center
+}
+
+.pocket-select-search-field .ic {
+    width: 18px;
+    height: 18px
+}
+
+.pocket-select-search-field input {
+    width: 100%;
+    min-width: 0;
+    padding: 0;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    color: var(--tx);
+    font: inherit;
+    font-size: 13px
+}
+
+.pocket-select-search-field input::placeholder {
+    color: var(--mu);
+    opacity: 1
+}
+
+.pocket-select-search-options {
+    min-height: 0;
+    flex: 1;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    border: 1px solid var(--bd);
+    border-radius: 14px;
+    background: var(--bg)
+}
+
+.pocket-select-search-options .pocket-select-option {
+    min-height: 48px;
+    padding: 12px 14px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap
+}
+
+.pocket-select-search-options .pocket-select-option[hidden] {
+    display: none
+}
+
+.pocket-select-search-empty {
+    margin: 0;
+    padding: 22px 12px;
+    color: var(--mu);
+    font-size: 13px;
+    text-align: center
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .pocket-select-menu,
+    .pocket-select-menu.is-closing,
+    .pocket-select-search-menu,
+    .pocket-select-search-menu.is-closing {
+        animation-duration: .01ms
+    }
+}
