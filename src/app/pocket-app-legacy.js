@@ -55,8 +55,6 @@ function syncDateInput(input) {
             ['actions', 'Quick actions', true],
             ['accounts', 'Accounts', true],
             ['transactions', 'Recent transactions', true],
-            ['incomeExpenses', 'Income vs. expenses report', true],
-            ['expensesByCategory', 'Expenses by category report', true],
             ['spendingTrend', 'Spending trend report', false],
             ['accountBalanceHistory', 'Account balance history report', false],
             ['monthlySavings', 'Monthly savings report', false]
@@ -508,210 +506,8 @@ function syncDateInput(input) {
             go('dash');
         }
 
-        function wireSelectPicker(select, trigger, label) {
-            const updateTrigger = () => {
-                const text = select.options[select.selectedIndex]?.textContent || '';
-                trigger.textContent = text;
-                trigger.setAttribute('aria-label', `${label}: ${text}`)
-            };
-            select.addEventListener('change', updateTrigger);
-            trigger.addEventListener('click', () => {
-                const overlay = document.createElement('div'),
-                    menu = document.createElement('div'),
-                    isTransactionFilter = Boolean(trigger.closest('.transaction-filters')),
-                    isCashbackTransactionPicker = Boolean(trigger.closest('#f.pocket-cashback-form') && select.name === 'expenseId');
-                overlay.className = 'pocket-select-overlay';
-                menu.className = 'pocket-select-menu';
-                if (isTransactionFilter) menu.classList.add('transaction-filter-menu');
-                if (isCashbackTransactionPicker) {
-                    overlay.classList.add('cashback-transaction-overlay');
-                    menu.classList.add('cashback-transaction-picker');
-                    menu.setAttribute('role', 'dialog');
-                    menu.setAttribute('aria-modal', 'true');
-                    menu.setAttribute('aria-labelledby', 'cashback-transaction-picker-title');
-                } else {
-                    menu.setAttribute('role', 'listbox');
-                    menu.setAttribute('aria-label', label);
-                }
-                let closing = false;
-                const closePicker = (restoreFocus = true) => {
-                    window.removeEventListener('scroll', closeOnScroll, true);
-                    window.removeEventListener('resize', closeOnResize);
-                    if (!overlay.isConnected || closing) return;
-                    closing = true;
-                    menu.classList.add('is-closing');
-                    trigger.setAttribute('aria-expanded', 'false');
-                    window.setTimeout(() => overlay.remove(),
-                        window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 140);
-                    if (restoreFocus && trigger.isConnected) trigger.focus({ preventScroll: true })
-                };
-                const closeOnScroll = event => {
-                    if (!menu.contains(event.target)) closePicker(false)
-                };
-                const closeOnResize = () => {
-                    if (isCashbackTransactionPicker) {
-                        menu.style.maxHeight = `${Math.min(window.innerHeight * .76, 640)}px`;
-                        return;
-                    }
-                    closePicker(false)
-                };
-                overlay.closePicker = closePicker;
-                overlay.addEventListener('click', event => {
-                    if (event.target === overlay) closePicker()
-                });
-                let optionsList = menu,
-                    searchInput,
-                    noResults;
-                if (isCashbackTransactionPicker) {
-                    const header = document.createElement('div'),
-                        heading = document.createElement('div'),
-                        eyebrow = document.createElement('small'),
-                        title = document.createElement('h2'),
-                        closeButton = document.createElement('button'),
-                        search = document.createElement('label'),
-                        searchIcon = document.createElement('span');
-                    header.className = 'cashback-transaction-picker-header';
-                    heading.className = 'cashback-transaction-picker-heading';
-                    eyebrow.textContent = 'TRACK A RETURN';
-                    title.id = 'cashback-transaction-picker-title';
-                    title.textContent = 'Choose transaction';
-                    closeButton.type = 'button';
-                    closeButton.className = 'cashback-transaction-picker-close';
-                    closeButton.setAttribute('aria-label', 'Close transaction picker');
-                    closeButton.innerHTML = ic('x');
-                    search.className = 'cashback-transaction-picker-search';
-                    searchIcon.setAttribute('aria-hidden', 'true');
-                    searchIcon.innerHTML = ic('search');
-                    searchInput = document.createElement('input');
-                    searchInput.type = 'search';
-                    searchInput.placeholder = 'Search transactions';
-                    searchInput.setAttribute('aria-label', 'Search transactions');
-                    searchInput.autocomplete = 'off';
-                    optionsList = document.createElement('div');
-                    optionsList.className = 'cashback-transaction-picker-options';
-                    optionsList.setAttribute('role', 'listbox');
-                    optionsList.setAttribute('aria-label', label);
-                    noResults = document.createElement('p');
-                    noResults.className = 'cashback-transaction-picker-empty';
-                    noResults.setAttribute('role', 'status');
-                    noResults.textContent = 'No matching transactions.';
-                    noResults.hidden = true;
-                    heading.append(eyebrow, title);
-                    header.append(heading, closeButton);
-                    search.append(searchIcon, searchInput);
-                    menu.append(header, search, optionsList, noResults);
-                    closeButton.addEventListener('click', () => closePicker());
-                }
-                const availableOptions = Array.from(select.options).filter(option => !option.disabled);
-                availableOptions.forEach(option => {
-                    const item = document.createElement('button');
-                    item.type = 'button';
-                    item.className = 'pocket-select-option';
-                    item.setAttribute('role', 'option');
-                    item.setAttribute('aria-selected', String(option.value === select.value));
-                    item.textContent = option.textContent;
-                    item.addEventListener('click', () => {
-                        select.value = option.value;
-                        closePicker();
-                        select.dispatchEvent(new Event('change', { bubbles: true }))
-                    });
-                    optionsList.append(item)
-                });
-                if (isCashbackTransactionPicker) {
-                    searchInput.addEventListener('input', () => {
-                        const query = searchInput.value.trim().toLocaleLowerCase();
-                        let matchCount = 0;
-                        optionsList.querySelectorAll('.pocket-select-option').forEach(item => {
-                            item.hidden = !item.textContent.toLocaleLowerCase().includes(query);
-                            if (!item.hidden) matchCount += 1
-                        });
-                        noResults.hidden = matchCount > 0
-                    })
-                }
-                menu.addEventListener('keydown', event => {
-                    if (event.key === 'Escape') {
-                        event.preventDefault();
-                        closePicker()
-                    } else if (isCashbackTransactionPicker && event.target === searchInput) {
-                        if (event.key === 'ArrowDown') {
-                            const firstOption = optionsList.querySelector('.pocket-select-option:not([hidden])');
-                            if (firstOption) {
-                                event.preventDefault();
-                                firstOption.focus()
-                            }
-                        }
-                    } else if (event.key === 'ArrowDown' || event.key === 'ArrowUp' || event.key === 'Home' || event.key === 'End') {
-                        const items = Array.from(optionsList.querySelectorAll('.pocket-select-option:not([hidden])')),
-                            index = items.indexOf(document.activeElement),
-                            next = event.key === 'Home' ? 0 :
-                                event.key === 'End' ? items.length - 1 :
-                                    (index + (event.key === 'ArrowDown' ? 1 : -1) + items.length) % items.length;
-                        if (items.length) {
-                            event.preventDefault();
-                            items[next].focus()
-                        }
-                    }
-                });
-                const bounds = trigger.getBoundingClientRect(),
-                    viewportWidth = document.documentElement.clientWidth || window.innerWidth,
-                    minWidth = isTransactionFilter ? Math.min(220, viewportWidth - 16) : bounds.width,
-                    width = Math.min(Math.max(bounds.width, minWidth), viewportWidth - 16),
-                    left = Math.max(8, Math.min(bounds.left, viewportWidth - width - 8)),
-                    availableHeight = Math.max(80, window.innerHeight - bounds.bottom - 8);
-                if (isCashbackTransactionPicker) {
-                    menu.style.position = 'relative';
-                    menu.style.left = 'auto';
-                    menu.style.top = 'auto';
-                    menu.style.width = '100%';
-                    menu.style.maxHeight = `${Math.min(window.innerHeight * .76, 640)}px`
-                } else {
-                    menu.style.left = `${left}px`;
-                    menu.style.top = `${bounds.bottom + 4}px`;
-                    menu.style.width = `${width}px`;
-                    menu.style.maxHeight = `${Math.min(220, availableHeight)}px`
-                }
-                overlay.append(menu);
-                document.body.append(overlay);
-                window.addEventListener('scroll', closeOnScroll, true);
-                window.addEventListener('resize', closeOnResize);
-                trigger.setAttribute('aria-expanded', 'true');
-                const selectedButton = availableOptions.find(option => option.value === select.value);
-                const initialOption = selectedButton && Array.from(optionsList.children)
-                    .find(button => button.textContent === selectedButton.textContent) ||
-                    (isCashbackTransactionPicker ? optionsList.querySelector('.pocket-select-option') : menu.querySelector('button'));
-                if (isCashbackTransactionPicker) {
-                    if (window.matchMedia('(pointer: coarse)').matches || navigator.maxTouchPoints > 0) {
-                        menu.querySelector('.cashback-transaction-picker-close').focus({ preventScroll: true })
-                    } else {
-                        searchInput.focus({ preventScroll: true })
-                    }
-                    if (initialOption) optionsList.scrollTop = initialOption.offsetTop - optionsList.offsetTop
-                } else {
-                    (initialOption || trigger).focus();
-                    if (initialOption) menu.scrollTop = initialOption.offsetTop
-                }
-            })
-        }
-
-        function wireRenderedSelects(root) {
-            root.querySelectorAll('select').forEach(select => {
-                if (select.hidden) return;
-                const selected = select.options[select.selectedIndex],
-                    label = select.getAttribute('aria-label') || 'Choose an option',
-                    trigger = document.createElement('button');
-                trigger.type = 'button';
-                trigger.className = 'form-select-trigger';
-                trigger.setAttribute('aria-haspopup', 'listbox');
-                trigger.setAttribute('aria-expanded', 'false');
-                trigger.textContent = selected?.textContent || '';
-                trigger.setAttribute('aria-label', `${label}: ${trigger.textContent}`);
-                select.hidden = true;
-                select.setAttribute('aria-hidden', 'true');
-                select.tabIndex = -1;
-                select.insertAdjacentElement('afterend', trigger);
-                wireSelectPicker(select, trigger, label)
-            })
-        }
+        const wireSelectPicker = (...args) => window.PocketDropdowns.wireSelectPicker(...args),
+            wireRenderedSelects = root => window.PocketDropdowns.wireRenderedSelects(root);
 
         function ask(msg, fn, ok = 'Delete') {
             window._f = () => {
@@ -732,7 +528,8 @@ function syncDateInput(input) {
             };
             const closeActions = {
                 dashboard: { handler: 'closeFormToDashboard()', label: 'Close' },
-                shoppingDashboard: { handler: 'closeShoppingListToDashboard()', label: 'Go to Dashboard' }
+                shoppingDashboard: { handler: 'closeShoppingListToDashboard()', label: 'Go to Dashboard' },
+                dismiss: { handler: 'cl()', label: 'Close' }
             };
             if (!Object.prototype.hasOwnProperty.call(backActions, back) ||
                 !Object.prototype.hasOwnProperty.call(closeActions, close)) {
@@ -762,10 +559,6 @@ function syncDateInput(input) {
                 'New savings goal': ['MAKE ROOM FOR WHAT MATTERS', 'Give your goal a name, a target, and a little momentum.'],
                 'Edit goal': ['MAKE ROOM FOR WHAT MATTERS', 'Update your goal and its timeline.'],
                 'Add money to goal': ['A LITTLE CLOSER EACH TIME', 'Choose how much to add to your savings goal.'],
-                'Name your list': ['BUY WITH A PLAN', 'Create a list for your next shopping trip.'],
-                'Edit shopping list': ['BUY WITH A PLAN', 'Update the name of this shopping list.'],
-                'Add item': ['CHECK IT OFF AS YOU GO', 'Add an item and its estimated cost.'],
-                'Edit item': ['CHECK IT OFF AS YOU GO', 'Update this shopping list item.'],
                 'Record shopping expense': ['CLOSE THE LOOP', 'Record what you spent on this shopping list.'],
                 'New category': ['MAKE IT YOURS', 'Add a category to organize your transactions.'],
                 'Edit category': ['MAKE IT YOURS', 'Update this transaction category.'],
@@ -811,9 +604,9 @@ function syncDateInput(input) {
                     x.t === 'direction' ?
                     `<div class="transfer-direction" aria-hidden="true"><span>Move to</span>${ic('repeat')}</div>` :
                     x.t === 'sel' && x.k === 'type' && (title === 'Add transaction' || title === 'Edit transaction') ?
-                    `<select name="${x.k}" hidden aria-hidden="true" tabindex="-1">${x.o.map(o=>`<option value="${o[0]}"${o[0]==v?' selected':''}>${esc(o[1])}</option>`).join('')}</select><div class="form-type-tabs" role="tablist" aria-label="Transaction type">${x.o.map(o=>`<button type="button" role="tab" aria-selected="${o[0]==v}" class="${o[0]==v?'is-active':''}" onclick="switchTransactionType('${o[0]}')">${esc(o[1])}</button>`).join('')}</div>` :
+                    `<select name="${x.k}" hidden aria-hidden="true" tabindex="-1">${x.o.map(o=>`<option value="${o[0]}"${o[0]==v?' selected':''}>${esc(o[1])}</option>`).join('')}</select><div class="form-type-tabs" role="tablist" aria-label="Transaction type">${x.o.map(o=>`<button type="button" role="tab" aria-selected="${o[0]==v}" class="${o[0]==v?'is-active':''}" onclick="PocketFeatures.tx.switchType('${o[0]}')">${esc(o[1])}</button>`).join('')}</div>` :
                     x.t === 'sel' ?
-                    `<select name="${x.k}"${x.req?' required':''} hidden aria-hidden="true" tabindex="-1">${placeholder?`<option value=""${!selectedOption?' selected':''}${x.req?' disabled':''}>${esc(placeholder)}</option>`:''}${x.o.map(o=>`<option value="${o[0]}"${optionSelected(o)?' selected':''}>${esc(o[1])}</option>`).join('')}</select><button type="button" class="form-select-trigger" data-select-name="${x.k}" data-select-label="${esc(x.l)}" aria-label="${esc(x.l)}: ${esc(selectedOption?.[1] || (emptyOption && !placeholder ? emptyOption[1] : placeholder) || '')}" aria-haspopup="listbox" aria-expanded="false">${esc(selectedOption?.[1] || (emptyOption && !placeholder ? emptyOption[1] : placeholder) || '')}</button>` :
+                    `<select name="${x.k}"${x.req?' required':''} hidden aria-hidden="true" tabindex="-1">${placeholder?`<option value=""${!selectedOption?' selected':''}${x.req?' disabled':''}>${esc(placeholder)}</option>`:''}${x.o.map(o=>`<option value="${o[0]}"${optionSelected(o)?' selected':''}>${esc(o[1])}</option>`).join('')}</select><button type="button" class="form-select-trigger" data-select-name="${x.k}" data-select-label="${esc(x.l)}" data-picker-options="${x.picker?esc(JSON.stringify(x.picker)):''}" aria-label="${esc(x.l)}: ${esc(selectedOption?.[1] || (emptyOption && !placeholder ? emptyOption[1] : placeholder) || '')}" aria-haspopup="listbox" aria-expanded="false">${esc(selectedOption?.[1] || (emptyOption && !placeholder ? emptyOption[1] : placeholder) || '')}</button>` :
                     x.t === 'color' ?
                     `<div class="color-picker"><div class="color-swatches" role="group" aria-label="${esc(x.l)} presets">${FORM_COLORS.map(color=>`<button type="button" class="color-swatch" data-color="${color}" style="--form-swatch:${color}" aria-label="${color}" aria-pressed="${String(v).toLowerCase()===color}"></button>`).join('')}</div><div class="color-code-row${isAccountForm?' account-color-code-row':''}"><span class="color-preview" aria-hidden="true" style="--form-swatch:${okCol(v)?v:'#2563eb'}"></span>${isAccountForm?'<div class="account-color-code"><span>Hex color</span>':''}<input class="color-hex-input" name="${x.k}" type="text" value="${esc(v)}" maxlength="7" spellcheck="false" autocapitalize="characters" aria-label="${esc(x.l)} hex code" placeholder="#2563eb">${isAccountForm?'</div>':''}</div>${isAccountForm?'':'<small>Choose a swatch or enter a 6-digit hex code.</small>'}</div>` :
                     x.t === 'date' ?
@@ -824,8 +617,8 @@ function syncDateInput(input) {
                     isGoalForm && (x.k === 'target' || x.k === 'current') ?
                     `<span class="goal-amount-input"><span aria-hidden="true">₱</span><input name="${x.k}" type="number" step="0.01" value="${esc(v)}" placeholder="0.00"></span>` :
                     x.k === 'amount' ?
-                    `<span class="amount-input-wrap"><span class="amount-currency">₱</span><input name="${x.k}" type="text" inputmode="decimal" value="${esc(v)}" placeholder="0.00"></span>` :
-                    `<input name="${x.k}" type="${x.t||'text'}" value="${esc(v)}" ${x.t==='number'?'step="0.01"':''}${x.placeholder?` placeholder="${esc(x.placeholder)}"`:''}${x.k==='title'?(isRecurringForm?' placeholder="Name this transaction"':vals.type==='income'?' placeholder="Where did it come from?"':vals.type==='transfer'?' placeholder="Name this transfer"':' placeholder="What was it for?"'):''}${x.k==='cashbackAmount'?' placeholder="₱0.00"':''}${x.k==='note'?' placeholder="Add a note..."':''}>`;
+                    window.PocketAmountInput.render({ name: x.k, value: v }) :
+                    `<input name="${x.k}" type="${x.t||'text'}" value="${esc(v)}" ${x.t==='number'?'step="0.01"':''}${x.placeholder?` placeholder="${esc(x.placeholder)}"`:''}${x.k==='title'?(isRecurringForm?' placeholder="Name this transaction"':vals.type==='income'?' placeholder="Where did it come from?"':vals.type==='transfer'?' placeholder="Name this transfer"':' placeholder="What was it for?"'):''}${x.k==='note'?' placeholder="Add a note..."':''}>`;
                 return `<label data-field="${esc(x.k)}"${x.cls?` class="${esc(x.cls)}"`:''}>${isAccountForm&&(x.k==='icon'||x.hideLabel)?'':x.l}${x.req&&!x.noMark?' *':''}${i}${x.help?`<small class="form-field-help">${esc(x.help)}</small>`:''}</label>`
             };
             const formError = '<p class="er" id="er" role="alert" hidden></p>',
@@ -869,10 +662,9 @@ function syncDateInput(input) {
                     error.hidden = false
                 };
             F.querySelectorAll('.form-select-trigger').forEach(trigger => {
-                if (isCashbackForm && trigger.dataset.selectName === 'expenseId') {
-                    trigger.setAttribute('aria-haspopup', 'dialog')
-                }
-                wireSelectPicker(el(trigger.dataset.selectName), trigger, trigger.dataset.selectLabel)
+                const pickerOptions = JSON.parse(trigger.dataset.pickerOptions || '{}');
+                if (pickerOptions.mode === 'search') trigger.setAttribute('aria-haspopup', 'dialog');
+                wireSelectPicker(el(trigger.dataset.selectName), trigger, trigger.dataset.selectLabel, pickerOptions)
             });
             F.querySelectorAll('.color-picker').forEach(picker => {
                 const input = picker.querySelector('.color-hex-input'),
@@ -920,172 +712,9 @@ function syncDateInput(input) {
             }
         }
 
-        function txForm(id) {
-            window._dup = '';
-            const t = id ? D.tx.find(x => x.id === id) : null;
-            const linkedCashback = t && D.cashbacks.find(claim => claim.expenseId === t.id);
-            openForm(t ? 'Edit transaction' : 'Add transaction', v => {
-                    const tr = v.type === 'transfer',
-                        ac = D.acc.map(a => [a.id, a.name]);
-                    return [{
-                            k: 'type',
-                            l: 'Type',
-                            t: 'sel',
-                            cls: 'form-field-full',
-                            o: [
-                                ['expense', 'Expense'],
-                                ['income', 'Income'],
-                                ['transfer', 'Transfer']
-                            ]
-                        }, {
-                            k: 'amount',
-                            l: 'Amount (₱)',
-                            t: 'number',
-                            req: 1,
-                            pos: 1,
-                            cls: 'form-field-full'
-                        }, ...((v.type === 'expense' || v.type === 'transfer') ? [{
-                            k: 'title',
-                            l: 'Title',
-                            cls: 'form-field-full',
-                            req: v.type === 'expense'
-                        }, {
-                            k: 'cashbackAmount',
-                            l: 'Cashback (optional)',
-                            t: 'text',
-                            cls: 'form-field-full'
-                        }] : [{
-                            k: 'title',
-                            l: 'Title',
-                            cls: 'form-field-full',
-                            req: true
-                        }]),
-                        tr ? {
-                            k: 'acc',
-                            l: 'From account',
-                            t: 'sel',
-                            req: 1,
-                            cls: 'form-field-full',
-                            o: ac
-                        } : null,
-                        tr ? {
-                            k: 'transferDirection',
-                            l: '',
-                            t: 'direction',
-                            cls: 'form-field-full'
-                        } : {
-                            k: 'cat',
-                            l: 'Category',
-                            t: 'sel',
-                            req: 1,
-                            cls: 'form-field-pair',
-                            placeholder: 'Choose category',
-                            o: D.cats.filter(c => v.type === 'income' ? c.g === 'Income' : c.g !== 'Income')
-                                .map(c => [c.id, c.name])
-                        },
-                        tr ? {
-                            k: 'to',
-                            l: 'To account',
-                            t: 'sel',
-                            req: 1,
-                            cls: 'form-field-full',
-                            o: ac
-                        } : {
-                            k: 'acc',
-                            l: 'Account',
-                            t: 'sel',
-                            req: 1,
-                            cls: 'form-field-pair',
-                            placeholder: 'Choose account',
-                            o: ac
-                        }, {
-                            k: 'date',
-                            l: 'Date',
-                            t: 'date',
-                            req: 1,
-                            cls: 'form-field-pair'
-                        }, {
-                            k: 'time',
-                            l: 'Time',
-                            t: 'time',
-                            cls: 'form-field-pair'
-                        }, {
-                            k: 'note',
-                            l: 'Notes (optional)',
-                            t: 'area',
-                            cls: 'form-field-full'
-                        }
-                    ]
-                },
-                t ? { ...t, cashbackAmount: linkedCashback?.amount || '' } : {
-                    type: 'expense',
-                    date: today(),
-                    time: '',
-                    acc: '',
-                    to: 'gcash',
-                    cashbackAmount: '0.00'
-                }, v => {
-                    const amt = +v.amount,
-                        tr = v.type === 'transfer',
-                        title = v.title || 'Transfer';
-                    const cashbackAmount = +v.cashbackAmount || 0;
-                    if (cashbackAmount > 0 && v.type !== 'expense' && v.type !== 'transfer') return 'Cashback can only be added to an expense or transfer.';
-                    if (cashbackAmount > amt) return 'Cashback can’t exceed the transaction amount.';
-                    if (cashbackAmount > 0 && !A(tr ? v.to : v.acc)) return 'Choose an account for the cashback deposit.';
-                    if (linkedCashback && v.type !== 'expense' && v.type !== 'transfer') return 'Remove the linked cashback claim before changing this transaction type.';
-                    if (linkedCashback && cashbackAmount > 0 && amt < cashbackAmount) return 'This transaction amount is below its cashback claim.';
-                    if (tr) {
-                        if (v.acc === v.to) return 'Choose two different accounts';
-                        const a = A(v.acc),
-                            b = bal(a, today(), id);
-                        if (!od(a) && b < amt) return `Insufficient funds in ${a.name} (${peso(b)} available)`
-                    }
-                    const sig = [v.type, amt, v.date, v.acc, title, tr ? v.to : ''].join('|');
-                    if (!t && window._dup !== sig && D.tx.some(x => x.type === v.type && x.amount === amt && x
-                            .date === v.date && x.acc === v.acc && x.title === title && (x.to || '') === (tr ? v
-                                .to : ''))) return window._dup = sig,
-                        'Looks like a duplicate. Tap Save again to add it anyway.';
-                    const o = {
-                        id: t ? t.id : uid(),
-                        type: v.type,
-                        title,
-                        amount: amt,
-                        cat: tr ? 'c_transfers' : v.cat,
-                        acc: v.acc,
-                        to: tr ? v.to : null,
-                        date: v.date,
-                        time: v.time || t?.time || '',
-                        note: v.note,
-                        ...(t?.cashbackId ? { cashbackId: t.cashbackId } : {})
-                    };
-                    if (linkedCashback) {
-                        linkedCashback.expenseTitle = title;
-                        linkedCashback.expenseDate = v.date;
-                        linkedCashback.account = tr ? v.to : v.acc;
-                        if (cashbackAmount > 0) linkedCashback.amount = cashbackAmount;
-                        else D.cashbacks = D.cashbacks.filter(claim => claim.id !== linkedCashback.id)
-                    }
-                    t ? Object.assign(t, o) : D.tx.push(o);
-                    if (!linkedCashback && (v.type === 'expense' || v.type === 'transfer') && cashbackAmount > 0) {
-                        D.cashbacks.push({
-                            id: uid(),
-                            expenseId: o.id,
-                            expenseTitle: title,
-                            expenseDate: v.date,
-                            amount: cashbackAmount,
-                            account: tr ? v.to : v.acc,
-                            created: today(),
-                            status: 'pending',
-                            receivedDate: '',
-                            incomeId: ''
-                        })
-                    }
-                }, 'type')
-        }
-
         function quickAdd(type, returnToChooser = false) {
             transactionFormReturnToChooser = returnToChooser;
-            txForm();
+            window.PocketFeatures.tx.openForm();
             const t = document.querySelector('#f [name="type"]');
             if (t) {
                 t.value = type;
@@ -1093,12 +722,6 @@ function syncDateInput(input) {
             }
         }
 
-        function switchTransactionType(type) {
-            const select = document.querySelector('#f [name="type"]');
-            if (!select) return;
-            select.value = type;
-            select.onchange && select.onchange();
-        }
 
         function quickAddChooser() {
             ov(`<div class="quick-add-screen"><div class="form-screen-intro quick-add-intro"><button type="button" class="page-menu-toggle quick-add-page-menu-toggle" aria-label="Open pages menu" aria-expanded="false" aria-haspopup="dialog" aria-controls="page-title-menu">${dashboardIcon('more')}</button><small class="form-eyebrow">KEEP YOUR MONEY UP TO DATE</small><h3>Add transaction</h3><p>What would you like to record?</p></div><div class="quick-add-options"><button type="button" onclick="quickAddFromChooser('expense')"><span class="quick-add-icon expense">${ic('arrow-up-right')}</span><span><b>Expense</b><small>Track a purchase or payment.</small></span>${ic('chevron-right')}</button><button type="button" onclick="quickAddFromChooser('income')"><span class="quick-add-icon income">${ic('arrow-down-left')}</span><span><b>Income</b><small>Record money you received.</small></span>${ic('chevron-right')}</button><button type="button" onclick="quickAddFromChooser('transfer')"><span class="quick-add-icon transfer">${ic('arrow-left-right')}</span><span><b>Transfer</b><small>Move money between accounts.</small></span>${ic('chevron-right')}</button></div><div class="quick-add-footer"><button type="button" class="b2" onclick="cl()">Cancel</button></div></div>`);
@@ -1120,7 +743,7 @@ function syncDateInput(input) {
         function primaryAdd() {
             if (U.v === 'acc') accForm();
             else if (U.v === 'bud') budForm();
-            else if (U.v === 'cash') cashbackForm();
+            else if (U.v === 'cash') window.PocketFeatures.cash.openForm();
             else if (U.v === 'shop') shoppingListForm();
             else quickAddChooser()
         }
@@ -1138,133 +761,6 @@ function syncDateInput(input) {
             cl();
             save();
             render()
-        }
-
-        function cashbackForm(transactionId) {
-            const transaction = D.tx.find(item =>
-                item.id === transactionId && (item.type === 'expense' || item.type === 'transfer')
-            );
-            if (transactionId && !transaction) return info('The linked transaction could not be found.');
-            if (transactionId && D.cashbacks.some(claim => claim.expenseId === transactionId)) {
-                go('cash');
-                return info('This transaction already has a cashback claim. You can manage it on the Cashback page.');
-            }
-            const eligibleTransactions = D.tx.filter(item =>
-                (item.type === 'expense' || item.type === 'transfer') &&
-                !D.cashbacks.some(claim => claim.expenseId === item.id)
-            );
-            if (!transaction && !eligibleTransactions.length) {
-                return info('Add an expense or transfer before tracking cashback.');
-            }
-            const cashbackCategory = D.cats.find(category => category.g === 'Income' && category.name.toLowerCase() === 'cashback');
-            if (!cashbackCategory) return info('Cashback category is unavailable. Reload Pocket to update categories.');
-            openForm('Track cashback', () => [
-                transaction ? null : {
-                    k: 'expenseId',
-                    l: 'Transaction',
-                    t: 'sel',
-                    req: 1,
-                    placeholder: 'Choose transaction',
-                    o: eligibleTransactions.map(item => [item.id, `${item.title} · ${fd(item.date)} · ${peso(item.amount)}`])
-                },
-                { k: 'amount', l: 'Expected cashback (₱)', t: 'number', req: 1, pos: 1 },
-                { k: 'account', l: 'Deposit account', t: 'sel', req: 1, o: D.acc.map(account => [account.id, account.name]) }
-            ], {
-                expenseId: transactionId || '',
-                amount: '',
-                account: transaction ? transaction.type === 'transfer' ? transaction.to : transaction.acc : ''
-            }, value => {
-                const linkedTransaction = transaction || D.tx.find(item =>
-                    item.id === value.expenseId && (item.type === 'expense' || item.type === 'transfer')
-                );
-                if (!linkedTransaction) return 'Choose a transaction for this cashback.';
-                if (D.cashbacks.some(claim => claim.expenseId === linkedTransaction.id)) {
-                    return 'This transaction already has a cashback claim.';
-                }
-                const amount = +value.amount;
-                if (amount > linkedTransaction.amount) return 'Cashback can’t exceed the linked transaction amount.';
-                D.cashbacks.push({
-                    id: uid(),
-                    expenseId: linkedTransaction.id,
-                    expenseTitle: linkedTransaction.title,
-                    expenseDate: linkedTransaction.date,
-                    amount,
-                    account: value.account,
-                    created: today(),
-                    status: 'pending',
-                    receivedDate: '',
-                    incomeId: ''
-                });
-            }, undefined, 'Add cashback');
-        }
-
-        function editCashback(id) {
-            const claim = D.cashbacks.find(item => item.id === id);
-            if (!claim) return info('This cashback claim could not be found.');
-            const transaction = D.tx.find(item => item.id === claim.expenseId),
-                income = D.tx.find(item => item.id === claim.incomeId || item.cashbackId === claim.id);
-            if (claim.status === 'received' && !income) {
-                return info('The linked income transaction could not be found.');
-            }
-            openForm('Edit cashback', () => [
-                { k: 'amount', l: 'Expected cashback (₱)', t: 'number', req: 1, pos: 1 },
-                { k: 'account', l: 'Deposit account', t: 'sel', req: 1, o: D.acc.map(account => [account.id, account.name]) }
-            ], {
-                amount: String(claim.amount),
-                account: claim.account
-            }, value => {
-                const amount = +value.amount;
-                if (!A(value.account)) return 'Choose a deposit account.';
-                if (transaction && amount > transaction.amount) return 'Cashback can’t exceed the linked transaction amount.';
-                claim.amount = amount;
-                claim.account = value.account;
-                if (transaction) {
-                    claim.expenseTitle = transaction.title;
-                    claim.expenseDate = transaction.date;
-                }
-                if (income) {
-                    claim.incomeId = income.id;
-                    income.amount = amount;
-                    income.acc = value.account;
-                    income.title = `Cashback — ${claim.expenseTitle || transaction?.title || 'Expense'}`;
-                }
-            }, undefined, 'Save cashback');
-        }
-
-        function deleteCashback(id) {
-            const claim = D.cashbacks.find(item => item.id === id);
-            if (!claim) return info('This cashback claim could not be found.');
-            ask('Delete this cashback claim? If received, its linked income transaction will also be deleted.', () => {
-                D.tx = D.tx.filter(item => item.id !== claim.incomeId && item.cashbackId !== claim.id);
-                D.cashbacks = D.cashbacks.filter(item => item.id !== id)
-            });
-        }
-
-        function markCashbackReceived(id) {
-            const claim = D.cashbacks.find(item => item.id === id);
-            if (!claim || claim.status === 'received') return;
-            const incomeCategory = D.cats.find(category => category.g === 'Income' && category.name.toLowerCase() === 'cashback');
-            if (!incomeCategory || !A(claim.account)) return info('The cashback category or deposit account is unavailable.');
-            const expense = D.tx.find(item => item.id === claim.expenseId);
-            const income = {
-                id: uid(),
-                type: 'income',
-                title: `Cashback — ${claim.expenseTitle || expense?.title || 'Expense'}`,
-                amount: claim.amount,
-                cat: incomeCategory.id,
-                acc: claim.account,
-                to: null,
-                date: today(),
-                time: '',
-                note: `Cashback received for ${claim.expenseDate || expense?.date || 'linked expense'}`,
-                cashbackId: claim.id
-            };
-            D.tx.push(income);
-            claim.status = 'received';
-            claim.receivedDate = today();
-            claim.incomeId = income.id;
-            save();
-            render();
         }
 
         const RECURRENCES = [
@@ -1409,7 +905,7 @@ function syncDateInput(input) {
         const deleteRecurring = id => ask('Delete this recurring schedule? Transactions already added will remain.', () => {
             D.recurring = D.recurring.filter(rule => rule.id !== id)
         });
-        const editTx = id => txForm(id),
+        const editTx = id => window.PocketFeatures.tx.openForm(id),
             delTx = id => ask('Delete this transaction? Account balances will be recalculated. Deleting cashback income also removes its linked cashback claim.', () => {
                 const transaction = D.tx.find(t => t.id === id);
                 D.tx = D.tx.filter(t => t.id !== id);
@@ -1420,7 +916,7 @@ function syncDateInput(input) {
         function openRecentTransaction(id) {
             const transaction = D.tx.find(item => item.id === id);
             if (!transaction) return;
-            txPageLimit = TRANSACTION_PAGE_SIZE;
+            window.PocketFeatures.tx.resetPage();
             U.q = '';
             U.c = U.a = U.ty = U.tf = U.tt = '';
             go('tx')
@@ -1434,7 +930,7 @@ function syncDateInput(input) {
                 date = `${fd(t.date)}${t.time ? ' ' + t.time : ''}`,
                 amount = `${t.type === 'expense' ? '−' : t.type === 'income' ? '+' : ''}${peso(t.amount)}`;
             const cashback = t.type === 'expense' || tr ? D.cashbacks.find(claim => claim.expenseId === t.id) : null;
-            const actions = act ? `<div class="tx-actions">${t.type === 'expense' || tr ? `<button class="ib" onclick="${cashback ? "go('cash')" : `cashbackForm('${t.id}')`}" aria-label="${cashback ? 'Manage cashback' : 'Track cashback'}" title="${cashback ? 'Manage cashback' : 'Track cashback'}">${ic('coins')}</button>` : ''}<button class="ib" onclick="editTx('${t.id}')" aria-label="Edit">${ic('pencil')}</button><button class="ib" onclick="delTx('${t.id}')" aria-label="Delete">${ic('trash-2')}</button></div>` : '';
+            const actions = act ? `<div class="tx-actions">${t.type === 'expense' || tr ? `<button class="ib" onclick="${cashback ? "go('cash')" : `PocketFeatures.cash.openForm('${t.id}')`}" aria-label="${cashback ? 'Manage cashback' : 'Track cashback'}" title="${cashback ? 'Manage cashback' : 'Track cashback'}">${ic('coins')}</button>` : ''}<button class="ib" onclick="editTx('${t.id}')" aria-label="Edit">${ic('pencil')}</button><button class="ib" onclick="delTx('${t.id}')" aria-label="Delete">${ic('trash-2')}</button></div>` : '';
             const transactionDate = new Date(`${t.date}T00:00:00`),
                 recentDate = `${transactionDate.getDate()} ${MO[transactionDate.getMonth()]}`,
                 recentDetails = tr ?
@@ -1487,20 +983,6 @@ function syncDateInput(input) {
                 x = i => 20 + i * (W - 40) / Math.max(1, a.length - 1),
                 y = v => T + (hi - v) / (hi - lo || 1) * (H - T - B);
             return `<svg viewBox="0 0 ${W} ${H}" class="ch"><polyline fill="none" stroke="${c}" stroke-width="2.5" points="${a.map((v,i)=>x(i)+','+y(v)).join(' ')}"/>${a.map((v,i)=>`<circle cx="${x(i)}" cy="${y(v)}" r="3" fill="${c}"/><text x="${x(i)}" y="${H-6}" text-anchor="middle">${L[i]}</text>`).join('')}</svg>`
-        }
-
-        function catBars(T) {
-            const m = {};
-            T.filter(t => t.type === 'expense').forEach(t => m[t.cat] = (m[t.cat] || 0) + t.amount);
-            const e = Object.entries(m).sort((a, b) => b[1] - a[1]),
-                tot = e.reduce((s, x) => s + x[1], 0);
-            return e.length ? e.slice(0, 8).map(([id, v]) => {
-                const c = C(id) || {
-                    name: 'Other',
-                    color: '#78716c'
-                };
-                return `<div style="margin-top:8px"><div class="row sp"><span>${esc(c.name)}</span><b>${peso(v)} <small>${Math.round(v/tot*100)}%</small></b></div><div class="bar"><i style="width:${v/tot*100}%;background:${c.color}"></i></div></div>`
-            }).join('') : '<div class="empty">No expenses in this period.</div>'
         }
 
         function spent(id, key = ym(today())) {
@@ -2022,101 +1504,10 @@ function syncDateInput(input) {
             return `<section class="card getting-started" aria-labelledby="getting-started-title"><div class="row sp"><div><h3 id="getting-started-title">Getting started</h3><small>Your progress stays on this device.</small></div><button type="button" class="ib" aria-label="Dismiss getting started checklist" onclick="dismissGettingStarted()">${ic('x')}</button></div><div class="getting-started-list">${tasks.map(([id, title, done, description]) => `<div class="getting-started-item${done ? ' is-done' : ''}"><span class="getting-started-check" aria-hidden="true">${ic(done ? 'check' : 'circle')}</span><span class="getting-started-copy"><b>${title}</b><small>${description}</small></span><button type="button" class="chip" onclick="startGettingStartedTask('${id}')">${done ? 'View' : 'Start'}</button></div>`).join('')}</div></section>`
         }
 
-        const transactionLongMonthFormatter = new Intl.DateTimeFormat('en-US', { month: 'long' });
-        const TRANSACTION_PAGE_SIZE = 50;
-        let txPageLimit = TRANSACTION_PAGE_SIZE,
-            transactionFiltersOpen = false;
-
-        function fl() {
-            txPageLimit = TRANSACTION_PAGE_SIZE;
-            $('#tl').innerHTML = txList();
-            lu()
-        }
-        function toggleTransactionFilters() {
-            const panel = $('#transaction-advanced-filters'),
-                button = $('#transaction-filters-toggle');
-            if (!panel || !button) return;
-            panel.hidden = !panel.hidden;
-            button.setAttribute('aria-expanded', String(!panel.hidden));
-        }
-        function closeTransactionFilters() {
-            const panel = $('#transaction-advanced-filters'),
-                button = $('#transaction-filters-toggle');
-            if (!panel || !button || panel.hidden) return;
-            panel.hidden = true;
-            button.setAttribute('aria-expanded', 'false');
-        }
-        document.addEventListener('click', event => {
-            const panel = $('#transaction-advanced-filters'),
-                target = event.target;
-            if (!panel || panel.hidden || target.closest('.transaction-filter-row') || target.closest('.pocket-select-overlay')) return;
-            closeTransactionFilters();
-        });
-        document.addEventListener('keydown', event => {
-            if (event.key === 'Escape') closeTransactionFilters()
-        });
-        const transactionMonthFormatter = new Intl.DateTimeFormat(undefined, { month: 'short', year: 'numeric' });
-        let transactionScrollHideTimer = 0;
-        function updateTransactionMonthIndicator() {
-            const indicator = $('#transaction-scroll-month');
-            if (U.v !== 'tx' || !indicator) return;
-            const root = document.documentElement,
-                contentHeight = Math.max(root.scrollHeight, document.body.scrollHeight),
-                scrollRange = contentHeight - window.innerHeight;
-            if (scrollRange <= 0) {
-                indicator.classList.remove('is-visible');
-                return;
-            }
-            const list = $('#tl'),
-                filters = $('#m .pocket-feature-content > .f'),
-                header = $('#m .pocket-feature-content > .row:first-child'),
-                listBounds = list?.getBoundingClientRect(),
-                filtersBottom = filters?.getBoundingClientRect().bottom,
-                headerBottom = header?.getBoundingClientRect().bottom || 0;
-            if (!listBounds || (filtersBottom !== undefined && filtersBottom > headerBottom)) {
-                indicator.classList.remove('is-visible');
-                return;
-            }
-            const x = listBounds.left + 32,
-                y = Math.max(listBounds.top + 20, headerBottom + 2),
-                row = y < window.innerHeight
-                    ? document.elementFromPoint(x, y)?.closest('#tl [data-date]')
-                    : null,
-                dateMatch = row?.dataset.date?.match(/^(\d{4})-(\d{2})-/);
-            if (!dateMatch) {
-                indicator.classList.remove('is-visible');
-                return;
-            }
-            const year = Number(dateMatch[1]),
-                month = Number(dateMatch[2]),
-                dateLabel = transactionMonthFormatter.format(new Date(year, month - 1, 1)),
-                thumbHeight = Math.min(window.innerHeight, Math.max(40, window.innerHeight ** 2 / contentHeight)),
-                thumbTravel = window.innerHeight - thumbHeight,
-                thumbPosition = window.scrollY / scrollRange * thumbTravel + thumbHeight / 2;
-            indicator.textContent = dateLabel;
-            indicator.style.top = `${Math.max(24, Math.min(window.innerHeight - 24, thumbPosition))}px`;
-            indicator.classList.add('is-visible');
-            window.clearTimeout(transactionScrollHideTimer);
-            transactionScrollHideTimer = window.setTimeout(() => indicator.classList.remove('is-visible'), 700);
-        }
-        function loadMoreTransactionsAtBottom() {
-            if (U.v !== 'tx' || !$('#tx-load-more')) return;
-            const contentHeight = Math.max(document.documentElement.scrollHeight, document.body.scrollHeight);
-            if (window.scrollY + window.innerHeight < contentHeight - 100) return;
-            const list = $('#tl');
-            if (!list) return;
-            txPageLimit += TRANSACTION_PAGE_SIZE;
-            list.innerHTML = txList();
-            lu()
-        }
-        window.addEventListener('scroll', () => {
-            loadMoreTransactionsAtBottom();
-            updateTransactionMonthIndicator()
-        }, { passive: true });
         const trForm = () => txFormT();
 
         function txFormT() {
-            txForm();
+            window.PocketFeatures.tx.openForm();
             const t = document.querySelector('#f [name=type]');
             t.value = 'transfer';
             t.onchange()
@@ -2285,46 +1676,10 @@ function syncDateInput(input) {
             }, null, g ? 'Save changes' : 'Create goal')
         }
         function shoppingListForm(id) {
-            const list = id ? D.shoppingLists.find(item => item.id === id) : null;
-            openForm(list ? 'Edit shopping list' : 'Name your list', () => [{
-                k: 'name',
-                l: 'List name',
-                req: 1
-            }], list || { name: '' }, value => {
-                if (D.shoppingLists.some(item => item.id !== id && item.name.toLowerCase() === value.name.toLowerCase())) {
-                    return 'A shopping list with this name already exists.';
-                }
-                if (list) list.name = value.name;
-                else D.shoppingLists.push({ id: uid(), name: value.name, created: today(), items: [] });
-            }, null, list ? 'Save changes' : 'Create list');
+            window.PocketFeatures.shop.openListForm(id);
         }
         function shoppingItemForm(listId, itemId) {
-            const list = D.shoppingLists.find(item => item.id === listId);
-            if (!list) return info('This shopping list could not be found.');
-            const existingItem = itemId ? list.items.find(item => item.id === itemId) : null;
-            if (itemId && !existingItem) return info('This shopping list item could not be found.');
-            openForm(existingItem ? 'Edit item' : 'Add item', () => [{
-                k: 'name',
-                l: 'Item name',
-                req: 1
-            }, {
-                k: 'estimatedAmount',
-                l: 'Estimated amount (₱)',
-                t: 'number'
-            }], existingItem ? {
-                name: existingItem.name,
-                estimatedAmount: existingItem.estimatedAmount || ''
-            } : {
-                name: '',
-                estimatedAmount: ''
-            }, value => {
-                const itemData = {
-                    name: value.name,
-                    estimatedAmount: Math.max(0, Number(value.estimatedAmount) || 0)
-                };
-                if (existingItem) Object.assign(existingItem, itemData);
-                else list.items.push({ id: uid(), ...itemData, checked: false });
-            });
+            window.PocketFeatures.shop.openItemForm(listId, itemId);
         }
         function shoppingListEstimate(list) {
             return list.items.reduce((total, item) => total + (Number(item.estimatedAmount) || 0), 0);
@@ -2438,457 +1793,6 @@ function syncDateInput(input) {
             D.shoppingLists = D.shoppingLists.filter(list => list.id !== id);
             if (selectedShoppingListId === id) selectedShoppingListId = ''
         });
-        const REPORT_COLORS = ['#16a34a', '#ea580c', '#2563eb'],
-            REPORT_RANGES = [['weekly', 'Weekly'], ['monthly', 'Monthly'], ['yearly', 'Yearly'], ['custom', 'Custom']];
-        const reportDate = value => {
-            const [year, month, day] = value.split('-').map(Number);
-            return new Date(year, month - 1, day)
-        };
-        const reportDayLabel = value => new Intl.DateTimeFormat('en-PH', {
-            month: 'short',
-            day: 'numeric'
-        }).format(reportDate(value));
-        const reportTick = value => peso(Math.round(value));
-        function reportPeriod() {
-            const now = new Date(),
-                endToday = today();
-            let start, end = endToday;
-            if (U.reportRange === 'weekly') {
-                const weekStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - ((now.getDay() + 6) % 7));
-                start = iso(weekStart)
-            } else if (U.reportRange === 'yearly') {
-                start = iso(new Date(now.getFullYear(), 0, 1))
-            } else if (U.reportRange === 'custom') {
-                start = U.reportFrom || iso(new Date(now.getFullYear(), now.getMonth(), 1));
-                end = U.reportTo || endToday
-            } else {
-                start = iso(new Date(now.getFullYear(), now.getMonth(), 1))
-            }
-            const valid = /^\d{4}-\d\d-\d\d$/.test(start) && /^\d{4}-\d\d-\d\d$/.test(end) && start <= end;
-            if (!valid) return { start, end, valid: false, buckets: [] };
-            const days = Math.round((reportDate(end) - reportDate(start)) / 86400000) + 1,
-                bucketMode = U.reportRange === 'yearly' || (U.reportRange === 'custom' && days > 180) ?
-                    'month' : U.reportRange === 'custom' && days > 35 ? 'week' : 'day',
-                buckets = [];
-            if (bucketMode === 'month') {
-                let cursor = new Date(reportDate(start).getFullYear(), reportDate(start).getMonth(), 1);
-                while (iso(cursor) <= end) {
-                    const bucketStart = iso(cursor),
-                        bucketEnd = iso(new Date(cursor.getFullYear(), cursor.getMonth() + 1, 0)),
-                        first = bucketStart < start ? start : bucketStart,
-                        last = bucketEnd > end ? end : bucketEnd;
-                    buckets.push({
-                        start: first,
-                        end: last,
-                        label: new Intl.DateTimeFormat('en-PH', { month: 'short', year: days > 365 ? '2-digit' : undefined }).format(cursor)
-                    });
-                    cursor = new Date(cursor.getFullYear(), cursor.getMonth() + 1, 1)
-                }
-            } else if (bucketMode === 'week') {
-                let cursor = reportDate(start);
-                while (iso(cursor) <= end) {
-                    const bucketEnd = new Date(cursor.getFullYear(), cursor.getMonth(), cursor.getDate() + 6),
-                        last = iso(bucketEnd) > end ? end : iso(bucketEnd);
-                    buckets.push({ start: iso(cursor), end: last, label: reportDayLabel(iso(cursor)) });
-                    cursor = new Date(bucketEnd.getFullYear(), bucketEnd.getMonth(), bucketEnd.getDate() + 1)
-                }
-            } else {
-                let cursor = reportDate(start);
-                while (iso(cursor) <= end) {
-                    const value = iso(cursor);
-                    buckets.push({ start: value, end: value, label: reportDate(value).getDate().toString() });
-                    cursor = new Date(cursor.getFullYear(), cursor.getMonth(), cursor.getDate() + 1)
-                }
-            }
-            return { start, end, valid, buckets }
-        }
-        function openReportFilters() {
-            const rangeOptions = REPORT_RANGES.map(([value, label]) =>
-                    `<option value="${value}"${U.reportRange === value ? ' selected' : ''}>${label}</option>`
-                ).join(''),
-                accountOptions = [['', 'All accounts'], ...D.acc.map(account => [account.id, account.name])]
-                    .map(([value, label]) => `<option value="${esc(value)}"${U.ra === value ? ' selected' : ''}>${esc(label)}</option>`)
-                    .join(''),
-                categoryOptions = [['', 'All categories'], ...D.cats.map(category => [category.id, category.name])]
-                    .map(([value, label]) => `<option value="${esc(value)}"${U.rc === value ? ' selected' : ''}>${esc(label)}</option>`)
-                    .join(''),
-                startValue = U.reportFrom || iso(new Date(new Date().getFullYear(), new Date().getMonth(), 1)),
-                endValue = U.reportTo || today();
-            ov(`<div class="report-filter-sheet">
-<div class="report-filter-sheet-header"><div><h3>Report filters</h3><small>Choose what to include in your reports.</small></div><button type="button" class="chip" onclick="cl()">Close</button></div>
-<div class="report-filter-sheet-fields">
-<label><span>Date range</span><select name="reportRange" aria-label="Report date range">${rangeOptions}</select></label>
-<label><span>Account</span><select name="reportAccount" aria-label="Filter reports by account">${accountOptions}</select></label>
-<label class="report-filter-sheet-category"><span>Category</span><select name="reportCategory" aria-label="Filter reports by category">${categoryOptions}</select></label>
-<div class="report-filter-custom-range"${U.reportRange === 'custom' ? '' : ' hidden'}><label><span>From</span><input name="reportFrom" type="date" value="${esc(startValue)}"></label><label><span>To</span><input name="reportTo" type="date" value="${esc(endValue)}"></label></div>
-</div>
-<small id="report-filter-error" class="report-filter-error" hidden></small>
-<div class="row end report-filter-sheet-actions"><button type="button" class="b2" onclick="cl()">Cancel</button><button type="button" class="b1" onclick="applyReportFilters()">Apply filters</button></div>
-</div>`);
-            $('#ov').classList.add('report-filter-open');
-            wireRenderedSelects($('#ovc'));
-            $('#ovc [name="reportRange"]').addEventListener('change', event => {
-                $('#ovc .report-filter-custom-range').hidden = event.target.value !== 'custom';
-            })
-        }
-        function applyReportFilters() {
-            const sheet = $('#ovc'),
-                range = sheet.querySelector('[name="reportRange"]').value,
-                from = sheet.querySelector('[name="reportFrom"]').value,
-                to = sheet.querySelector('[name="reportTo"]').value,
-                error = $('#report-filter-error');
-            if (range === 'custom' && from && to && from > to) {
-                error.textContent = 'The start date must be on or before the end date.';
-                error.hidden = false;
-                return
-            }
-            U.reportRange = range;
-            U.ra = sheet.querySelector('[name="reportAccount"]').value;
-            U.rc = sheet.querySelector('[name="reportCategory"]').value;
-            if (range === 'custom') {
-                U.reportFrom = from;
-                U.reportTo = to
-            }
-            cl();
-            render()
-        }
-        const reportRangeTransactions = (transactions, start, end) => transactions.filter(transaction =>
-            transaction.date >= start && transaction.date <= end
-        );
-        function reportClick(bucket, type, category = U.rc || '', account = U.ra || '') {
-            const args = [bucket.start, bucket.end, type, category, account].map(value => `'${esc(value)}'`).join(',');
-            return `tabindex="0" role="button" onclick="openReportTransactions(${args})" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openReportTransactions(${args})}"`;
-        }
-        function clearReportDoughnutSelection(wrap) {
-            if (!wrap) return;
-            wrap.dataset.selectedCategory = '';
-            wrap.classList.remove('has-selection');
-            wrap.querySelectorAll('.report-category').forEach(element => {
-                element.classList.remove('is-selected', 'is-dimmed')
-            });
-            const canvas = wrap.querySelector('.report-donut-canvas'),
-                chart = canvas && Chart.getChart(canvas);
-            if (!chart) return;
-            chart.data.datasets[0].selectedIndex = -1;
-            chart.data.datasets[0].backgroundColor = [...chart.data.datasets[0].originalColors];
-            chart.update()
-        }
-        function applyReportDoughnutSelection(wrap, categoryId) {
-            if (!wrap) return;
-            wrap.dataset.selectedCategory = categoryId;
-            wrap.classList.add('has-selection');
-            wrap.querySelectorAll('.report-category').forEach(element => {
-                const selected = element.dataset.categoryId === categoryId;
-                element.classList.toggle('is-selected', selected);
-                element.classList.toggle('is-dimmed', !selected)
-            });
-            const canvas = wrap.querySelector('.report-donut-canvas'),
-                chart = canvas && Chart.getChart(canvas);
-            if (!chart) return;
-            const selectedIndex = chart.data.datasets[0].categoryIds.indexOf(categoryId);
-            if (selectedIndex < 0) return;
-            chart.data.datasets[0].selectedIndex = selectedIndex;
-            chart.data.datasets[0].backgroundColor = chart.data.datasets[0].originalColors.map((color, index) =>
-                index === selectedIndex ? color : colorWithOpacity(color, .28)
-            );
-            chart.update()
-        }
-        function selectReportDoughnut(element, categoryId, start, end) {
-            const wrap = element.closest('.report-donut-wrap');
-            if (!wrap) return;
-            if (wrap.dataset.selectedCategory === categoryId) {
-                openReportTransactions(start, end, 'expense', categoryId, U.ra || '');
-                return
-            }
-            applyReportDoughnutSelection(wrap, categoryId)
-        }
-        function deselectReportDoughnutOutside(event, wrap) {
-            if (event.target.closest('.report-donut-canvas, .report-category')) return;
-            clearReportDoughnutSelection(wrap)
-        }
-        document.addEventListener('click', event => {
-            if (event.target.closest('.report-donut-wrap')) return;
-            document.querySelectorAll('.report-donut-wrap.has-selection').forEach(clearReportDoughnutSelection)
-        });
-        function reportEmpty(message = 'No transactions in this period.') {
-            return `<div class="empty report-empty">${message}</div>`
-        }
-        function reportLegend(series) {
-            return `<div class="report-legend">${series.map(item => `<span><i style="--report-color:${item.color}"></i>${esc(item.name)}</span>`).join('')}</div>`
-        }
-        let reportChartInstances = [];
-        const chartConfigAttribute = config => `data-chart-config="${esc(JSON.stringify(config))}"`;
-        function reportLineChart(buckets, series, emptyMessage, area = false) {
-            if (!buckets.length || !series.some(item => item.values.some(value => value !== 0))) return reportEmpty(emptyMessage);
-            const config = { kind: 'line', buckets, series, area };
-            return `<div class="report-line-chart"><canvas class="report-line-canvas" role="img" aria-label="Line chart" ${chartConfigAttribute(config)}>Line chart</canvas></div>${reportLegend(series)}`
-        }
-        function reportBarChart(buckets, series, emptyMessage) {
-            if (!buckets.length || !series.some(item => item.values.some(value => value !== 0))) return reportEmpty(emptyMessage);
-            const width = 640, height = 270, left = 64, right = 16, top = 18, bottom = 40,
-                values = series.flatMap(item => item.values),
-                high = Math.max(1, ...values), low = Math.min(0, ...values),
-                y = value => top + (high - value) / (high - low || 1) * (height - top - bottom),
-                baseline = y(0), groupWidth = (width - left - right) / buckets.length,
-                barWidth = Math.max(2, groupWidth * .66 / series.length),
-                tickIndexes = new Set([0, ...Array.from({ length: 4 }, (_, index) =>
-                    Math.round((buckets.length - 1) * (index + 1) / 5)), buckets.length - 1]);
-            let svg = `<svg viewBox="0 0 ${width} ${height}" class="ch report-chart" role="img" aria-label="Bar chart">`;
-            for (let index = 0; index <= 4; index++) {
-                const value = low + (high - low) * (4 - index) / 4, yy = y(value);
-                svg += `<line x1="${left}" x2="${width-right}" y1="${yy}" y2="${yy}" class="report-gridline"/><text x="${left-8}" y="${yy+4}" text-anchor="end">${reportTick(value)}</text>`
-            }
-            buckets.forEach((bucket, bucketIndex) => {
-                if (tickIndexes.has(bucketIndex)) svg += `<text x="${left+(bucketIndex+.5)*groupWidth}" y="${height-12}" text-anchor="middle">${esc(bucket.label)}</text>`;
-                series.forEach((item, seriesIndex) => {
-                    const value = item.values[bucketIndex], x = left + bucketIndex * groupWidth +
-                        (groupWidth - barWidth * series.length) / 2 + seriesIndex * barWidth,
-                        yy = y(value), actualHeight = Math.abs(baseline - yy),
-                        tooltip = `${item.name}: ${peso(value)} · ${fd(bucket.start)}${bucket.start !== bucket.end ? ` – ${fd(bucket.end)}` : ''}`;
-                    svg += `<g class="report-mark" ${reportClick(bucket, item.type || '', item.category || U.rc || '')}><title>${esc(tooltip)}</title><rect x="${x}" y="${value ? Math.min(baseline,yy) : baseline-2}" width="${Math.max(1,barWidth-3)}" height="${Math.max(4,actualHeight)}" rx="3" fill="${item.color}"/></g>`
-                })
-            });
-            return svg + '</svg>' + reportLegend(series)
-        }
-        function reportDonutChart(entries, period, emptyMessage) {
-            const total = entries.reduce((sum, entry) => sum + entry.value, 0);
-            if (!entries.length || total <= 0) return reportEmpty(emptyMessage);
-            const legend = entries.map(entry => {
-                const percent = Math.round(entry.value / total * 100),
-                    onclick = `selectReportDoughnut(this,'${esc(entry.id)}','${esc(period.start)}','${esc(period.end)}')`;
-                return `<button type="button" class="report-category" data-category-id="${esc(entry.id)}" style="--report-color:${entry.color}" onclick="${onclick}"><span><i style="--report-color:${entry.color}"></i><span class="report-category-name">${esc(entry.name)}</span></span><b>${peso(entry.value)} <small>${percent}%</small></b></button>`
-            }).join('');
-            const config = { kind: 'doughnut', entries, total, period };
-            return `<div class="report-donut-wrap" onclick="deselectReportDoughnutOutside(event,this)"><div class="report-donut-stage"><canvas class="report-donut-canvas" role="img" aria-label="Donut chart showing expenses by category" ${chartConfigAttribute(config)}>Donut chart showing expenses by category</canvas></div><div class="report-category-list">${legend}</div></div>`
-        }
-        const chartCssColor = name => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
-        function colorWithOpacity(color, opacity) {
-            const match = /^#([\da-f]{6})$/i.exec(color);
-            if (!match) return color;
-            const value = match[1];
-            return `rgba(${parseInt(value.slice(0, 2), 16)},${parseInt(value.slice(2, 4), 16)},${parseInt(value.slice(4, 6), 16)},${opacity})`
-        }
-        function createReportChart(canvas) {
-            const config = JSON.parse(canvas.dataset.chartConfig),
-                textColor = chartCssColor('--tx'),
-                mutedColor = chartCssColor('--mu'),
-                gridColor = colorWithOpacity(chartCssColor('--bd'), .6);
-            const chartOptions = {
-                responsive: true,
-                maintainAspectRatio: false,
-                animation: { duration: 180 },
-                plugins: { legend: { display: false } },
-                onClick(event, elements) {
-                    if (config.kind === 'doughnut') {
-                        const wrap = canvas.closest('.report-donut-wrap');
-                        if (!elements.length) {
-                            clearReportDoughnutSelection(wrap);
-                            return
-                        }
-                        const category = config.entries[elements[0].index];
-                        if (wrap.dataset.selectedCategory === category.id) {
-                            openReportTransactions(config.period.start, config.period.end, 'expense', category.id, U.ra || '');
-                        } else {
-                            applyReportDoughnutSelection(wrap, category.id)
-                        }
-                        return
-                    }
-                    if (!elements.length) return;
-                    const element = elements[0],
-                        bucket = config.buckets[element.index],
-                        series = config.series[element.datasetIndex];
-                    if (bucket && series) {
-                        openReportTransactions(bucket.start, bucket.end, series.type || '', series.category || U.rc || '', U.ra || '')
-                    }
-                }
-            };
-            let chartConfig;
-            if (config.kind === 'doughnut') {
-                const background = chartCssColor('--cd'),
-                    colors = config.entries.map(entry => entry.color),
-                    centerText = {
-                        id: 'reportDoughnutCenter',
-                        afterDraw(chart) {
-                            const arc = chart.getDatasetMeta(0).data[0];
-                            if (!arc) return;
-                            const context = chart.ctx;
-                            context.save();
-                            context.textAlign = 'center';
-                            context.textBaseline = 'middle';
-                            context.fillStyle = textColor;
-                            context.font = '700 16px system-ui, sans-serif';
-                            context.fillText(peso(config.total), arc.x, arc.y - 5);
-                            context.fillStyle = mutedColor;
-                            context.font = '12px system-ui, sans-serif';
-                            context.fillText('Total expenses', arc.x, arc.y + 13);
-                            const index = chart.data.datasets[0].selectedIndex;
-                            if (index >= 0) {
-                                const selectedArc = chart.getDatasetMeta(0).data[index],
-                                    entry = config.entries[index];
-                                if (selectedArc && entry) {
-                                    const angle = (selectedArc.startAngle + selectedArc.endAngle) / 2,
-                                        fromX = selectedArc.x + Math.cos(angle) * selectedArc.outerRadius,
-                                        fromY = selectedArc.y + Math.sin(angle) * selectedArc.outerRadius,
-                                        toX = selectedArc.x + Math.cos(angle) * (selectedArc.outerRadius + 16),
-                                        toY = selectedArc.y + Math.sin(angle) * (selectedArc.outerRadius + 16),
-                                        rightSide = Math.cos(angle) >= 0,
-                                        labelX = toX + (rightSide ? 4 : -4);
-                                    context.strokeStyle = textColor;
-                                    context.lineWidth = 1;
-                                    context.beginPath();
-                                    context.moveTo(fromX, fromY);
-                                    context.lineTo(toX, toY);
-                                    context.stroke();
-                                    context.fillStyle = textColor;
-                                    context.textAlign = rightSide ? 'left' : 'right';
-                                    context.font = '600 11px system-ui, sans-serif';
-                                    context.fillText(entry.name, labelX, toY - 5);
-                                    context.font = '12px system-ui, sans-serif';
-                                    context.fillText(peso(entry.value), labelX, toY + 10)
-                                }
-                            }
-                            context.restore()
-                        }
-                    };
-                chartConfig = {
-                    type: 'doughnut',
-                    data: {
-                        labels: config.entries.map(entry => entry.name),
-                        datasets: [{
-                            data: config.entries.map(entry => entry.value),
-                            categoryIds: config.entries.map(entry => entry.id),
-                            originalColors: colors,
-                            backgroundColor: colors,
-                            borderColor: background,
-                            borderWidth: 3,
-                            hoverOffset: 6,
-                            selectedIndex: -1,
-                            offset: context => context.dataIndex === context.dataset.selectedIndex ? 8 : 0
-                        }]
-                    },
-                    options: {
-                        ...chartOptions,
-                        cutout: '62%',
-                        layout: { padding: 28 },
-                        plugins: {
-                            ...chartOptions.plugins,
-                            tooltip: {
-                                callbacks: {
-                                    label(context) {
-                                        const entry = config.entries[context.dataIndex],
-                                            percent = Math.round(entry.value / config.total * 100);
-                                        return `${entry.name}: ${peso(entry.value)} (${percent}%)`
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    plugins: [centerText]
-                }
-            } else {
-                chartConfig = {
-                    type: 'line',
-                    data: {
-                        labels: config.buckets.map(bucket => bucket.label),
-                        datasets: config.series.map(item => ({
-                            label: item.name,
-                            data: item.values,
-                            borderColor: item.color,
-                            backgroundColor: colorWithOpacity(item.color, .14),
-                            fill: config.area,
-                            tension: .35,
-                            borderWidth: 2.5,
-                            pointRadius: 2,
-                            pointHoverRadius: 5
-                        }))
-                    },
-                    options: {
-                        ...chartOptions,
-                        scales: {
-                            x: {
-                                grid: { display: false },
-                                ticks: { color: mutedColor, maxTicksLimit: 7, maxRotation: 0 }
-                            },
-                            y: {
-                                beginAtZero: true,
-                                grid: { color: gridColor },
-                                ticks: { color: mutedColor, callback: reportTick }
-                            }
-                        },
-                        plugins: {
-                            ...chartOptions.plugins,
-                            tooltip: {
-                                callbacks: {
-                                    title(items) {
-                                        const bucket = config.buckets[items[0]?.dataIndex];
-                                        return bucket ? `${fd(bucket.start)}${bucket.start !== bucket.end ? ` – ${fd(bucket.end)}` : ''}` : ''
-                                    },
-                                    label(context) {
-                                        return `${config.series[context.datasetIndex].name}: ${peso(context.parsed.y)}`
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            return new Chart(canvas, chartConfig)
-        }
-        function destroyReportCharts() {
-            reportChartInstances.forEach(chart => chart.destroy());
-            reportChartInstances = []
-        }
-        function renderReportCharts(root) {
-            if (typeof Chart !== 'function') throw new Error('Chart.js did not load. Check vendor/chartjs/chart.umd.min.js.');
-            reportChartInstances = Array.from(root.querySelectorAll('canvas[data-chart-config]'))
-                .map(createReportChart)
-        }
-        function reportAccountBars(accounts, endDate, emptyMessage) {
-            if (!accounts.length) return reportEmpty(emptyMessage);
-            const values = accounts.map(account => ({ account, value: bal(account, endDate) })),
-                max = Math.max(1, ...values.map(item => Math.abs(item.value))),
-                width = 640, left = 174, right = 100, rowHeight = 38,
-                height = Math.max(100, values.length * rowHeight + 20),
-                baseline = left + (width - left - right) / 2,
-                half = (width - left - right) / 2;
-            let svg = `<svg viewBox="0 0 ${width} ${height}" class="ch report-account-chart" role="img" aria-label="Horizontal bar chart of account balances">`;
-            svg += `<line x1="${baseline}" x2="${baseline}" y1="8" y2="${height-8}" class="report-gridline"/>`;
-            values.forEach(({ account, value }, index) => {
-                const y = 16 + index * rowHeight,
-                    barWidth = Math.abs(value) / max * half,
-                    x = value < 0 ? baseline - barWidth : baseline,
-                    bucket = { start: endDate, end: endDate },
-                    tooltip = `${account.name}: ${peso(value)} · Balance on ${fd(endDate)}`;
-                svg += `<g class="report-mark" ${reportClick(bucket, '', '', account.id)}><title>${esc(tooltip)}</title><text x="${left-12}" y="${y+14}" text-anchor="end">${esc(account.name)}</text><rect x="${x}" y="${y}" width="${Math.max(value ? 2 : 0,barWidth)}" height="22" rx="5" fill="${value < 0 ? 'var(--ex)' : account.color}"/><text x="${value < 0 ? x-6 : x+barWidth+6}" y="${y+15}" text-anchor="${value < 0 ? 'end' : 'start'}">${esc(peso(value))}</text></g>`
-            });
-            return svg + '</svg>'
-        }
-        function reportBudgetAmount(categoryId, start, end) {
-            const monthlyAmount = D.budgets[categoryId] || 0;
-            let total = 0, cursor = new Date(reportDate(start).getFullYear(), reportDate(start).getMonth(), 1);
-            while (iso(cursor) <= end) {
-                const monthStart = iso(cursor),
-                    monthEnd = iso(new Date(cursor.getFullYear(), cursor.getMonth() + 1, 0)),
-                    overlapStart = monthStart < start ? start : monthStart,
-                    overlapEnd = monthEnd > end ? end : monthEnd,
-                    overlapDays = Math.floor((reportDate(overlapEnd) - reportDate(overlapStart)) / 86400000) + 1,
-                    daysInMonth = new Date(cursor.getFullYear(), cursor.getMonth() + 1, 0).getDate();
-                total += monthlyAmount * overlapDays / daysInMonth;
-                cursor = new Date(cursor.getFullYear(), cursor.getMonth() + 1, 1)
-            }
-            return Math.round(total * 100) / 100
-        }
-        function openReportTransactions(from, to, type, category, account) {
-            U.tf = from;
-            U.tt = to;
-            U.ty = type || '';
-            U.c = category || '';
-            U.a = account || '';
-            U.q = '';
-            txPageLimit = TRANSACTION_PAGE_SIZE;
-            go('tx')
-        }
-
         function catForm(id) {
             const c = id ? C(id) : null;
             openForm(c ? 'Edit category' : 'New category', () => [{
@@ -3295,7 +2199,7 @@ function syncDateInput(input) {
             if (!view || !Object.prototype.hasOwnProperty.call(V, view) || view === U.v) return;
             const previousView = U.v;
             if (view === 'shop') selectedShoppingListId = '';
-            if (view === 'tx' && previousView !== 'tx') txPageLimit = TRANSACTION_PAGE_SIZE;
+            if (view === 'tx' && previousView !== 'tx') window.PocketFeatures?.tx?.resetPage?.();
             U.v = view;
             render();
             window.scrollTo(0, 0)
@@ -3305,7 +2209,7 @@ function syncDateInput(input) {
             const previousView = U.v;
             closeTitleMenu();
             if (v === 'shop') selectedShoppingListId = '';
-            if (v === 'tx' && previousView !== 'tx') txPageLimit = TRANSACTION_PAGE_SIZE;
+            if (v === 'tx' && previousView !== 'tx') window.PocketFeatures?.tx?.resetPage?.();
             if (v !== previousView) updateViewHistory(v);
             U.v = v;
             render();
@@ -3389,7 +2293,7 @@ function syncDateInput(input) {
                 window.dispatchEvent(new CustomEvent('pocket:viewchange', { detail: { view: 'onboarding' } }));
                 document.querySelector('meta[name=theme-color]').content =
                     (onboardingDraft()?.theme || D.theme) === 'dark' ? '#000000' : '#f5f5f4';
-                destroyReportCharts();
+                window.PocketFeatures?.rep?.destroyCharts?.();
                 $('#m').dataset.view = 'onboarding';
                 $('#m').innerHTML = renderFeatureTemplate('onboarding', window.PocketFeatures.onboarding());
                 wireRenderedSelects($('#m'));
@@ -3406,12 +2310,11 @@ function syncDateInput(input) {
                 : D.theme === 'dark' ? '#000000' : '#f5f5f4';
             syncNavbar();
             $('#m').dataset.view = U.v;
-            destroyReportCharts();
+            window.PocketFeatures?.rep?.destroyCharts?.();
             $('#m').innerHTML = renderFeatureTemplate(U.v, renderDemoModeBanner() + V[U.v]());
             if (U.v === 'rep') {
                 const reportRoot = $('#m');
-                renderReportCharts(reportRoot);
-                const charts = reportChartInstances.slice();
+                const charts = window.PocketFeatures.rep.afterRender(reportRoot);
                 requestAnimationFrame(() => charts.forEach(chart => {
                     if (chart.canvas?.isConnected) chart.resize()
                 }));

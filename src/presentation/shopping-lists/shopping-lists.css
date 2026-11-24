@@ -488,6 +488,10 @@ html[data-view="shop"] #m .shopping-list-item-amount{
 .shopping-list-back{
             margin-top: 20px
         }
+        html[data-view="shop"] body.pocket-shopping-list-detail-active > .fab,
+        html[data-view="shop"] body.pocket-shopping-list-detail-active > .pocket-fab-menu{
+            display: none !important
+        }
 html[data-view="shop"] #m .shopping-list-action{
             background: var(--in);
             color: var(--bg)
@@ -522,3 +526,190 @@ html[data-view="shop"] #m .shopping-list-action{
                 padding-bottom: calc(160px + env(safe-area-inset-bottom, 0px))
             }
         }
+
+#f.pocket-shopping-form{
+    height: 100%;
+    min-height: 0
+}
+
+#f.pocket-shopping-form .form-screen-header{
+    min-height: 52px;
+    padding: 6px 24px
+}
+
+#f.pocket-shopping-form .form-screen-intro{
+    padding: 12px 24px 24px
+}
+
+#f.pocket-shopping-form .form-screen-intro h3{
+    margin-top: 8px;
+    font-size: 28px;
+    line-height: 1.1;
+    letter-spacing: -.03em
+}
+
+#f.pocket-shopping-form .form-eyebrow{
+    font-size: 11px;
+    letter-spacing: .06em
+}
+
+#f.pocket-shopping-form .form-fields{
+    display: grid;
+    flex: 1;
+    grid-template-columns: minmax(0, 1fr);
+    align-content: start;
+    gap: 20px;
+    padding: 0 24px 24px
+}
+
+#f.pocket-shopping-form .form-fields > label{
+    display: grid;
+    gap: 10px;
+    color: var(--mu);
+    font-size: 12px;
+    font-weight: 400
+}
+
+#f.pocket-shopping-form .form-fields input{
+    width: 100%;
+    min-height: 52px;
+    padding: 14px;
+    border: 1px solid var(--bd);
+    border-radius: 12px;
+    background: var(--sq);
+    color: var(--tx);
+    font: inherit;
+    font-size: 14px
+}
+
+#f.pocket-shopping-form .form-fields input:focus-visible{
+    outline: 2px solid var(--in);
+    outline-offset: 2px
+}
+
+#f.pocket-shopping-form .form-fields input[aria-invalid="true"]{
+    border-color: var(--ex)
+}
+
+#f.pocket-shopping-list-form .shopping-list-form-card{
+    display: grid;
+    gap: 12px;
+    padding: 20px;
+    border-radius: 20px;
+    background: var(--cd)
+}
+
+.shopping-list-form-icon{
+    display: inline-flex;
+    width: 24px;
+    height: 24px;
+    align-items: center;
+    color: var(--mu)
+}
+
+.shopping-list-form-icon svg{
+    width: 22px;
+    height: 22px
+}
+
+.shopping-list-form-card h4{
+    margin: 4px 0 0;
+    color: var(--tx);
+    font-size: 18px;
+    font-weight: 600
+}
+
+.shopping-list-form-card p{
+    margin: 0;
+    color: var(--mu);
+    font-size: 12px;
+    line-height: 1.5
+}
+
+#f.pocket-shopping-list-form .shopping-list-form-card label{
+    gap: 8px;
+    margin-top: 2px
+}
+
+#f.pocket-shopping-item-form .form-screen-intro{
+    padding-bottom: 24px
+}
+
+#f.pocket-shopping-item-form .shopping-item-name-field{
+    gap: 8px
+}
+
+#f.pocket-shopping-item-form .shopping-item-amount-card{
+    display: grid;
+    gap: 12px;
+    min-height: 184px;
+    padding: 20px;
+    border-radius: 20px;
+    background: var(--cd)
+}
+
+#f.pocket-shopping-item-form .shopping-item-amount-card > label{
+    color: var(--mu);
+    font-size: 12px;
+    font-weight: 400
+}
+
+.shopping-item-amount-card > small{
+    max-width: 320px;
+    color: var(--mu);
+    font-size: 12px;
+    line-height: 1.45
+}
+
+#f.pocket-shopping-form > .shopping-form-error{
+    flex: none;
+    margin: 0 24px;
+    padding: 0 0 8px
+}
+
+#f.pocket-shopping-form > .shopping-form-actions{
+    position: sticky;
+    bottom: 0;
+    z-index: 4;
+    display: grid;
+    flex: none;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
+    margin-top: auto;
+    padding: 12px 24px calc(24px + env(safe-area-inset-bottom, 0px));
+    background: var(--bg);
+    box-shadow: none
+}
+
+#f.pocket-shopping-form > .shopping-form-actions button{
+    width: 100%;
+    min-height: 52px;
+    border-radius: 14px;
+    text-align: center
+}
+
+#f.pocket-shopping-form > .shopping-form-actions .b1{
+    order: 0;
+    box-shadow: none
+}
+
+#f.pocket-shopping-form > .shopping-form-actions .b2{
+    order: 1
+}
+
+@media(max-width:760px) {
+    #f.pocket-shopping-form .form-screen-header{
+        padding-right: 24px;
+        padding-left: 24px
+    }
+
+    #f.pocket-shopping-form .form-screen-intro{
+        padding-right: 24px;
+        padding-left: 24px
+    }
+
+    #f.pocket-shopping-form .form-fields{
+        padding-right: 24px;
+        padding-left: 24px
+    }
+}

@@ -228,12 +228,6 @@ body.pocket-actions-scroll-hidden .fab {
     pointer-events: none
 }
 
-@media (max-width: 760px) {
-    .fab {
-        right: 14px
-    }
-}
-
 @media (prefers-reduced-motion: reduce) {
     .fab,
     .page-menu-toggle,

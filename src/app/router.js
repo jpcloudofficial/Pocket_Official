@@ -41,8 +41,8 @@ export const FEATURES = {
   },
   shop: {
     html: 'src/presentation/shopping-lists/shopping-lists.html',
-    css: 'src/presentation/shopping-lists/shopping-lists.css',
-    js: 'src/presentation/shopping-lists/shopping-lists.js',
+    css: 'src/presentation/shopping-lists/shopping-lists.css?v=20261124-shopping-design-2',
+    js: 'src/presentation/shopping-lists/shopping-lists.js?v=20261124-shopping-design-2',
   },
   rep: {
     html: 'src/presentation/reports/reports.html',
@@ -61,7 +61,7 @@ export const FEATURES = {
   },
   set: {
     html: 'src/presentation/settings/settings.html',
-    css: 'src/presentation/settings/settings.css',
+    css: 'src/presentation/settings/settings.css?v=20261124-settings-design-2',
     js: 'src/presentation/settings/settings.js',
   },
 };

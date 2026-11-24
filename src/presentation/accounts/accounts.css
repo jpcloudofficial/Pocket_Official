@@ -483,6 +483,7 @@ html[data-view="acc"] .pocket-account-transfer{
 }
 @media (max-width: 760px) {
 html[data-view="acc"] .fab.pocket-fab-labeled{
+                left: auto;
                 right: 14px;
                 min-width: 0;
                 justify-content: center;

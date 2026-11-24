@@ -1,8 +1,11 @@
 import { createRouter, FEATURES } from './router.js';
 import { createComponentLoader } from './component-loader.js';
+import { cashbackDepositAccount } from '../domain/policies/cashback-policy.js';
 
 const componentLoader = createComponentLoader();
 const router = createRouter();
+window.PocketDomain = window.PocketDomain || {};
+window.PocketDomain.cashback = { depositAccount: cashbackDepositAccount };
 
 function loadClassicScript(path) {
   return new Promise((resolve, reject) => {
@@ -25,12 +28,20 @@ async function initialize() {
   await Promise.all([
     ...Object.values(FEATURES).map(feature => componentLoader.loadStyle(feature.css)),
     ...Object.values(FEATURES).map(feature => componentLoader.loadScript(feature.js)),
+    componentLoader.loadStyle('src/presentation/common/dropdowns.css'),
+    componentLoader.loadScript('src/presentation/common/dropdowns.js'),
     componentLoader.loadScript('src/presentation/common/page-header.js'),
     componentLoader.loadStyle('src/presentation/common/enhancements.css'),
+    componentLoader.loadStyle('src/presentation/common/fab/fab.css'),
+    componentLoader.loadStyle('src/presentation/common/amount-input/amount-input.css'),
+    componentLoader.loadScript('src/presentation/common/amount-input/amount-input.js'),
     componentLoader.loadScript('src/presentation/common/enhancements.js'),
     componentLoader.loadScript('src/infrastructure/browser/privacy-mask.js'),
     componentLoader.loadScript('src/infrastructure/browser/page-title-sync.js'),
   ]);
+
+  const fabTemplate = await componentLoader.loadHtml('src/presentation/common/fab/fab.html');
+  document.body.insertAdjacentHTML('beforeend', fabTemplate);
 
   router.initialize();
   window.render();

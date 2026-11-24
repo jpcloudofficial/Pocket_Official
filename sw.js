@@ -1,4 +1,4 @@
-const CACHE = 'pera-v167';
+const CACHE = 'pera-v181';
 const FILES = [
   './',
   'index.html',
@@ -12,6 +12,10 @@ const FILES = [
   'src/presentation/common/navigation/navbar.html',
   'src/presentation/common/navigation/navbar.js',
   'src/presentation/common/enhancements.css',
+  'src/presentation/common/fab/fab.css',
+  'src/presentation/common/fab/fab.html',
+  'src/presentation/common/amount-input/amount-input.css',
+  'src/presentation/common/amount-input/amount-input.js',
   'src/presentation/common/page-header.js',
   'src/presentation/onboarding/onboarding.html',
   'src/presentation/onboarding/onboarding.css',
@@ -38,8 +42,8 @@ const FILES = [
   'src/presentation/goals/goals.css',
   'src/presentation/goals/goals.js',
   'src/presentation/shopping-lists/shopping-lists.html',
-  'src/presentation/shopping-lists/shopping-lists.css',
-  'src/presentation/shopping-lists/shopping-lists.js',
+  'src/presentation/shopping-lists/shopping-lists.css?v=20261124-shopping-design-2',
+  'src/presentation/shopping-lists/shopping-lists.js?v=20261124-shopping-design-2',
   'src/presentation/reports/reports.html',
   'src/presentation/reports/reports.css',
   'src/presentation/reports/reports.js',
@@ -50,7 +54,7 @@ const FILES = [
   'src/presentation/profile/profile.css',
   'src/presentation/profile/profile.js',
   'src/presentation/settings/settings.html',
-  'src/presentation/settings/settings.css',
+  'src/presentation/settings/settings.css?v=20261124-settings-design-2',
   'src/presentation/settings/settings.js',
   'src/infrastructure/charts/chart.umd.min.js',
   'src/presentation/common/enhancements.js',

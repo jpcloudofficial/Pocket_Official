@@ -3,12 +3,7 @@
         V.dash = () => {
             const [a, b] = rng(), T = D.tx.filter(t => t.date >= a && t.date <= b), inc = sum(T, 'income'), exp =
                 sum(T, 'expense'), tot = D.acc.filter(x => !isSav(x)).reduce((s, x) => s + bal(x), 0), cr = D.acc.filter(x => x.type === 'Credit Card')
-                .reduce((s, x) => s + bal(x), 0), av = tot - cr, n = new Date(), ks = [], L = [];
-            for (let i = 5; i >= 0; i--) {
-                const d = new Date(n.getFullYear(), n.getMonth() - i, 1);
-                ks.push(ym(iso(d)));
-                L.push(MO[d.getMonth()])
-            }
+                .reduce((s, x) => s + bal(x), 0), av = tot - cr;
             const reportYear = new Date().getFullYear(),
                 reportTransactions = D.tx.filter(t => +t.date.slice(0, 4) === reportYear),
                 reportMonthly = i => reportTransactions.filter(t => +t.date.slice(5, 7) === i + 1),
@@ -48,10 +43,6 @@
                 `<section class="dashboard-section dashboard-transactions"><div class="dashboard-section-heading"><h3 class="sec">Recent transactions</h3><button type="button" class="dashboard-section-link" onclick="go('tx')">See all <span aria-hidden="true">→</span></button></div>${D.tx.length?`<div class="dashboard-recent-card">${sorted().slice(0,3).map(t=>row(t,false,true)).join('')}</div>`:'<div class="empty dashboard-empty">No transactions yet.</div>'}</section>` :
                 '';
             const reportCards = [];
-            if (widgets.incomeExpenses) {
-                reportCards.push(`<div class="card"><h3>Income vs. expenses</h3>${bars([ks.map(k=>sum(D.tx.filter(t=>ym(t.date)===k),'income')),ks.map(k=>sum(D.tx.filter(t=>ym(t.date)===k),'expense'))],L,['#16a34a','#ea580c'])}</div>`);
-            }
-            if (widgets.expensesByCategory) reportCards.push(`<div class="card"><h3>Expenses by category</h3>${catBars(T)}</div>`);
             if (widgets.spendingTrend) reportCards.push(`<div class="card"><h3>Spending trend (${reportYear})</h3>${line(reportExpenses,MO,'#ea580c')}</div>`);
             if (widgets.accountBalanceHistory) reportCards.push(`<div class="card"><h3>Account balance history (${reportYear})</h3>${line(reportBalanceHistory,MO,'#2563eb')}</div>`);
             if (widgets.monthlySavings) reportCards.push(`<div class="card"><h3>Monthly savings (${reportYear})</h3>${bars([reportIncome.map((income,i)=>income-reportExpenses[i])],MO,['#16a34a'])}</div>`);

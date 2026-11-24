@@ -1,13 +1,44 @@
 (() => {
     window.PocketFeatures = window.PocketFeatures || {};
-        V.set = () =>
-            `${window.PocketPageHeader({ title: 'Settings' })}<div class="g g2">
-<div class="card settings-preferences"><h3>Preferences</h3><div class="settings-preference-list"><div class="settings-preference-row"><span>Currency</span><b>Philippine Peso (₱)</b></div><div class="settings-preference-row"><span>Date format</span><select aria-label="Date format" onchange="D.dateFormat=this.value;save();render()">${DATE_FORMATS.map(format=>`<option value="${format}"${currentDateFormat()===format?' selected':''}>${format}</option>`).join('')}</select></div><div class="settings-preference-row"><span>Financial period</span><select aria-label="Financial period" onchange="D.financialPeriod=this.value;U.reportRange=this.value;save();render()">${[['weekly','Weekly'],['monthly','Monthly'],['yearly','Yearly']].map(([value,label])=>`<option value="${value}"${D.financialPeriod===value?' selected':''}>${label}</option>`).join('')}</select></div><div class="settings-preference-row"><span>Theme</span><button class="b2" onclick="D.theme=D.theme==='dark'?'light':'dark';save();render()">${ic(D.theme==='dark'?'sun':'moon')} ${D.theme==='dark'?'Light':'Dark'} mode</button></div></div><div class="settings-preference-dashboard"><small>Dashboard</small><button class="b2 dashboard-layout-setting" onclick="dashboardSettingsForm()">${ic('bar-chart-3')} Customize Dashboard</button></div></div>
-<div class="card"><h3>Manage</h3><div class="settings-actions"><button class="b2" onclick="go('acc')">${ic('wallet')} Accounts</button><button class="b2" onclick="go('cat')">${ic('tag')} Categories</button><button class="b2" onclick="go('bud')">${ic('gauge')} Budgets</button><button class="b2" onclick="go('goal')">${ic('target')} Savings goals</button><button class="b2" onclick="go('rec')">${ic('repeat')} Recurring transactions</button><button class="b2" onclick="go('cash')">${ic('coins')} Cashback</button></div></div>
-<div class="card"><h3>Getting started</h3><p class="settings-note">Review setup tips or explore Pocket with sample data. Demo changes are temporary and do not affect your data.</p><div class="settings-actions"><button type="button" class="b2" onclick="showSetupInstructions()">${ic('book')} Setup instructions</button><button type="button" class="b2" onclick="startDemoMode()">${ic('eye')} Explore demo mode</button></div></div>
-<div class="card"><h3>Export</h3><div class="settings-actions"><button class="b2" onclick="showText('Transactions (CSV)',csv())">${ic('file-text')} Transactions CSV</button><button class="b2" onclick="showText('Monthly report (CSV)',repCsv())">${ic('bar-chart-3')} Report CSV</button><button class="b2" onclick="exportAllData()">${ic('download')} Export all data (JSON)</button></div></div>
-<div class="card"><h3>Back up &amp; restore</h3><div class="settings-actions"><button class="b2" onclick="showText('Backup',JSON.stringify(D))">${ic('save')} View / copy backup</button><button class="b2" onclick="showText('Restore backup','',1)">${ic('upload')} Restore backup</button></div><small class="settings-note">Data is saved in this browser. Backups are files you download and store yourself; Pocket does not upload them to the cloud.</small></div>
-<div class="card"><h3>Data management</h3><small class="settings-note">These actions can clear or replace local data. You’ll be asked to confirm before they run.</small><div class="settings-actions" style="margin-top:10px"><button class="b2" style="color:var(--ex)" onclick="clearTransactionHistory()">${ic('trash-2')} Clear transaction history</button><button class="b2" onclick="ask('Reset all amounts to ₱0? This clears every transaction, sets all account balances to ₱0 and empties savings goals.',()=>zero(D),'Reset')">${ic('rotate-ccw')} Reset all amounts</button><button class="b2" onclick="ask('Load the sample data? Your changes will be lost.',()=>{D=seed();D.v2=D.v3=1},'Load')">${ic('rotate-ccw')} Load sample data</button></div></div></div>`;
+
+    V.set = () => {
+        const actionRow = (label, action, trailingIcon = 'arrow-right', className = '') =>
+            `<button type="button" class="settings-action-row${className ? ` ${className}` : ''}" onclick="${action}"><span>${label}</span>${ic(trailingIcon)}</button>`;
+
+        return `${window.PocketPageHeader({ eyebrow: 'MAKE POCKET YOURS', title: 'Settings' })}<div class="g g2 settings-grid">
+<section class="card settings-card settings-preferences"><h3>Preferences</h3><div class="settings-preference-list">
+<div class="settings-preference-row"><span>Currency</span><b>Philippine Peso (₱)</b></div>
+<div class="settings-preference-row"><span>Date format</span><select aria-label="Date format" onchange="D.dateFormat=this.value;save();render()">${DATE_FORMATS.map(format => `<option value="${format}"${currentDateFormat() === format ? ' selected' : ''}>${format}</option>`).join('')}</select></div>
+<div class="settings-preference-row"><span>Financial period</span><select aria-label="Financial period" onchange="D.financialPeriod=this.value;U.reportRange=this.value;save();render()">${[['weekly', 'Weekly'], ['monthly', 'Monthly'], ['yearly', 'Yearly']].map(([value, label]) => `<option value="${value}"${D.financialPeriod === value ? ' selected' : ''}>${label}</option>`).join('')}</select></div>
+<div class="settings-preference-row"><span>Theme</span><button type="button" class="settings-theme-toggle" aria-label="Toggle theme, currently ${D.theme === 'dark' ? 'Dark' : 'Light'}" onclick="D.theme=D.theme==='dark'?'light':'dark';save();render()"><span>${D.theme === 'dark' ? 'Dark' : 'Light'}</span><span class="settings-chevron" aria-hidden="true"></span></button></div>
+</div><button type="button" class="b2 settings-cta dashboard-layout-setting" onclick="dashboardSettingsForm()">Customize dashboard</button></section>
+<section class="card settings-card"><h3>Manage</h3><div class="settings-action-list">
+${actionRow('Accounts', "go('acc')")}
+${actionRow('Categories', "go('cat')")}
+${actionRow('Budgets', "go('bud')")}
+${actionRow('Savings goals', "go('goal')")}
+${actionRow('Recurring transactions', "go('rec')")}
+${actionRow('Cashback', "go('cash')")}
+</div></section>
+<section class="card settings-card"><h3>Getting started</h3><p class="settings-note">Review setup tips or explore Pocket with sample data. Demo changes do not affect your data.</p><div class="settings-cta-list">
+<button type="button" class="b2 settings-cta" onclick="showSetupInstructions()">Setup instructions</button>
+<button type="button" class="b2 settings-cta" onclick="startDemoMode()">Explore demo mode</button>
+</div></section>
+<section class="card settings-card"><h3>Export</h3><div class="settings-action-list">
+${actionRow('Transactions CSV', "showText('Transactions (CSV)',csv())", 'arrow-down')}
+${actionRow('Report CSV', "showText('Monthly report (CSV)',repCsv())", 'arrow-down')}
+${actionRow('Export all data (JSON)', 'exportAllData()', 'arrow-down')}
+</div></section>
+<section class="card settings-card"><h3>Back up &amp; restore</h3><p class="settings-note">Data is saved in this browser. Download a backup and keep it somewhere safe. Pocket does not upload it to the cloud.</p><div class="settings-cta-list">
+<button type="button" class="b2 settings-cta" onclick="showText('Backup',JSON.stringify(D))">View / copy backup</button>
+<button type="button" class="b2 settings-cta" onclick="showText('Restore backup','',1)">Restore backup</button>
+</div></section>
+<section class="card settings-card"><h3>Data management</h3><p class="settings-note">These actions can clear or replace local data. You’ll be asked to confirm before they run.</p><div class="settings-action-list settings-danger-actions">
+${actionRow('Clear transaction history', 'clearTransactionHistory()', 'arrow-right', 'is-danger')}
+${actionRow('Reset all amounts', "ask('Reset all amounts to ₱0? This clears every transaction, sets all account balances to ₱0 and empties savings goals.',()=>zero(D),'Reset')", 'arrow-right', 'is-danger')}
+</div></section>
+</div>`;
+    };
 
     window.PocketFeatures['set'] = V.set;
 })();

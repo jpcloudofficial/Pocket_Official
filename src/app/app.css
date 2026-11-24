@@ -197,6 +197,13 @@
             transform: translateX(-100%)
         }
 
+        @media (prefers-reduced-motion: reduce) {
+            .page-title-menu-backdrop,
+            .page-title-menu {
+                transition: none
+            }
+        }
+
         .page-title-menu-header {
             display: flex;
             align-items: center;
@@ -937,145 +944,6 @@
             background-repeat: no-repeat
         }
 
-        .form-select-trigger {
-            width: 100%;
-            padding: 8px 36px 8px 10px;
-            border: 1px solid var(--bd);
-            border-radius: 10px;
-            background-color: var(--bg);
-            background-image: linear-gradient(45deg, transparent 50%, var(--mu) 50%), linear-gradient(135deg, var(--mu) 50%, transparent 50%);
-            background-position: calc(100% - 17px) 50%, calc(100% - 12px) 50%;
-            background-size: 5px 5px, 5px 5px;
-            background-repeat: no-repeat;
-            color: var(--tx);
-            font: inherit;
-            text-align: left;
-            cursor: pointer
-        }
-
-        .form-select-trigger:focus-visible,
-        .pocket-select-option:focus-visible {
-            outline: 2px solid var(--in);
-            outline-offset: 2px
-        }
-
-        .pocket-select-overlay {
-            position: fixed;
-            inset: 0;
-            z-index: 60;
-            background: transparent
-        }
-
-        .pocket-select-menu {
-            position: absolute;
-            overflow-y: auto;
-            overscroll-behavior: contain;
-            -webkit-overflow-scrolling: touch;
-            scrollbar-width: none;
-            -ms-overflow-style: none;
-            border: 1px solid var(--bd);
-            border-radius: 10px;
-            background: var(--cd);
-            box-shadow: 0 10px 28px #0006;
-            transform-origin: top center;
-            animation: pocket-dropdown-in .16s ease-out both
-        }
-
-        .pocket-select-menu.is-closing {
-            pointer-events: none;
-            animation: pocket-dropdown-out .12s ease-in both
-        }
-
-        @keyframes pocket-dropdown-in {
-            from {
-                opacity: 0;
-                transform: translateY(-5px) scale(.99)
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0) scale(1)
-            }
-        }
-
-        @keyframes pocket-dropdown-out {
-            from {
-                opacity: 1;
-                transform: translateY(0) scale(1)
-            }
-
-            to {
-                opacity: 0;
-                transform: translateY(-4px) scale(.99)
-            }
-        }@media(prefers-reduced-motion:reduce) {
-
-            .page-title-menu-backdrop,
-            .page-title-menu {
-                transition: none
-            }
-}@media(prefers-reduced-motion:reduce) {
-
-
-            .pocket-select-menu {
-                animation-duration: .01ms
-            }
-}@media(prefers-reduced-motion:reduce) {
-
-
-            .pocket-select-menu.is-closing {
-                animation-duration: .01ms
-            }
-}
-
-
-        .pocket-select-menu::-webkit-scrollbar {
-            display: none
-        }
-
-        .pocket-select-option {
-            display: block;
-            width: 100%;
-            min-height: 48px;
-            padding: 12px 18px;
-            border: 0;
-            border-bottom: 1px solid var(--bd);
-            background: transparent;
-            color: var(--tx);
-            font: inherit;
-            text-align: left;
-            cursor: pointer
-        }
-
-        .pocket-select-option[aria-selected="true"] {
-            background: var(--sq);
-            font-weight: 700
-        }
-
-        @keyframes cashback-transaction-picker-in {
-            from {
-                opacity: 0;
-                transform: translateY(12px)
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0)
-            }
-        }
-
-        @keyframes cashback-transaction-picker-out {
-            from {
-                opacity: 1;
-                transform: translateY(0)
-            }
-
-            to {
-                opacity: 0;
-                transform: translateY(12px)
-            }
-        }
-
         .date-input-wrap {
             position: relative;
             display: block;
@@ -1175,41 +1043,7 @@
             margin: 8px 0 0
         }
 
-        .fab {
-            position: fixed;
-            right: 22px;
-            bottom: 22px;
-            width: 52px;
-            height: 52px;
-            border-radius: 50%;
-            border: 0;
-            background: var(--in);
-            color: #fff;
-            box-shadow: 0 4px 14px #0004;
-            cursor: pointer;
-            display: grid;
-            place-items: center;
-            z-index: 6
-        }
-
-        .fab-label {
-            display: none
-        }
-
-        .fab.pocket-fab-labeled {
-            display: flex;
-            width: auto;
-            min-width: 52px;
-            padding: 0 16px;
-            gap: 8px;
-            border-radius: 28px;
-            font-weight: 700;
-            white-space: nowrap
-        }
-
-        .fab.pocket-fab-labeled .fab-label {
-            display: inline
-        }@media(max-width:760px) {
+@media(max-width:760px) {
 
 
             .hb {
@@ -1381,15 +1215,6 @@
                 margin-top: -16px;
                 padding-top: 24px
             }
-}@media(max-width:760px) {
-
-
-            .fab {
-                bottom: calc(82px + env(safe-area-inset-bottom, 0px))
-            }
-}
-
-
         body.pocket-onboarding-active {
             overflow-x: hidden
         }
@@ -1744,47 +1569,6 @@
             resize: vertical
         }
 
-        #f.pocket-transaction-form label[data-field="amount"] {
-            min-height: 150px;
-            padding: 14px 18px 16px;
-            border: 1px solid var(--bd);
-            border-radius: 20px;
-            background: var(--cd);
-            box-shadow: 0 12px 28px rgba(0, 0, 0, .20)
-        }
-
-        #f.pocket-transaction-form label[data-field="amount"] input {
-            min-height: 52px;
-            width: 100%;
-            padding: 0;
-            border: 0;
-            background: transparent;
-            font-size: 44px;
-            font-weight: 750;
-            letter-spacing: -.04em;
-            cursor: text;
-            line-height: 1
-        }
-
-        #f.pocket-transaction-form .amount-input-wrap {
-            display: flex;
-            align-items: center;
-            gap: 2px
-        }
-
-        #f.pocket-transaction-form .amount-currency {
-            flex: none;
-            color: var(--tx);
-            font-size: 42px;
-            font-weight: 750;
-            line-height: 52px
-        }
-
-        #f.pocket-transaction-form .amount-input-wrap {
-            width: 100%;
-            gap: 8px
-        }
-
         #f.pocket-transaction-form label[data-field="type"] {
             display: block;
             font-size: 0
@@ -1819,10 +1603,6 @@
             color: var(--tx)
         }
 
-        #f.pocket-transaction-form label[data-field="amount"] input {
-            line-height: 1
-        }
-
         #f.pocket-transaction-form .transfer-direction {
             display: flex;
             align-items: center;
@@ -1841,11 +1621,6 @@
         #f.pocket-transaction-form label[data-field="acc"],
         #f.pocket-transaction-form label[data-field="to"] {
             margin: 0
-        }
-
-        #f.pocket-transaction-form label[data-field="amount"] input::placeholder {
-            color: var(--tx);
-            opacity: 1
         }
 
         #f > .row.end {
@@ -2071,19 +1846,6 @@
 :root:not([data-theme=light])[data-view] .form-screen-header .form-screen-close {
     background: transparent
 }
-
-        html[data-theme=dark] body > .fab{
-            border-color: transparent;
-            background: #b8ef76;
-            color: #122016
-        }@media(prefers-color-scheme:dark) {
-html:not([data-theme=light]) body > .fab{
-                border-color: transparent;
-                background: #b8ef76;
-                color: #122016
-            }
-}
-
 
         #f.pocket-account-form .form-screen-header {
             min-height: 64px;
@@ -2406,42 +2168,6 @@ html:not([data-theme=light]) body > .fab{
             gap: 8px
         }
 
-        #f.pocket-cashback-form .amount-input-wrap {
-            display: flex;
-            min-width: 0;
-            min-height: 52px;
-            align-items: center;
-            gap: 7px;
-            padding: 0 14px;
-            border: 1px solid var(--bd);
-            border-radius: 12px;
-            background: var(--sq);
-            color: var(--mu);
-            font-size: 14px
-        }
-
-        #f.pocket-cashback-form .amount-currency {
-            flex: none
-        }
-
-        #f.pocket-cashback-form .amount-input-wrap input {
-            width: 100%;
-            min-width: 0;
-            min-height: 0;
-            padding: 0;
-            border: 0;
-            outline: 0;
-            background: transparent;
-            color: var(--tx);
-            font: inherit;
-            font-size: 14px
-        }
-
-        #f.pocket-cashback-form .amount-input-wrap:focus-within {
-            border-color: var(--in);
-            box-shadow: 0 0 0 2px color-mix(in srgb, var(--in) 18%, transparent)
-        }
-
         #f.pocket-cashback-form > .row.end {
             display: grid;
             grid-template-columns: minmax(0, 1fr);
@@ -2507,46 +2233,6 @@ html:not([data-theme=light]) body > .fab{
 
         #f.pocket-recurring-form .form-fields > label[data-field="amount"] {
             gap: 9px
-        }
-
-        #f.pocket-recurring-form .form-fields > label[data-field="amount"] .amount-input-wrap {
-            display: flex;
-            min-width: 0;
-            min-height: 64px;
-            align-items: center;
-            gap: 9px;
-            padding: 0 16px;
-            border: 1px solid var(--bd);
-            border-radius: 15px;
-            background: var(--sq);
-            color: var(--tx);
-            font-size: 22px;
-            font-weight: 650
-        }
-
-        #f.pocket-recurring-form .amount-currency {
-            flex: none;
-            color: var(--mu);
-            font-size: 17px;
-            font-weight: 500
-        }
-
-        #f.pocket-recurring-form .amount-input-wrap input {
-            width: 100%;
-            min-width: 0;
-            min-height: 0;
-            padding: 0;
-            border: 0;
-            outline: 0;
-            background: transparent;
-            color: var(--tx);
-            font: inherit;
-            font-size: 22px
-        }
-
-        #f.pocket-recurring-form .amount-input-wrap:focus-within {
-            border-color: var(--in);
-            box-shadow: 0 0 0 2px color-mix(in srgb, var(--in) 18%, transparent)
         }
 
         #f.pocket-recurring-form .form-fields > label[data-field="title"] input,
