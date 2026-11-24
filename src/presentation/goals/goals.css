@@ -240,6 +240,9 @@ html[data-view="goal"] #m .goal-estimate{
 #f.pocket-goal-form .goal-form-fields > label[data-field="acc"]{
             margin-top: 3px
         }
+#f .form-fields > label.goal-contribution-amount{
+            grid-column: 1 / -1
+        }
 #f.pocket-goal-form .goal-form-fields > label > input,
 #f.pocket-goal-form .goal-form-fields > label > .form-select-trigger,
 #f.pocket-goal-form .goal-form-fields > label > .date-input-wrap{

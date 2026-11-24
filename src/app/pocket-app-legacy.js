@@ -456,6 +456,7 @@ function syncDateInput(input) {
                 'chevron-right': '<path d="m9 18 6-6-6-6"/>',
                 'more-horizontal': '<circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/>',
                 settings: '<circle cx="12" cy="12" r="3"/><path d="m19.4 15 .1.1 1.4 1.1-1.4 2.4-1.7-.7a8 8 0 0 1-1.7 1l-.3 1.8h-2.8l-.3-1.8a8 8 0 0 1-1.7-1l-1.7.7-1.4-2.4 1.4-1.1a7 7 0 0 1 0-2l-1.4-1.1 1.4-2.4 1.7.7a8 8 0 0 1 1.7-1l.3-1.8h2.8l.3 1.8a8 8 0 0 1 1.7 1l1.7-.7 1.4 2.4-1.4 1.1a7 7 0 0 1 0 2z"/>',
+                user: '<circle cx="12" cy="8" r="3.5"/><path d="M5 20v-1a7 7 0 0 1 14 0v1"/>',
                 car: '<path d="M4 16v-4l2-5h12l2 5v4M4 16h16M4 16v2.5M20 16v2.5"/><circle cx="7.5" cy="13.3" r=".7"/><circle cx="16.5" cy="13.3" r=".7"/>',
                 book: '<path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3V4z"/><path d="M5 17a3 3 0 0 1 3-3h11"/>',
                 plane: '<path d="M3 13l18-9-5 17-4-7-9-1z"/>',
@@ -2126,16 +2127,16 @@ function syncDateInput(input) {
                 ['rep', 'Reports', 'bar-chart-3']
             ]],
             ['manage', 'Manage', [
-                ['bud', 'Budgets'],
-                ['goal', 'Savings goals'],
-                ['rec', 'Recurring transactions'],
-                ['shop', 'Shopping lists'],
-                ['cat', 'Categories'],
-                ['cash', 'Cashback']
+                ['bud', 'Budgets', 'gauge'],
+                ['goal', 'Savings goals', 'target'],
+                ['rec', 'Recurring transactions', 'repeat'],
+                ['shop', 'Shopping lists', 'shopping-bag'],
+                ['cat', 'Categories', 'tag'],
+                ['cash', 'Cashback', 'coins']
             ]],
             ['account-preferences', 'Account & Preferences', [
-                ['prof', 'Profile'],
-                ['set', 'Settings']
+                ['prof', 'Profile', 'user'],
+                ['set', 'Settings', 'settings']
             ]]
         ];
         let titleMenu, titleMenuBackdrop, titleMenuTrigger, pageTransition, titleMenuCloseTimer, titleMenuOpenTimer;
@@ -2284,7 +2285,7 @@ function syncDateInput(input) {
             const shoppingListActions = isShoppingListDetail
                 ? `<div class="page-title-menu-group page-title-menu-group-manage"><div class="page-title-menu-label">Current list</div><div class="page-title-menu-items"><button type="button" data-shopping-list-action="rename"><span class="page-title-menu-item-icon">${ic('pencil')}</span><span>Rename list</span></button><button type="button" data-shopping-list-action="delete"><span class="page-title-menu-item-icon">${ic('trash-2')}</span><span>Delete list</span></button></div></div>`
                 : '';
-            titleMenu.innerHTML = `<div class="page-title-menu-header"><strong id="page-title-menu-heading">Pocket</strong></div>${TITLE_MENU_GROUPS.map(([group, label, items]) =>
+            titleMenu.innerHTML = `<div class="page-title-menu-header"><div class="page-title-menu-profile"><span class="page-title-menu-avatar" id="page-title-menu-avatar" aria-hidden="true"><span class="profile-avatar-fallback">P</span></span><span class="page-title-menu-profile-name" id="page-title-menu-profile-name">Your profile</span></div><strong id="page-title-menu-heading">Pocket</strong></div>${TITLE_MENU_GROUPS.map(([group, label, items]) =>
                 `<div class="page-title-menu-group page-title-menu-group-${group}">${label?`<div class="page-title-menu-label">${label}</div>`:''}<div class="page-title-menu-items">${items.map(([id, itemLabel, icon]) =>
                     `<button type="button" data-page="${id}"${U.v===id?' aria-current="page"':''}>${icon?`<span class="page-title-menu-item-icon">${ic(icon)}</span>`:''}<span>${itemLabel}</span></button>`
                 ).join('')}</div></div>`

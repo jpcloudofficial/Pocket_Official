@@ -36,18 +36,22 @@ function updateProfileCard() {
   const preview = document.querySelector('#profile-name-preview');
   const email = document.querySelector('#profile-email');
   const profileButton = document.querySelector('.pocket-profile-button');
-  if (!avatar && !preview && !email && !profileButton) return;
+  const menuAvatar = document.querySelector('#page-title-menu-avatar');
+  const menuName = document.querySelector('#page-title-menu-profile-name');
+  if (!avatar && !preview && !email && !profileButton && !menuAvatar && !menuName) return;
 
   const profileData = window.pocketApp?.getData?.();
   const profileName = profileData?.name || user?.displayName || '';
   if (preview) preview.textContent = profileName || 'Your profile';
   if (email) email.textContent = user?.email || 'Sign in to view';
+  if (menuName) menuName.textContent = profileName || 'Your profile';
+  if (menuAvatar) menuAvatar.style.setProperty('--profile-accent', profileData?.profileAccent || '#2563eb');
   const customPhoto = profileData?.profilePhoto;
   const photoUrl = typeof customPhoto === 'string' && customPhoto.startsWith('data:image/jpeg;base64,')
     ? customPhoto
     : user?.photoURL?.startsWith('https://') ? user.photoURL : '';
   const initials = profileName.trim().split(/\s+/).slice(0, 2).map(part => part.charAt(0)).join('').toUpperCase() || 'P';
-  [avatar, profileButton].forEach(element => {
+  [avatar, profileButton, menuAvatar].forEach(element => {
     if (!element) return;
     let fallback = element.querySelector('.profile-avatar-fallback');
     if (!fallback) {
