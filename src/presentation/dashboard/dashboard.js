@@ -1,5 +1,9 @@
 (() => {
     window.PocketFeatures = window.PocketFeatures || {};
+        window.PocketFeatures.renderGettingStarted = tasks => {
+            if (!Array.isArray(tasks) || !tasks.length) return '';
+            return `<section class="card getting-started" aria-labelledby="getting-started-title"><div class="getting-started-heading"><div><h3 id="getting-started-title">Getting started</h3><small>Your progress stays on this device.</small></div><button type="button" class="ib" aria-label="Dismiss getting started checklist" onclick="dismissGettingStarted()">${ic('x')}</button></div><ol class="getting-started-list">${tasks.map(([id, title, done, description], index) => `<li class="getting-started-item${done ? ' is-done' : ''}" aria-label="${esc(title)}${done ? ', completed' : ''}"><span class="getting-started-number" aria-hidden="true">${String(index + 1).padStart(2, '0')}</span><span class="getting-started-copy"><b>${esc(title)}</b><small>${esc(description)}</small></span><button type="button" class="getting-started-action" aria-label="${done ? 'Review' : 'Start'} ${esc(title)}" onclick="startGettingStartedTask('${esc(id)}')">${ic('arrow-right')}</button></li>`).join('')}</ol></section>`;
+        };
         V.dash = () => {
             const [a, b] = rng(), T = D.tx.filter(t => t.date >= a && t.date <= b), inc = sum(T, 'income'), exp =
                 sum(T, 'expense'), tot = D.acc.filter(x => !isSav(x)).reduce((s, x) => s + bal(x), 0), cr = D.acc.filter(x => x.type === 'Credit Card')
@@ -31,7 +35,7 @@
                 `<div class="hero dashboard-balance-card"><div class="dashboard-balance-label"><small>Total balance</small></div><div class="hb">${peso(tot,1)}</div><small class="pocket-summary-amounts">Available ${peso(av)}${cr<0?' · Card owed '+peso(-cr):''}</small><div class="two"><div><small>↙ Income</small><div class="hn" style="color:var(--in)">${peso(inc, inc === 0)}</div></div><div><small>↗ Expenses</small><div class="hn" style="color:var(--ex)">${peso(exp, exp === 0)}</div></div></div></div>` :
                 '';
             const shortcutsWidget = widgets.shortcuts ?
-                `<section class="dashboard-shortcuts dashboard-section" aria-labelledby="dashboard-shortcuts-title"><div class="dashboard-section-heading"><h3 class="sec" id="dashboard-shortcuts-title">Your shortcuts</h3></div><div class="quick-actions-grid"><button class="quick-action" onclick="go('bud')"><span class="quick-action-icon quick-action-budget" aria-hidden="true">${dashboardIcon('chart')}</span><span>Budgets</span></button><button class="quick-action" onclick="go('cash')"><span class="quick-action-icon quick-action-cashback" aria-hidden="true">${dashboardIcon('gift')}</span><span>Cashback</span></button><button class="quick-action" onclick="go('rec')"><span class="quick-action-icon quick-action-recurring" aria-hidden="true">${dashboardIcon('repeat')}</span><span>Recurring</span></button><button class="quick-action" onclick="go('goal')"><span class="quick-action-icon quick-action-savings" aria-hidden="true">${dashboardIcon('goal')}</span><span>Goals</span></button><button class="quick-action" onclick="go('shop')"><span class="quick-action-icon quick-action-shopping" aria-hidden="true">${dashboardIcon('cart')}</span><span>Lists</span></button></div></section>` :
+                `<section class="dashboard-shortcuts dashboard-section" aria-labelledby="dashboard-shortcuts-title"><div class="dashboard-section-heading"><h3 class="sec" id="dashboard-shortcuts-title">Quick actions</h3></div><div class="quick-actions-grid"><button class="quick-action" onclick="go('bud')"><span class="quick-action-icon quick-action-budget" aria-hidden="true">${dashboardIcon('chart')}</span><span>Budgets</span></button><button class="quick-action" onclick="go('cash')"><span class="quick-action-icon quick-action-cashback" aria-hidden="true">${dashboardIcon('gift')}</span><span>Cashback</span></button><button class="quick-action" onclick="go('rec')"><span class="quick-action-icon quick-action-recurring" aria-hidden="true">${dashboardIcon('repeat')}</span><span>Recurring</span></button><button class="quick-action" onclick="go('goal')"><span class="quick-action-icon quick-action-savings" aria-hidden="true">${dashboardIcon('goal')}</span><span>Goals</span></button><button class="quick-action" onclick="go('shop')"><span class="quick-action-icon quick-action-shopping" aria-hidden="true">${dashboardIcon('cart')}</span><span>Lists</span></button></div></section>` :
                 '';
             const actionsWidget = widgets.actions ?
                 `<div class="row end" style="margin-top:18px"><button class="b2" onclick="quickAdd('expense')">${ic('plus')} Expense</button><button class="b2" onclick="quickAdd('income')">${ic('plus')} Income</button><button class="b2" onclick="quickAdd('transfer')">${ic('arrow-left-right')} Transfer</button></div>` :
@@ -52,12 +56,10 @@
                 '';
             const emptyDashboard = DASHBOARD_WIDGETS.some(([id]) => widgets[id]) ? '' :
                 '<div class="empty card">No dashboard sections are visible. Go to Settings and select Customize Dashboard to add sections.</div>';
-            const now = new Date(),
-                hour = now.getHours(),
+            const hour = new Date().getHours(),
                 greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening',
-                dashboardTitle = D.name ? `${greeting}, ${D.name}` : greeting,
-                dashboardDate = `${new Intl.DateTimeFormat('en-PH', { weekday: 'long' }).format(now)}, ${now.getDate()} ${new Intl.DateTimeFormat('en-PH', { month: 'long' }).format(now)}`.toUpperCase();
-            return `${window.PocketPageHeader({ eyebrow: dashboardDate, title: dashboardTitle })}${budgetAlert}${summaryWidget}<button type="button" class="dashboard-add-button" onclick="primaryAdd()">${ic('plus')}<span>Add transaction</span></button>${gettingStartedChecklist()}${shortcutsWidget}${actionsWidget}${accountsWidget}${transactionsWidget}${reportsWidget}${emptyDashboard}`
+                dashboardTitle = D.name ? `${greeting}, ${D.name}` : greeting;
+            return `${window.PocketPageHeader({ eyebrow: 'LET’S MAKE A FRESH START', title: dashboardTitle })}${budgetAlert}${summaryWidget}${gettingStartedChecklist()}${shortcutsWidget}<button type="button" class="dashboard-add-button" onclick="primaryAdd()">${ic('plus')}<span>Add transaction</span></button>${actionsWidget}${accountsWidget}${transactionsWidget}${reportsWidget}${emptyDashboard}`
         };
 
     window.PocketFeatures['dash'] = V.dash;

@@ -14,6 +14,7 @@
             };
             const main = document.querySelector('#m');
             const syncTitle = () => {
+                if (document.body.classList.contains('pocket-onboarding-active')) return;
                 const title = titles[U.v];
                 const heading = main.querySelector('h2');
                 const isShoppingListDetail = U.v === 'shop'
