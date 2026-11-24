@@ -255,7 +255,6 @@ html[data-view="tx"] body::-webkit-scrollbar-thumb:hover{
         }
 #m[data-view="tx"] .transaction-filter-row{
             position: relative;
-            z-index: 6;
             display: grid;
             grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
             gap: 8px

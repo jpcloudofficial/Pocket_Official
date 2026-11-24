@@ -2246,15 +2246,6 @@ function syncDateInput(input) {
                 })
             }, null, g ? 'Save changes' : 'Create goal')
         }
-        const fund = id => openForm('Add money to goal', () => [{
-            k: 'amt',
-            l: 'Amount (₱)',
-            t: 'number',
-            req: 1,
-            pos: 1
-        }], {}, v => {
-            D.goals.find(x => x.id === id).current += +v.amt
-        });
         function shoppingListForm(id) {
             const list = id ? D.shoppingLists.find(item => item.id === id) : null;
             openForm(list ? 'Edit shopping list' : 'Name your list', () => [{
@@ -3203,9 +3194,8 @@ function syncDateInput(input) {
             const heading = $('#m').querySelector('h2');
             if (!heading) return;
             heading.classList.add('page-menu-title');
-            const header = heading.closest('.row, .cashback-header');
+            const header = heading.closest('.pocket-unified-page-header, .row, .cashback-header');
             if (!header) return;
-            const headingGroup = heading.parentElement === header ? heading : heading.parentElement;
             let toggle = header.querySelector(':scope > .page-menu-toggle');
             if (!toggle) {
                 toggle = document.createElement('button');
@@ -3228,10 +3218,8 @@ function syncDateInput(input) {
                     }
                 });
             }
-            toggle.innerHTML = U.v === 'dash' || U.v === 'tx' || U.v === 'cash' || U.v === 'rec' ? dashboardIcon('more') : '<span></span><span></span><span></span>';
-            if (toggle.parentElement !== header || toggle.nextElementSibling !== headingGroup) {
-                header.insertBefore(toggle, headingGroup);
-            }
+            toggle.innerHTML = dashboardIcon('more');
+            if (toggle.parentElement !== header || toggle !== header.lastElementChild) header.append(toggle);
         }
 
         function updateViewHistory(view, replace = false) {
