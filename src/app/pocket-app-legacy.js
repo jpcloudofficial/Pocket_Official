@@ -612,10 +612,37 @@ function syncDateInput(input) {
                     x.t === 'date' ?
                     `<span class="date-input-wrap${v ? '' : ' is-empty'}"><input name="${x.k}" type="date" value="${esc(v)}" onchange="syncDateInput(this)"><span class="date-input-value">${esc(fd(v))}</span><span class="date-input-placeholder">${esc(x.placeholder || 'Choose date')}</span></span>` :
                     x.t === 'area' ? `<textarea name="${x.k}" rows="2">${esc(v)}</textarea>` :
+                    isAccountForm && x.k === 'initial' ?
+                    window.PocketAmountInput.render({
+                        name: x.k,
+                        value: v,
+                        type: x.t,
+                        step: '0.01',
+                        className: 'account-balance-input'
+                    }) :
                     isBudgetForm && x.k === 'amt' ?
-                    `<span class="budget-amount-input"><span aria-hidden="true">₱</span><input name="${x.k}" type="number" step="0.01" value="${esc(v)}" placeholder="0.00" aria-label="Monthly budget amount"></span>` :
+                    window.PocketAmountInput.render({
+                        name: x.k,
+                        value: v,
+                        type: x.t,
+                        step: '0.01',
+                        ariaLabel: 'Monthly budget amount'
+                    }) :
                     isGoalForm && (x.k === 'target' || x.k === 'current') ?
-                    `<span class="goal-amount-input"><span aria-hidden="true">₱</span><input name="${x.k}" type="number" step="0.01" value="${esc(v)}" placeholder="0.00"></span>` :
+                    window.PocketAmountInput.render({
+                        name: x.k,
+                        value: v,
+                        type: x.t,
+                        step: '0.01',
+                        className: 'goal-amount-input'
+                    }) :
+                    isTransactionForm && x.k === 'cashbackAmount' ?
+                    window.PocketAmountInput.render({
+                        name: x.k,
+                        value: v,
+                        placeholder: x.placeholder || '0.00',
+                        className: 'transaction-cashback-amount-input'
+                    }) :
                     x.k === 'amount' ?
                     window.PocketAmountInput.render({ name: x.k, value: v }) :
                     `<input name="${x.k}" type="${x.t||'text'}" value="${esc(v)}" ${x.t==='number'?'step="0.01"':''}${x.placeholder?` placeholder="${esc(x.placeholder)}"`:''}${x.k==='title'?(isRecurringForm?' placeholder="Name this transaction"':vals.type==='income'?' placeholder="Where did it come from?"':vals.type==='transfer'?' placeholder="Name this transfer"':' placeholder="What was it for?"'):''}${x.k==='note'?' placeholder="Add a note..."':''}>`;
@@ -624,14 +651,14 @@ function syncDateInput(input) {
             const formError = '<p class="er" id="er" role="alert" hidden></p>',
                 hasCashbackTransactionField = isCashbackForm && f.some(field => field.k === 'expenseId');
             const formFields = isAccountForm ?
-                `<div class="form-fields account-form-fields">${f.slice(0, 2).map(fld).join('')}<section class="account-form-card account-balance-card">${f.slice(2, 3).map(fld).join('')}</section><section class="account-form-card account-color-card"><div class="account-color-heading"><span>Account color</span><button type="button" class="account-color-toggle" aria-label="Collapse account color section" aria-expanded="true" aria-controls="account-color-options" onclick="toggleAccountColor(this)">${ic('arrow-up')}</button></div><div class="account-color-fields" id="account-color-options">${f.slice(3).map(x=>fld(x.k==='color'?{...x,hideLabel:true}:x)).join('')}</div></section></div>` :
+            `<div class="form-fields account-form-fields">${f.slice(0, 2).map(fld).join('')}<section class="account-form-card account-balance-card">${f.slice(2, 3).map(fld).join('')}</section><section class="account-form-card account-color-card"><div class="account-color-heading"><span>Account color</span><button type="button" class="account-color-toggle" aria-label="Collapse account color section" aria-expanded="true" aria-controls="account-color-options" onclick="toggleAccountColor(this)">${ic('arrow-up')}</button></div><div class="account-color-fields" id="account-color-options">${f.slice(3).map(x=>fld(x.k==='color'?{...x,hideLabel:true}:x)).join('')}</div></section>${formError}</div>` :
                 isBudgetForm ?
                 `<div class="form-fields budget-form-fields"><section class="budget-form-card">${f.map(fld).join('')}</section>${formError}<section class="budget-form-note"><div><b>A plan, not a restriction.</b><p>Budgets are flexible, and you can adjust them whenever your priorities change.</p></div></section></div>` :
                 isCashbackForm ?
-                `<div class="form-fields">${f.map(field => `${fld(field)}${field.k === 'expenseId' ? formError : ''}`).join('')}</div>` :
+            `<div class="form-fields">${f.map(field => `${fld(field)}${field.k === 'expenseId' ? formError : ''}`).join('')}${hasCashbackTransactionField ? '' : formError}</div>` :
                 isGoalForm ?
-                `<div class="form-fields goal-form-fields">${f.slice(0, 1).map(fld).join('')}<section class="goal-form-amount-card">${f.slice(1, 3).map(fld).join('')}</section>${f.slice(3).map(fld).join('')}</div>` :
-                `<div class="form-fields">${f.map(fld).join('')}</div>`;
+            `<div class="form-fields goal-form-fields">${f.slice(0, 1).map(fld).join('')}<section class="goal-form-amount-card">${f.slice(1, 3).map(fld).join('')}</section>${f.slice(3).map(fld).join('')}${formError}</div>` :
+            `<div class="form-fields">${f.map(fld).join('')}${formError}</div>`;
             const formClasses = [
                 isAccountForm ? 'pocket-account-form' : '',
                 isBudgetForm ? 'pocket-budget-form' : '',
@@ -644,7 +671,7 @@ function syncDateInput(input) {
                 `<button type="button" class="b1" id="sv">${esc(displaySaveLabel)}</button><button type="button" class="b2" onclick="cl()">Cancel</button>` :
                 `<button type="button" class="b2" onclick="cl()">Cancel</button><button type="button" class="b1" id="sv">${esc(displaySaveLabel)}</button>`;
             ov(
-            `<div id="f"${formClasses ? ` class="${formClasses}"` : ''}>${window.PocketFormScreenHeader({ back: isTransactionForm ? 'transaction' : 'close' })}<div class="form-screen-intro"><small class="form-eyebrow">${esc(displayEyebrow)}</small><h3>${esc(displayTitle)}</h3>${displayDescription?`<p>${esc(displayDescription)}</p>`:''}</div>${formFields}${isBudgetForm || hasCashbackTransactionField ? '' : formError}<div class="row end">${formActions}</div></div>`);
+            `<div id="f"${formClasses ? ` class="${formClasses}"` : ''}>${window.PocketFormScreenHeader({ back: isTransactionForm ? 'transaction' : 'close' })}<div class="form-screen-intro"><small class="form-eyebrow">${esc(displayEyebrow)}</small><h3>${esc(displayTitle)}</h3>${displayDescription?`<p>${esc(displayDescription)}</p>`:''}</div>${formFields}<div class="row end">${formActions}</div></div>`);
             $('#ov').classList.add('form-open');
             const F = $('#f'),
                 el = k => F.querySelector('[name="' + k + '"]'),
@@ -659,7 +686,9 @@ function syncDateInput(input) {
                 er = m => {
                     const error = $('#er');
                     error.textContent = m;
-                    error.hidden = false
+                    error.hidden = false;
+                    F.classList.add('has-error');
+                    error.scrollIntoView({ block: 'nearest' })
                 };
             F.querySelectorAll('.form-select-trigger').forEach(trigger => {
                 const pickerOptions = JSON.parse(trigger.dataset.pickerOptions || '{}');
@@ -1559,7 +1588,7 @@ function syncDateInput(input) {
                 l: a ? 'Current balance (₱)' : 'Initial balance (₱)',
                 t: 'number',
                 neg: 1,
-                req: 1,
+                req: a ? 1 : 0,
                 noMark: 1,
                 help: 'Enter a negative amount if this money is owed.'
             }, {
@@ -1577,7 +1606,7 @@ function syncDateInput(input) {
                 color: '#2563eb',
                 icon: 'wallet',
                 type: 'Cash',
-                initial: '0'
+                initial: ''
             }, v => {
                 if (D.acc.some(x => x.id !== id && x.name.toLowerCase() === v.name.toLowerCase()))
                 return 'An account with this name already exists';

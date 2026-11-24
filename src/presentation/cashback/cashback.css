@@ -260,34 +260,7 @@ html[data-view="cash"] #m .cashback-summary > b{
             flex: none;
             margin-left: auto
         }
-#m[data-view="cash"] .cashback-section-menu summary{
-            display: grid;
-            width: 32px;
-            height: 32px;
-            place-items: center;
-            border-radius: 9px;
-            color: var(--mu);
-            cursor: pointer;
-            list-style: none
-        }
-#m[data-view="cash"] .cashback-section-menu summary::-webkit-details-marker{
-            display: none
-        }
-#m[data-view="cash"] .cashback-section-menu summary:hover,
-#m[data-view="cash"] .cashback-section-menu[open] summary{
-            background: var(--sq);
-            color: var(--tx)
-        }
-#m[data-view="cash"] .cashback-section-menu summary:focus-visible,
-#m[data-view="cash"] .cashback-section-menu-actions button:focus-visible{
-            outline: 2px solid var(--in);
-            outline-offset: 2px
-        }
-#m[data-view="cash"] .cashback-section-menu summary .ic{
-            width: 19px;
-            height: 19px
-        }
-#m[data-view="cash"] .cashback-section-menu-options{
+#m[data-view="cash"] .cashback-section-menu .div-pocket-menu-options{
             position: absolute;
             top: calc(100% + 5px);
             right: 0;
@@ -335,7 +308,7 @@ html[data-view="cash"] #m .cashback-summary > b{
             grid-template-columns: repeat(2, minmax(0, 1fr));
             gap: 5px
         }
-#m[data-view="cash"] .cashback-section-menu-actions button{
+#m[data-view="cash"] .cashback-section-menu .cashback-section-menu-actions .pocket-action-menu-option{
             display: flex;
             min-width: 0;
             min-height: 36px;
@@ -351,7 +324,7 @@ html[data-view="cash"] #m .cashback-summary > b{
             font-size: 12px;
             cursor: pointer
         }
-#m[data-view="cash"] .cashback-section-menu-actions button:last-child{
+#m[data-view="cash"] .cashback-section-menu .cashback-section-menu-actions .pocket-action-menu-option.is-destructive{
             color: var(--ex)
         }
 #m[data-view="cash"] .cashback-section-menu-actions .ic{

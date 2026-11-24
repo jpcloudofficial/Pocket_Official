@@ -874,6 +874,26 @@
             overscroll-behavior: contain
         }
 
+        #ovc > h3 {
+            margin: 0 0 8px
+        }
+
+        #ovc > .settings-note {
+            margin: 0 0 14px
+        }
+
+        #ovc > .settings-actions {
+            display: grid;
+            gap: 8px
+        }
+
+        #ovc > .settings-actions > button {
+            width: 100%;
+            min-height: 44px;
+            justify-content: flex-start;
+            text-align: left
+        }
+
         #ov.form-open>div {
             display: flex;
             overflow: hidden
@@ -893,6 +913,14 @@
             flex: none
         }
 
+        #f.has-error > .form-fields {
+            flex: 0 1 auto
+        }
+
+        #f.has-error > .row.end {
+            margin-top: auto
+        }
+
         .form-fields {
             flex: 1;
             min-height: 0;
@@ -900,6 +928,10 @@
             overscroll-behavior: contain;
             scrollbar-width: none;
             -ms-overflow-style: none
+        }
+
+        #f .form-fields > .er {
+            grid-column: 1 / -1
         }
 
         .form-fields::-webkit-scrollbar {
@@ -1040,7 +1072,7 @@
             color: var(--ex);
             font-weight: 600;
             min-height: 18px;
-            margin: 8px 0 0
+            margin: 4px 0 0
         }
 
 @media(max-width:760px) {
@@ -1359,7 +1391,16 @@
                 border: 0;
                 background: transparent;
                 box-shadow: none;
-                z-index: 5
+                z-index: 25;
+                transition: transform .24s ease
+            }
+
+            body.pocket-actions-scroll-hidden .app > .pocket-navbar-host {
+                transform: translateY(calc(100% + 24px))
+            }
+
+            body.pocket-modal-open .app > .pocket-navbar-host {
+                display: none !important
             }
 }@media (max-width: 760px) {
 
@@ -1373,6 +1414,12 @@
                 background: #142019;
                 overflow: hidden
             }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .app > .pocket-navbar-host {
+        transition: none !important
+    }
 }
 
 
@@ -1539,16 +1586,6 @@
         #f.pocket-transaction-form label[data-field="note"],
         #f.pocket-transaction-form label[data-field="transferDirection"] {
             grid-column: 1 / -1
-        }
-
-        #f.pocket-transaction-form label[data-field="cashbackAmount"] input {
-            color: var(--tx);
-            font-size: 16px
-        }
-
-        #f.pocket-transaction-form label[data-field="cashbackAmount"] input::placeholder {
-            color: var(--tx);
-            opacity: 1
         }
 
         #f .form-fields input:not([type="hidden"]):not([type="checkbox"]):not([type="color"]),

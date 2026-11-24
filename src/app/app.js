@@ -28,6 +28,8 @@ async function initialize() {
   await Promise.all([
     ...Object.values(FEATURES).map(feature => componentLoader.loadStyle(feature.css)),
     ...Object.values(FEATURES).map(feature => componentLoader.loadScript(feature.js)),
+    componentLoader.loadStyle('src/presentation/common/action-menu/action-menu.css'),
+    componentLoader.loadScript('src/presentation/common/action-menu/action-menu.js'),
     componentLoader.loadStyle('src/presentation/common/dropdowns.css'),
     componentLoader.loadScript('src/presentation/common/dropdowns.js'),
     componentLoader.loadScript('src/presentation/common/page-header.js'),

@@ -1,12 +1,4 @@
 :root[data-feature="bud"] { --pocket-feature-id: "bud"; }
-html[data-view="bud"] .fab.pocket-fab-labeled{
-            transition: none !important
-        }
-html[data-view="bud"] body.pocket-actions-scroll-hidden .fab.pocket-fab-labeled{
-            transform: none;
-            opacity: 1;
-            pointer-events: auto
-        }
 html[data-view="bud"] #m .card{
             border-color: transparent;
             box-shadow: none
@@ -142,8 +134,8 @@ html:not([data-theme=light])[data-view="bud"] #m .b2{
             color: var(--tx)
         }
 .budgets-month-button:focus-visible,
-.budget-card-menu summary:focus-visible,
-.budget-card-menu-options button:focus-visible{
+.pocket-action-menu-trigger:focus-visible,
+.div-pocket-menu-options button:focus-visible{
             outline: 2px solid var(--in);
             outline-offset: 2px
         }
@@ -189,73 +181,6 @@ html:not([data-theme=light])[data-view="bud"] #m .b2{
             font-weight: 650;
             text-overflow: ellipsis;
             white-space: nowrap
-        }
-.budget-card-menu{
-            position: relative;
-            flex: none;
-            margin-left: auto
-        }
-.budget-card-menu summary{
-            display: grid;
-            width: 32px;
-            height: 32px;
-            place-items: center;
-            border-radius: 9px;
-            color: var(--mu);
-            cursor: pointer;
-            list-style: none
-        }
-.budget-card-menu summary::-webkit-details-marker{
-            display: none
-        }
-.budget-card-menu summary:hover,
-.budget-card-menu[open] summary{
-            background: var(--sq);
-            color: var(--tx)
-        }
-.budget-card-menu summary .ic{
-            width: 19px;
-            height: 19px
-        }
-.budget-card-menu-options{
-            position: absolute;
-            top: calc(100% + 5px);
-            right: 0;
-            z-index: 8;
-            display: grid;
-            width: 172px;
-            gap: 3px;
-            padding: 6px;
-            border: 1px solid var(--bd);
-            border-radius: 12px;
-            background: var(--cd);
-            box-shadow: 0 10px 24px #0005
-        }
-.budget-card-menu-options button{
-            display: flex;
-            min-height: 38px;
-            align-items: center;
-            gap: 9px;
-            padding: 7px 9px;
-            border: 0;
-            border-radius: 8px;
-            background: transparent;
-            color: var(--tx);
-            font: inherit;
-            font-size: 13px;
-            text-align: left;
-            cursor: pointer
-        }
-.budget-card-menu-options button:hover{
-            background: var(--sq)
-        }
-.budget-card-menu-options button:last-child{
-            color: var(--ex)
-        }
-.budget-card-menu-options .ic{
-            width: 17px;
-            height: 17px;
-            flex: none
         }
 .budget-card-amounts{
             display: flex;
@@ -345,7 +270,7 @@ html:not([data-theme=light])[data-view="bud"] #m .b2{
             font-size: 12px;
             font-weight: 600
         }
-#f.pocket-budget-form .budget-amount-input{
+#f.pocket-budget-form .budget-form-card .div-pocket-amount-input{
             display: flex;
             min-width: 0;
             min-height: 52px;
@@ -358,7 +283,12 @@ html:not([data-theme=light])[data-view="bud"] #m .b2{
             color: var(--mu);
             font-size: 14px
         }
-#f.pocket-budget-form .budget-amount-input input{
+#f.pocket-budget-form .budget-form-card .div-pocket-amount-input > span{
+            font-size: 14px;
+            font-weight: 400;
+            letter-spacing: normal
+        }
+#f.pocket-budget-form .budget-form-card .div-pocket-amount-input input:not([type="hidden"]):not([type="checkbox"]):not([type="color"]){
             width: 100%;
             min-width: 0;
             min-height: 0;
@@ -370,7 +300,7 @@ html:not([data-theme=light])[data-view="bud"] #m .b2{
             font: inherit;
             font-size: 14px
         }
-#f.pocket-budget-form .budget-amount-input:focus-within{
+#f.pocket-budget-form .budget-form-card .div-pocket-amount-input:focus-within{
             border-color: var(--in);
             box-shadow: 0 0 0 2px color-mix(in srgb, var(--in) 18%, transparent)
         }
