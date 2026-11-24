@@ -51,8 +51,8 @@ export const FEATURES = {
   },
   cat: {
     html: 'src/presentation/categories/categories.html',
-    css: 'src/presentation/categories/categories.css',
-    js: 'src/presentation/categories/categories.js',
+    css: 'src/presentation/categories/categories.css?v=20261125-categories-redesign-2',
+    js: 'src/presentation/categories/categories.js?v=20261125-categories-header-1',
   },
   prof: {
     html: 'src/presentation/profile/profile.html',

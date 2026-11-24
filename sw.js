@@ -1,4 +1,4 @@
-const CACHE = 'pera-v185';
+const CACHE = 'pera-v189';
 const FILES = [
   './',
   'index.html',
@@ -48,8 +48,8 @@ const FILES = [
   'src/presentation/reports/reports.css',
   'src/presentation/reports/reports.js',
   'src/presentation/categories/categories.html',
-  'src/presentation/categories/categories.css',
-  'src/presentation/categories/categories.js',
+  'src/presentation/categories/categories.css?v=20261125-categories-redesign-2',
+  'src/presentation/categories/categories.js?v=20261125-categories-header-1',
   'src/presentation/profile/profile.html',
   'src/presentation/profile/profile.css',
   'src/presentation/profile/profile.js',

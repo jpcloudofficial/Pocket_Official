@@ -62,6 +62,7 @@ body {
     border: 0;
     border-radius: 999px;
     background: transparent;
+    color: #a8b8af;
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
     transition: transform .18s ease
@@ -82,8 +83,18 @@ body {
     height: 24px
 }
 
+#pocket-navbar svg {
+    display: block;
+    width: 24px;
+    height: 24px
+}
+
 #pocket-navbar button[aria-current="page"] img {
     filter: brightness(0) saturate(100%) invert(88%) sepia(30%) saturate(690%) hue-rotate(34deg) brightness(104%) contrast(97%)
+}
+
+#pocket-navbar button[aria-current="page"] svg {
+    color: #b8ef76
 }
 
 @media (prefers-reduced-motion: reduce) {

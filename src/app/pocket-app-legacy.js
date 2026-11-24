@@ -612,6 +612,7 @@ function syncDateInput(input) {
             const isCashbackForm = title === 'Track cashback' || title === 'Edit cashback';
             const isRecurringForm = title === 'New recurring transaction' || title === 'Edit recurring transaction';
             const isGoalForm = title === 'New savings goal' || title === 'Edit goal';
+            const isCategoryForm = title === 'New category' || title === 'Edit category';
             const formCopy = {
                 'Add account': ['EVERY PESO HAS A PLACE', ''],
                 'Edit account': ['EVERY BALANCE, TOGETHER', 'Update your account details.'],
@@ -728,6 +729,7 @@ function syncDateInput(input) {
                 isGoalForm ? 'pocket-goal-form' : '',
                 isCashbackForm ? 'pocket-cashback-form' : '',
                 isRecurringForm ? 'pocket-recurring-form' : '',
+                isCategoryForm ? 'pocket-category-form' : '',
                 isTransactionForm || title === 'Record shopping expense' ? 'pocket-transaction-form' : ''
             ].filter(Boolean).join(' ');
             const formActions = isBudgetForm || isRecurringForm || isGoalForm ?
@@ -1938,6 +1940,7 @@ function syncDateInput(input) {
             openForm(c ? 'Edit category' : 'New category', () => [{
                 k: 'name',
                 l: 'Name',
+                placeholder: 'e.g., Pet care',
                 req: 1
             }, !c && {
                 k: 'g',
