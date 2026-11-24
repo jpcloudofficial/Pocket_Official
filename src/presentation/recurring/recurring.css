@@ -1,4 +1,15 @@
 :root[data-feature="rec"] { --pocket-feature-id: "rec"; }
+#f.pocket-recurring-form > .row.end{
+            display: grid;
+            grid-template-columns: minmax(0, 1fr);
+            gap: 10px;
+            padding: 12px 24px 24px
+        }
+@media(max-width:760px) {
+#f.pocket-recurring-form > .row.end{
+                padding-bottom: 16px
+            }
+}
 html[data-view="rec"] #m .card{
             border-color: transparent;
             box-shadow: none

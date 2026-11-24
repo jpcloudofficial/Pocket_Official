@@ -300,12 +300,12 @@ html[data-view="goal"] #m .goal-estimate{
             display: grid;
             grid-template-columns: minmax(0, 1fr);
             gap: 10px;
-            padding: 12px 24px calc(24px + env(safe-area-inset-bottom, 0px));
+            padding: 12px 24px 24px;
             box-shadow: none
         }
 #f.pocket-goal-form > .row.end button{
-            min-height: 52px;
-            border-radius: 14px
+            min-height: var(--pocket-fab-height);
+            border-radius: var(--pocket-fab-radius)
         }
 @media(max-width:760px) {
 html[data-view="goal"] #m .pocket-feature-content >.g.g2{
@@ -324,7 +324,7 @@ html[data-view="goal"] #m .pocket-feature-content >.savings-goal-list{
 }
 @media(max-width:760px) {
 #f.pocket-goal-form > .row.end{
-                padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px))
+                padding-bottom: 16px
             }
 }
 html[data-theme=dark][data-view="goal"] #m .b1{

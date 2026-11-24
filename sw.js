@@ -1,9 +1,9 @@
-const CACHE = 'pera-v181';
+const CACHE = 'pera-v182';
 const FILES = [
   './',
   'index.html',
   'manifest.webmanifest',
-  'src/app/app.css?v=20261124-modular-pages-2',
+  'src/app/app.css?v=20261124-fab-actions-1',
   'src/app/app.js',
   'src/app/router.js',
   'src/app/component-loader.js',
@@ -42,7 +42,7 @@ const FILES = [
   'src/presentation/goals/goals.css',
   'src/presentation/goals/goals.js',
   'src/presentation/shopping-lists/shopping-lists.html',
-  'src/presentation/shopping-lists/shopping-lists.css?v=20261124-shopping-design-2',
+  'src/presentation/shopping-lists/shopping-lists.css?v=20261124-fab-actions-1',
   'src/presentation/shopping-lists/shopping-lists.js?v=20261124-shopping-design-2',
   'src/presentation/reports/reports.html',
   'src/presentation/reports/reports.css',
