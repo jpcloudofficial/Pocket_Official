@@ -1596,6 +1596,18 @@
             font-weight: 700
         }
 
+        #m .form-screen-header {
+            position: sticky;
+            top: 0;
+            z-index: 5;
+            background: var(--bg)
+        }
+
+        #m .form-screen-header + .pocket-unified-page-header {
+            top: max(52px, calc(38px + env(safe-area-inset-top, 0px)));
+            margin-top: 0
+        }
+
         .form-screen-header > span:nth-child(2) {
             justify-self: start
         }
@@ -2053,6 +2065,11 @@
                 background: #203329;
                 color: #f2f6f3
             }
+}
+
+:root:not([data-theme=light])[data-view] .form-screen-header .form-screen-arrow,
+:root:not([data-theme=light])[data-view] .form-screen-header .form-screen-close {
+    background: transparent
 }
 
         html[data-theme=dark] body > .fab{

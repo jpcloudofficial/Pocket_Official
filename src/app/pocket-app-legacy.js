@@ -436,6 +436,7 @@ function syncDateInput(input) {
                 'rotate-ccw': '<path d="M4 12a8 8 0 1 0 2.5-5.8M4 4v4.5h4.5"/>',
                 'arrow-left-right': '<path d="M4 8h16l-3.5-3.5M20 16H4l3.5 3.5"/>',
                 'arrow-left': '<path d="M19 12H5M12 19l-7-7 7-7"/>',
+                'arrow-right': '<path d="M5 12h14M12 5l7 7-7 7"/>',
                 'arrow-up': '<path d="M12 19V5M5 12l7-7 7 7"/>',
                 'arrow-down': '<path d="M12 5v14M19 12l-7 7-7-7"/>',
                 'arrow-down-up': '<path d="M7 20V4M4 7l3-3 3 3M17 4v16m-3-3 3 3 3-3"/>',
@@ -502,6 +503,10 @@ function syncDateInput(input) {
             document.body.style.removeProperty('--pocket-modal-scroll-top');
             if (wasLocked) window.scrollTo(0, modalScrollPosition)
         };
+        function closeFormToDashboard() {
+            cl();
+            go('dash');
+        }
 
         function wireSelectPicker(select, trigger, label) {
             const updateTrigger = () => {
@@ -543,7 +548,13 @@ function syncDateInput(input) {
                 const closeOnScroll = event => {
                     if (!menu.contains(event.target)) closePicker(false)
                 };
-                const closeOnResize = () => closePicker(false);
+                const closeOnResize = () => {
+                    if (isCashbackTransactionPicker) {
+                        menu.style.maxHeight = `${Math.min(window.innerHeight * .76, 640)}px`;
+                        return;
+                    }
+                    closePicker(false)
+                };
                 overlay.closePicker = closePicker;
                 overlay.addEventListener('click', event => {
                     if (event.target === overlay) closePicker()
@@ -669,7 +680,11 @@ function syncDateInput(input) {
                     .find(button => button.textContent === selectedButton.textContent) ||
                     (isCashbackTransactionPicker ? optionsList.querySelector('.pocket-select-option') : menu.querySelector('button'));
                 if (isCashbackTransactionPicker) {
-                    searchInput.focus({ preventScroll: true });
+                    if (window.matchMedia('(pointer: coarse)').matches || navigator.maxTouchPoints > 0) {
+                        menu.querySelector('.cashback-transaction-picker-close').focus({ preventScroll: true })
+                    } else {
+                        searchInput.focus({ preventScroll: true })
+                    }
                     if (initialOption) optionsList.scrollTop = initialOption.offsetTop - optionsList.offsetTop
                 } else {
                     (initialOption || trigger).focus();
@@ -708,6 +723,26 @@ function syncDateInput(input) {
             ov(`<h3>${msg}</h3><div class="row end"><button class="b2" onclick="cl()">Cancel</button><button class="b1" style="background:var(--ex)" onclick="_f()">${ok}</button></div>`)
         }
         const info = m => ov(`<h3>${m}</h3><div class="row end"><button class="b1" onclick="cl()">OK</button></div>`);
+
+        window.PocketFormScreenHeader = ({ back = 'close', close = 'dashboard', shoppingList = false } = {}) => {
+            const backActions = {
+                close: { handler: 'cl()', label: 'Back' },
+                transaction: { handler: 'backFromTransactionForm()', label: 'Back' },
+                shoppingLists: { handler: 'closeShoppingList()', label: 'Back to all lists' }
+            };
+            const closeActions = {
+                dashboard: { handler: 'closeFormToDashboard()', label: 'Close' },
+                shoppingDashboard: { handler: 'closeShoppingListToDashboard()', label: 'Go to Dashboard' }
+            };
+            if (!Object.prototype.hasOwnProperty.call(backActions, back) ||
+                !Object.prototype.hasOwnProperty.call(closeActions, close)) {
+                throw new TypeError('Form screen headers require supported back and close actions.');
+            }
+            const headerClass = shoppingList ? ' shopping-list-screen-header' : '',
+                backButton = backActions[back],
+                closeButton = closeActions[close];
+            return `<div class="form-screen-header${headerClass}"><button type="button" class="form-screen-arrow" aria-label="${backButton.label}" onclick="${backButton.handler}">${ic('arrow-left')}</button><span>Pocket</span><button type="button" class="form-screen-close" aria-label="${closeButton.label}" onclick="${closeButton.handler}">${ic('x')}</button></div>`;
+        };
 
         function openForm(title, fn, vals, submit, rr, saveLabel = 'Save') {
             const f = fn(vals).filter(Boolean);
@@ -793,11 +828,14 @@ function syncDateInput(input) {
                     `<input name="${x.k}" type="${x.t||'text'}" value="${esc(v)}" ${x.t==='number'?'step="0.01"':''}${x.placeholder?` placeholder="${esc(x.placeholder)}"`:''}${x.k==='title'?(isRecurringForm?' placeholder="Name this transaction"':vals.type==='income'?' placeholder="Where did it come from?"':vals.type==='transfer'?' placeholder="Name this transfer"':' placeholder="What was it for?"'):''}${x.k==='cashbackAmount'?' placeholder="₱0.00"':''}${x.k==='note'?' placeholder="Add a note..."':''}>`;
                 return `<label data-field="${esc(x.k)}"${x.cls?` class="${esc(x.cls)}"`:''}>${isAccountForm&&(x.k==='icon'||x.hideLabel)?'':x.l}${x.req&&!x.noMark?' *':''}${i}${x.help?`<small class="form-field-help">${esc(x.help)}</small>`:''}</label>`
             };
-            const formError = '<p class="er" id="er" role="alert" hidden></p>';
+            const formError = '<p class="er" id="er" role="alert" hidden></p>',
+                hasCashbackTransactionField = isCashbackForm && f.some(field => field.k === 'expenseId');
             const formFields = isAccountForm ?
                 `<div class="form-fields account-form-fields">${f.slice(0, 2).map(fld).join('')}<section class="account-form-card account-balance-card">${f.slice(2, 3).map(fld).join('')}</section><section class="account-form-card account-color-card"><div class="account-color-heading"><span>Account color</span><button type="button" class="account-color-toggle" aria-label="Collapse account color section" aria-expanded="true" aria-controls="account-color-options" onclick="toggleAccountColor(this)">${ic('arrow-up')}</button></div><div class="account-color-fields" id="account-color-options">${f.slice(3).map(x=>fld(x.k==='color'?{...x,hideLabel:true}:x)).join('')}</div></section></div>` :
                 isBudgetForm ?
                 `<div class="form-fields budget-form-fields"><section class="budget-form-card">${f.map(fld).join('')}</section>${formError}<section class="budget-form-note"><div><b>A plan, not a restriction.</b><p>Budgets are flexible, and you can adjust them whenever your priorities change.</p></div></section></div>` :
+                isCashbackForm ?
+                `<div class="form-fields">${f.map(field => `${fld(field)}${field.k === 'expenseId' ? formError : ''}`).join('')}</div>` :
                 isGoalForm ?
                 `<div class="form-fields goal-form-fields">${f.slice(0, 1).map(fld).join('')}<section class="goal-form-amount-card">${f.slice(1, 3).map(fld).join('')}</section>${f.slice(3).map(fld).join('')}</div>` :
                 `<div class="form-fields">${f.map(fld).join('')}</div>`;
@@ -813,7 +851,7 @@ function syncDateInput(input) {
                 `<button type="button" class="b1" id="sv">${esc(displaySaveLabel)}</button><button type="button" class="b2" onclick="cl()">Cancel</button>` :
                 `<button type="button" class="b2" onclick="cl()">Cancel</button><button type="button" class="b1" id="sv">${esc(displaySaveLabel)}</button>`;
             ov(
-            `<div id="f"${formClasses ? ` class="${formClasses}"` : ''}><div class="form-screen-header"><span class="form-screen-arrow" role="button" aria-label="Back" tabindex="0" onclick="${isTransactionForm ? 'backFromTransactionForm()' : 'cl()'}">${ic('arrow-left')}</span><span>Pocket</span><span class="form-screen-close" role="button" aria-label="Close" tabindex="0" onclick="cl()">${ic('x')}</span></div><div class="form-screen-intro"><small class="form-eyebrow">${esc(displayEyebrow)}</small><h3>${esc(displayTitle)}</h3>${displayDescription?`<p>${esc(displayDescription)}</p>`:''}</div>${formFields}${isBudgetForm ? '' : formError}<div class="row end">${formActions}</div></div>`);
+            `<div id="f"${formClasses ? ` class="${formClasses}"` : ''}>${window.PocketFormScreenHeader({ back: isTransactionForm ? 'transaction' : 'close' })}<div class="form-screen-intro"><small class="form-eyebrow">${esc(displayEyebrow)}</small><h3>${esc(displayTitle)}</h3>${displayDescription?`<p>${esc(displayDescription)}</p>`:''}</div>${formFields}${isBudgetForm || hasCashbackTransactionField ? '' : formError}<div class="row end">${formActions}</div></div>`);
             $('#ov').classList.add('form-open');
             const F = $('#f'),
                 el = k => F.querySelector('[name="' + k + '"]'),
@@ -2374,6 +2412,10 @@ function syncDateInput(input) {
             selectedShoppingListId = '';
             render();
         }
+        function closeShoppingListToDashboard() {
+            selectedShoppingListId = '';
+            go('dash');
+        }
         function shoppingListFabAction() {
             if (selectedShoppingListId) shoppingItemForm(selectedShoppingListId);
             else shoppingListForm();
@@ -3160,6 +3202,14 @@ function syncDateInput(input) {
                         trigger?.focus();
                         return;
                     }
+                    const shoppingListAction = event.target.closest('button[data-shopping-list-action]');
+                    if (shoppingListAction && selectedShoppingListId) {
+                        const action = shoppingListAction.dataset.shoppingListAction;
+                        closeTitleMenu();
+                        if (action === 'rename') shoppingListForm(selectedShoppingListId);
+                        else if (action === 'delete') deleteShoppingList(selectedShoppingListId);
+                        return;
+                    }
                     const item = event.target.closest('button[data-page]');
                     if (item) go(item.dataset.page)
                 });
@@ -3186,16 +3236,25 @@ function syncDateInput(input) {
                 });
                 window.addEventListener('resize', closeTitleMenu);
             }
+            const isShoppingListDetail = U.v === 'shop' && D.shoppingLists.some(list => list.id === selectedShoppingListId);
+            document.body.classList.toggle('pocket-shopping-list-detail-active', isShoppingListDetail);
+            const shoppingListActions = isShoppingListDetail
+                ? `<div class="page-title-menu-group page-title-menu-group-manage"><div class="page-title-menu-label">Current list</div><div class="page-title-menu-items"><button type="button" data-shopping-list-action="rename"><span class="page-title-menu-item-icon">${ic('pencil')}</span><span>Rename list</span></button><button type="button" data-shopping-list-action="delete"><span class="page-title-menu-item-icon">${ic('trash-2')}</span><span>Delete list</span></button></div></div>`
+                : '';
             titleMenu.innerHTML = `<div class="page-title-menu-header"><strong id="page-title-menu-heading">Pocket</strong></div>${TITLE_MENU_GROUPS.map(([group, label, items]) =>
                 `<div class="page-title-menu-group page-title-menu-group-${group}">${label?`<div class="page-title-menu-label">${label}</div>`:''}<div class="page-title-menu-items">${items.map(([id, itemLabel, icon]) =>
                     `<button type="button" data-page="${id}"${U.v===id?' aria-current="page"':''}>${icon?`<span class="page-title-menu-item-icon">${ic(icon)}</span>`:''}<span>${itemLabel}</span></button>`
                 ).join('')}</div></div>`
-            ).join('')}`;
+            ).join('')}${shoppingListActions}`;
             const heading = $('#m').querySelector('h2');
             if (!heading) return;
             heading.classList.add('page-menu-title');
             const header = heading.closest('.pocket-unified-page-header, .row, .cashback-header');
             if (!header) return;
+            if (isShoppingListDetail) {
+                header.querySelector(':scope > .page-menu-toggle')?.remove();
+                return;
+            }
             let toggle = header.querySelector(':scope > .page-menu-toggle');
             if (!toggle) {
                 toggle = document.createElement('button');
