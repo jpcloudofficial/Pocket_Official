@@ -1,4 +1,12 @@
 :root[data-feature="acc"] { --pocket-feature-id: "acc"; }
+#f.pocket-account-form > .row.end{
+            padding: 12px 24px 24px
+        }
+@media(max-width:760px) {
+#f.pocket-account-form > .row.end{
+                padding-bottom: 16px
+            }
+}
 .pocket-account-transfer{
             position: fixed;
             right: 22px;
@@ -6,16 +14,16 @@
             z-index: 21;
             display: flex;
             width: 147px;
-            height: 52px;
+            height: var(--pocket-fab-height);
             align-items: center;
             justify-content: center;
             gap: 8px;
             padding: 0 16px;
-            border: 1px solid var(--bd);
-            border-radius: 28px;
+            border: 0;
+            border-radius: var(--pocket-fab-radius);
             background: var(--cd);
             color: var(--tx);
-            box-shadow: 0 4px 14px #0004;
+            box-shadow: var(--pocket-fab-shadow);
             font: inherit;
             font-weight: 700;
             cursor: pointer
@@ -36,12 +44,6 @@ body.pocket-actions-scroll-hidden .pocket-account-transfer{
             opacity: 0;
             pointer-events: none
         }
-@media (max-width: 760px){
-.pocket-account-transfer{
-                right: 14px;
-                bottom: calc(142px + env(safe-area-inset-bottom,0px))
-            }
-}
 @media (prefers-reduced-motion: reduce){
 .pocket-account-transfer{
                 transition: none !important
@@ -467,16 +469,18 @@ html[data-view="acc"] .pocket-fab-menu{
 @media (max-width: 760px) {
 html[data-view="acc"] .fab.pocket-fab-labeled,
 html[data-view="acc"] .pocket-account-transfer{
-                bottom: calc(82px + env(safe-area-inset-bottom, 0px));
-                width: calc(50vw - 21px);
-                height: 52px;
-                border-radius: 28px
+                right: 24px;
+                left: 24px;
+                width: auto;
+                height: var(--pocket-fab-height);
+                border-radius: var(--pocket-fab-radius)
             }
 }
 @media (max-width: 760px) {
 html[data-view="acc"] .fab.pocket-fab-labeled{
-                left: auto;
-                right: 14px;
+                left: 24px;
+                right: 24px;
+                bottom: calc(82px + env(safe-area-inset-bottom, 0px));
                 min-width: 0;
                 justify-content: center;
                 padding: 0 10px
@@ -484,8 +488,10 @@ html[data-view="acc"] .fab.pocket-fab-labeled{
 }
 @media (max-width: 760px) {
 html[data-view="acc"] .pocket-account-transfer{
-                right: auto;
-                left: 14px;
+                right: 24px;
+                left: 24px;
+                bottom: calc(142px + env(safe-area-inset-bottom, 0px));
+                width: auto;
                 padding: 0 10px
             }
 }

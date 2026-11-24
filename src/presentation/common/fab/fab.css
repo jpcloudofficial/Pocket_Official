@@ -1,3 +1,9 @@
+:root {
+  --pocket-fab-height: 52px;
+  --pocket-fab-radius: 14px;
+  --pocket-fab-shadow: 0 10px 24px rgba(184, 239, 118, .16), 0 8px 18px rgba(0, 0, 0, .22);
+}
+
 .fab {
   position: fixed;
   right: 22px;
@@ -6,15 +12,15 @@
   display: flex;
   width: auto;
   min-width: 0;
-  height: 52px;
+  height: var(--pocket-fab-height);
   align-items: center;
   justify-content: center;
   padding: 0 14px;
   border: 0;
-  border-radius: 14px;
+  border-radius: var(--pocket-fab-radius);
   background: var(--in);
   color: #fff;
-  box-shadow: 0 10px 24px rgba(184, 239, 118, .16), 0 8px 18px rgba(0, 0, 0, .22);
+  box-shadow: var(--pocket-fab-shadow);
   cursor: pointer;
   font: inherit;
   font-weight: 600;
@@ -35,16 +41,24 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 52px;
+  height: var(--pocket-fab-height);
+  min-height: var(--pocket-fab-height);
   padding: 0 16px;
-  border-radius: 14px;
+  border-radius: var(--pocket-fab-radius);
   font-weight: 600;
   text-align: center;
   cursor: pointer;
 }
 
 .pocket-fab-action-primary {
-  box-shadow: 0 10px 24px rgba(184, 239, 118, .16);
+  box-shadow: var(--pocket-fab-shadow);
+}
+
+#f > .row.end button {
+  height: var(--pocket-fab-height);
+  min-height: var(--pocket-fab-height);
+  border-radius: var(--pocket-fab-radius);
+  box-shadow: var(--pocket-fab-shadow);
 }
 
 @media (max-width: 760px) {

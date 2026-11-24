@@ -41,7 +41,7 @@ export const FEATURES = {
   },
   shop: {
     html: 'src/presentation/shopping-lists/shopping-lists.html',
-    css: 'src/presentation/shopping-lists/shopping-lists.css?v=20261124-shopping-design-2',
+    css: 'src/presentation/shopping-lists/shopping-lists.css?v=20261124-fab-actions-1',
     js: 'src/presentation/shopping-lists/shopping-lists.js?v=20261124-shopping-design-2',
   },
   rep: {

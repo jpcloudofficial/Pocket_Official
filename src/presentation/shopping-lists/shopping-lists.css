@@ -432,12 +432,13 @@ html[data-view="shop"] #m .shopping-list-item-amount{
 .shopping-list-action{
             display: flex;
             width: 100%;
-            min-height: 52px;
+            height: var(--pocket-fab-height);
+            min-height: var(--pocket-fab-height);
             align-items: center;
             justify-content: center;
             gap: 8px;
             margin-top: 18px;
-            border-radius: 14px;
+            border-radius: var(--pocket-fab-radius);
             font-size: 14px
         }
 .shopping-list-action svg{
@@ -451,7 +452,8 @@ html[data-view="shop"] #m .shopping-list-item-amount{
             margin-top: 18px
         }
 .shopping-list-bottom-actions .shopping-list-action{
-            margin: 0
+            margin: 0;
+            box-shadow: var(--pocket-fab-shadow)
         }
 .shopping-list-back{
             margin-top: 20px
@@ -477,10 +479,10 @@ html[data-view="shop"] #m .shopping-list-action{
             }
             body.pocket-shopping-list-detail-active .shopping-list-bottom-actions{
                 position: fixed;
-                right: 14px;
+                right: 24px;
                 bottom: calc(12px + env(safe-area-inset-bottom, 0px));
-                left: 14px;
-                z-index: 6;
+                left: 24px;
+                z-index: 11;
                 grid-template-columns: minmax(0, 1fr);
                 gap: 8px;
                 margin: 0;
