@@ -36,6 +36,7 @@
             l: 'Amount',
             t: 'number',
             placeholder: '0.00',
+            cls: 'goal-contribution-amount',
             req: 1,
             pos: 1
         }], {}, value => {

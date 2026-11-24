@@ -1,15 +1,15 @@
 (() => {
     window.PocketFeatures = window.PocketFeatures || {};
-        function profileSettingsCard() {
-            const colors = PROFILE_COLORS.map(([name, color]) =>
-                `<button type="button" class="profile-color-swatch" style="--profile-swatch:${color}" aria-label="${name} profile color" aria-pressed="${D.profileAccent===color}" onclick="D.profileAccent='${color}';save();render()"></button>`
-            ).join('');
-            const photoActions = `<div class="profile-photo-actions"><button type="button" class="b2 profile-photo-button" onclick="document.getElementById('profile-photo-input').click()">${D.profilePhoto ? 'Change photo' : 'Upload photo'}</button>${D.profilePhoto ? '<button type="button" class="profile-remove-photo" onclick="pocketApp.removeProfilePhoto()">Remove photo</button>' : ''}</div><input class="profile-photo-input" type="file" id="profile-photo-input" accept="image/*" aria-label="Choose a profile picture" onchange="pocketApp.uploadProfilePhoto(this)"><small class="profile-photo-note">Choose a photo from your device.</small>`;
-            return `<div class="card profile-card" id="profile-settings" style="--profile-accent:${D.profileAccent}"><div class="profile-card-heading"><h3>Profile details</h3><p>Personalize your Pocket profile.</p></div><div class="profile-photo-settings">${photoActions}</div><label class="profile-name-field">Display name<input id="profile-name" type="text" maxlength="32" autocomplete="name" aria-label="Profile display name" placeholder="Your name" value="${esc(D.name)}" onchange="D.name=this.value.trim().slice(0,32);save();render()"></label><div class="profile-email-row"><span>Account email</span><strong id="profile-email">Sign in to view</strong></div><div class="profile-color-setting"><span>Profile color</span><div class="profile-color-options" role="group" aria-label="Profile color">${colors}</div></div><small class="settings-note profile-card-note">Your display name and profile color sync to your signed-in devices.</small></div>`;
-        }
 
-        const cloudSyncCard = () =>
-            `<div class="card cloud-sync-card" id="cloud-sync-card">
+    function profileSettingsCard() {
+        const profileName = typeof D.name === 'string' ? D.name.trim() : '';
+        const profileInitials = profileName.split(/\s+/).slice(0, 2).map(part => part.charAt(0)).join('').toUpperCase() || 'P';
+        const photoActions = `<div class="profile-photo-actions"><button type="button" class="b2 profile-photo-button" onclick="document.getElementById('profile-photo-input').click()">${D.profilePhoto ? 'Change photo' : 'Upload photo'}</button>${D.profilePhoto ? '<button type="button" class="profile-remove-photo" onclick="pocketApp.removeProfilePhoto()">Remove photo</button>' : ''}</div><input class="profile-photo-input" type="file" id="profile-photo-input" accept="image/*" aria-label="Choose a profile picture" onchange="pocketApp.uploadProfilePhoto(this)"><small class="profile-photo-note">Choose a photo from your device.</small>`;
+        return `<div class="card profile-card" id="profile-settings" style="--profile-accent:${D.profileAccent}"><div class="profile-card-heading"><h3>Profile details</h3><p>Personalize your Pocket profile.</p></div><div class="profile-summary"><div class="profile-avatar" id="profile-avatar" aria-hidden="true"><span class="profile-avatar-fallback">${esc(profileInitials)}</span></div><div class="profile-identity"><strong id="profile-name-preview">${esc(profileName || 'Your profile')}</strong><small></small></div></div><div class="profile-photo-settings">${photoActions}</div><label class="profile-name-field">Display name<input id="profile-name" type="text" maxlength="32" autocomplete="name" aria-label="Profile display name" placeholder="Your name" value="${esc(D.name)}" onchange="D.name=this.value.trim().slice(0,32);save();render()"></label><div class="profile-email-row"><span>Account email</span><strong id="profile-email">Sign in to view</strong></div></div>`;
+    }
+
+    const cloudSyncCard = () =>
+        `<div class="card cloud-sync-card" id="cloud-sync-card">
   <div class="cloud-sync-intro"><h3>Cloud sync</h3><p class="settings-note">Sync your data across devices.</p></div>
   <div class="cloud-sync-state"><p id="cloud-sync-status" class="cloud-sync-status" role="status">Connecting to Firebase…</p><small id="cloud-sync-mode" class="cloud-sync-mode">Local copy</small></div>
   <p class="cloud-sync-local-note">This device keeps its local copy.</p>
@@ -19,16 +19,21 @@
   <div id="cloud-conflict" class="cloud-conflict" hidden><p>Cloud data changed while this device also has local changes. Choose which copy to keep.</p><div class="settings-actions"><button class="b1" type="button" data-cloud-action="use-cloud">Use cloud copy</button><button class="b2" type="button" data-cloud-action="keep-local">Keep this device</button></div></div>
 </div>`;
 
-        V.prof = () =>
-            `${window.PocketPageHeader({ eyebrow: 'A LITTLE MORE YOU', title: 'Your profile' })}<div class="g g2 profile-layout">${profileSettingsCard()}${cloudSyncCard()}</div>`;
+    V.prof = () =>
+        `${window.PocketPageHeader({ eyebrow: 'A LITTLE MORE YOU', title: 'Your profile' })}<div class="g g2 profile-layout">${profileSettingsCard()}${cloudSyncCard()}</div>`;
 
     V.prof.onEnter = () => {
         if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
         document.querySelectorAll('#m .profile-layout > .card').forEach((card, index) => {
             if (typeof card.animate !== 'function') return;
-            const animation = card.animate([
-                { opacity: 0, transform: 'translateY(14px) scale(.985)' },
-                { opacity: 1, transform: 'translateY(0) scale(1)' }
+            const animation = card.animate([{
+                    opacity: 0,
+                    transform: 'translateY(14px) scale(.985)'
+                },
+                {
+                    opacity: 1,
+                    transform: 'translateY(0) scale(1)'
+                }
             ], {
                 duration: 360,
                 delay: index * 65,
