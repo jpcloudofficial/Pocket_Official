@@ -65,7 +65,7 @@
                 selectedReportFilters = [U.ra ? A(U.ra)?.name : '', U.rc ? C(U.rc)?.name : ''].filter(Boolean),
                 activeReportFilterCount = Number(!!U.ra) + Number(!!U.rc);
             const chartCard = (title, chart) => `<section class="card report-card"><h3>${title}</h3>${chart}</section>`;
-            return `<div class="row sp"><h2>Reports</h2></div>
+            return `${window.PocketPageHeader({ title: 'Reports' })}
 <div class="card report-filter-toolbar"><div class="report-filter-toolbar-copy"><small>${rangeLabel} overview${selectedReportFilters.length ? ` · ${selectedReportFilters.map(esc).join(' · ')}` : ''}</small><b>${period.valid ? `${fd(period.start)} – ${fd(period.end)}` : 'Choose a valid date range.'}</b></div><button type="button" class="b2" onclick="openReportFilters()">${ic('settings')} Filters${activeReportFilterCount ? `<span class="report-filter-count">${activeReportFilterCount}</span>` : ''}</button></div>
 ${period.valid ? `<div class="g g2 report-grid">
 ${chartCard('Income vs. Expenses', incomeExpenses)}

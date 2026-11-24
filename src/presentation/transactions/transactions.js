@@ -37,7 +37,7 @@
                 ).join(''),
                 typeOptions = [['', 'All types'], ['income', 'Income'], ['expense', 'Expense'], ['transfer', 'Transfer'], ['flow', 'Income and expenses']],
                 filtersOpen = transactionFiltersOpen || Boolean(U.ty);
-            return `<div class="row sp pocket-privacy-header transaction-page-heading"><div class="transaction-heading-copy"><small>YOUR MONEY, IN MOTION</small><h2>Transactions</h2></div></div>
+            return `${window.PocketPageHeader({ eyebrow: 'YOUR MONEY, IN MOTION', title: 'Transactions' })}
 <div class="f transaction-filters">
   <label class="transaction-search"><img src="assets/dashboard-icons/search.svg" width="24" height="24" alt=""><input aria-label="Search transactions" placeholder="Search transactions" value="${esc(U.q)}" oninput="U.q=this.value;fl()"></label>
   <div class="transaction-filter-row">

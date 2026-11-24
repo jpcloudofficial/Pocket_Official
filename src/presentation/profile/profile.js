@@ -20,7 +20,7 @@
 </div>`;
 
         V.prof = () =>
-            `<div class="row sp"><h2>Profile</h2></div><div class="g g2 profile-layout">${profileSettingsCard()}${cloudSyncCard()}</div>`;
+            `${window.PocketPageHeader({ title: 'Profile' })}<div class="g g2 profile-layout">${profileSettingsCard()}${cloudSyncCard()}</div>`;
 
     V.prof.onEnter = () => {
         if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;

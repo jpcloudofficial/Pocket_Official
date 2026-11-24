@@ -24,7 +24,7 @@
             };
             const sectionHeading = (title, schedules) => `<div class="recurring-section-heading"><b>${title}</b><small>${schedules.length} schedule${schedules.length === 1 ? '' : 's'}</small></div>`;
             const emptyState = `<div class="card recurring-empty"><span class="recurring-empty-icon">${ic('repeat')}</span><div><b>${paused.length ? 'No active schedules' : 'No schedules yet'}</b><small>${paused.length ? 'Resume a paused schedule or add a new one.' : 'Add one for a regular bill, subscription, salary, or transfer.'}</small></div></div>`;
-            return `<div class="row recurring-header"><div class="recurring-heading-copy"><small>LESS TO REMEMBER</small><h2>Recurring</h2><p>Set schedules for regular expenses, income, and transfers.</p></div></div>${sectionHeading('Active', active)}<div class="recurring-list">${active.length ? active.map(card).join('') : emptyState}</div>${paused.length ? `${sectionHeading('Paused', paused)}<div class="recurring-list">${paused.map(card).join('')}</div>` : ''}<small class="recurring-note">Due items are added while Pocket is open. Missed schedules catch up next time.</small>`
+            return `${window.PocketPageHeader({ eyebrow: 'LESS TO REMEMBER', title: 'Recurring', description: 'Set schedules for regular expenses, income, and transfers.' })}${sectionHeading('Active', active)}<div class="recurring-list">${active.length ? active.map(card).join('') : emptyState}</div>${paused.length ? `${sectionHeading('Paused', paused)}<div class="recurring-list">${paused.map(card).join('')}</div>` : ''}<small class="recurring-note">Due items are added while Pocket is open. Missed schedules catch up next time.</small>`
         };
 
     window.PocketFeatures['rec'] = V.rec;

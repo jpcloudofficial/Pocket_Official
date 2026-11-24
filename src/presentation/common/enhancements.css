@@ -40,6 +40,10 @@
     line-height: 1.45
 }
 
+#f .form-fields > label:only-child {
+    grid-column: 1 / -1
+}
+
 .pocket-profile-button {
     position: relative;
     display: grid;
@@ -122,6 +126,12 @@
     outline-offset: 2px
 }
 
+.page-menu-toggle .dashboard-icon {
+    display: block;
+    width: 24px;
+    height: 24px
+}
+
 .pocket-page-header {
     flex-wrap: nowrap
 }
@@ -140,6 +150,61 @@ h2.pocket-page-title {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap
+}
+
+.pocket-unified-page-header {
+    position: sticky;
+    top: env(safe-area-inset-top, 0px);
+    z-index: 4;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    margin: -24px 0 10px;
+    padding: 20px 0 18px;
+    background: var(--bg)
+}
+
+.pocket-unified-page-heading {
+    display: grid;
+    flex: 1 1 auto;
+    min-width: 0;
+    gap: 12px
+}
+
+.pocket-unified-page-eyebrow {
+    color: var(--in);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .02em;
+    line-height: 1.2
+}
+
+.pocket-unified-page-header h2.pocket-page-title {
+    margin: 0;
+    font-size: 28px;
+    line-height: 1.2
+}
+
+.pocket-unified-page-description {
+    margin: 0;
+    color: var(--mu);
+    font-size: 13px;
+    line-height: 1.4
+}
+
+@media (max-width: 760px) {
+    .pocket-unified-page-header {
+        width: 100vw;
+        margin-top: -20px;
+        margin-left: calc(50% - 50vw);
+        padding: 20px 24px 18px
+    }
+
+    #m[data-view="tx"] .pocket-unified-page-header {
+        width: calc(100% + 48px);
+        margin-left: -24px
+    }
 }
 
 body.pocket-actions-scroll-hidden .fab {

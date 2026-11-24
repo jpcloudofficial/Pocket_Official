@@ -258,10 +258,8 @@
             font-family: Inter, 'Plus Jakarta Sans', system-ui, sans-serif
         }
 #m[data-view="dash"] .pocket-feature-content >.dashboard-heading{
-            align-items: center;
-            gap: 12px;
-            margin-top: -24px;
-            padding: 20px 0 18px
+            align-items: flex-start;
+            padding: 24px 0 29px
         }
 #m[data-view="dash"] .dashboard-heading-copy{
             display: grid;
@@ -595,13 +593,6 @@ html[data-view="dash"] .pocket-account-transfer{
 @media (max-width: 760px) {
 #m[data-view="dash"]{
                 padding: 20px 24px 132px
-            }
-}
-@media (max-width: 760px) {
-#m[data-view="dash"] .pocket-feature-content >.dashboard-heading{
-                top: env(safe-area-inset-top, 0px);
-                margin-top: -20px;
-                padding: 20px 0 18px
             }
 }
 @media (prefers-reduced-motion: reduce) {

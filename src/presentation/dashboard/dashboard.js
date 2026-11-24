@@ -64,9 +64,9 @@
             const now = new Date(),
                 hour = now.getHours(),
                 greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening',
-                dashboardTitle = D.name ? `${greeting}, ${esc(D.name)}` : greeting,
+                dashboardTitle = D.name ? `${greeting}, ${D.name}` : greeting,
                 dashboardDate = `${new Intl.DateTimeFormat('en-PH', { weekday: 'long' }).format(now)}, ${now.getDate()} ${new Intl.DateTimeFormat('en-PH', { month: 'long' }).format(now)}`.toUpperCase();
-            return `<div class="row sp pocket-privacy-header dashboard-heading"><div class="dashboard-heading-copy"><small class="dashboard-date">${dashboardDate}</small><h2 style="font-size:28px">${dashboardTitle}</h2></div></div>${budgetAlert}${summaryWidget}<button type="button" class="dashboard-add-button" onclick="primaryAdd()">${ic('plus')}<span>Add transaction</span></button>${gettingStartedChecklist()}${shortcutsWidget}${actionsWidget}${accountsWidget}${transactionsWidget}${reportsWidget}${emptyDashboard}`
+            return `${window.PocketPageHeader({ eyebrow: dashboardDate, title: dashboardTitle })}${budgetAlert}${summaryWidget}<button type="button" class="dashboard-add-button" onclick="primaryAdd()">${ic('plus')}<span>Add transaction</span></button>${gettingStartedChecklist()}${shortcutsWidget}${actionsWidget}${accountsWidget}${transactionsWidget}${reportsWidget}${emptyDashboard}`
         };
 
     window.PocketFeatures['dash'] = V.dash;

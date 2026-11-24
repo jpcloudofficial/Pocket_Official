@@ -25,6 +25,7 @@ async function initialize() {
   await Promise.all([
     ...Object.values(FEATURES).map(feature => componentLoader.loadStyle(feature.css)),
     ...Object.values(FEATURES).map(feature => componentLoader.loadScript(feature.js)),
+    componentLoader.loadScript('src/presentation/common/page-header.js'),
     componentLoader.loadStyle('src/presentation/common/enhancements.css'),
     componentLoader.loadScript('src/presentation/common/enhancements.js'),
     componentLoader.loadScript('src/infrastructure/browser/privacy-mask.js'),

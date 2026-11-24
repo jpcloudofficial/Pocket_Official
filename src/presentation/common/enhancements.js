@@ -24,7 +24,7 @@
   };
   const isHidden = () => { try { return localStorage.getItem(PRIVACY_KEY) === '1'; } catch { return false; } };
 
-  const pageTitle = () => main.querySelector(':scope > .row.sp h2');
+  const pageTitle = () => main.querySelector('.pocket-unified-page-header h2') || main.querySelector(':scope > .row.sp h2');
   const setTitle = () => {
     if (main.dataset.view !== 'dash') return;
     const heading = pageTitle();

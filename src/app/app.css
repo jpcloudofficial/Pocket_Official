@@ -1977,7 +1977,9 @@
             border: 0;
             border-radius: 14px;
             background: var(--sq);
-            color: var(--tx)
+            color: var(--tx);
+            justify-content: center;
+            text-align: center
         }@media(max-width:760px) {
 
             #ov.form-open,
