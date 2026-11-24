@@ -304,10 +304,10 @@ ${window.PocketFormScreenHeader({ back: 'close', close: 'dismiss' })}
             return svg + '</svg>'
         }
         function reportBudgetAmount(categoryId, start, end) {
-            const monthlyAmount = D.budgets[categoryId] || 0;
             let total = 0, cursor = new Date(reportDate(start).getFullYear(), reportDate(start).getMonth(), 1);
             while (iso(cursor) <= end) {
                 const monthStart = iso(cursor),
+                    monthlyAmount = budgetAmountForMonth(categoryId, ym(monthStart)),
                     monthEnd = iso(new Date(cursor.getFullYear(), cursor.getMonth() + 1, 0)),
                     overlapStart = monthStart < start ? start : monthStart,
                     overlapEnd = monthEnd > end ? end : monthEnd,
@@ -364,7 +364,8 @@ ${window.PocketFormScreenHeader({ back: 'close', close: 'dismiss' })}
                         onclick = `PocketReports.openTransactions('${esc(period.start)}','${esc(period.end)}','expense','${esc(entry.id)}','${esc(U.ra || '')}')`;
                     return `<button type="button" class="report-expense-category" style="--category-width:${width}%;--category-color:${color}" aria-label="Show ${esc(entry.name)} expenses, ${peso(entry.value)}" onclick="${onclick}"><span class="report-expense-category-label"><span>${esc(entry.name)}</span><b>${peso(entry.value)}</b></span><span class="report-expense-category-track" aria-hidden="true"><span></span></span></button>`
                 }).join('') : reportEmpty();
-            const budgetCategories = Object.keys(D.budgets).filter(id => !U.rc || id === U.rc).map(id => ({
+            const budgetCategoryIds = [...new Set(Object.values(D.budgets).flatMap(monthBudgets => Object.keys(monthBudgets)))],
+                budgetCategories = budgetCategoryIds.filter(id => !U.rc || id === U.rc).map(id => ({
                 id,
                 name: C(id)?.name || 'Uncategorized',
                 planned: reportBudgetAmount(id, period.start, period.end),

@@ -1,7 +1,6 @@
 (() => {
     window.PocketFeatures = window.PocketFeatures || {};
         const TRANSACTION_PAGE_SIZE = 50,
-            transactionLongMonthFormatter = new Intl.DateTimeFormat('en-US', { month: 'long' }),
             transactionMonthFormatter = new Intl.DateTimeFormat(undefined, { month: 'short', year: 'numeric' });
         let txPageLimit = TRANSACTION_PAGE_SIZE,
             transactionFiltersOpen = false,
@@ -192,11 +191,9 @@
                 group.transactions.push(transaction);
             });
             return groups.map(group => {
-                const [year, month, day] = group.date.split('-').map(Number),
-                    date = new Date(year, month - 1, day),
-                    dateLabel = group.date === todayDate ? `Today · ${day} ${MO[month - 1]}` :
-                        group.date === yesterdayDate ? `Yesterday · ${day} ${MO[month - 1]}` :
-                            `${day} ${transactionLongMonthFormatter.format(date)}`,
+                const dateLabel = group.date === todayDate ? `Today · ${fd(group.date)}` :
+                        group.date === yesterdayDate ? `Yesterday · ${fd(group.date)}` :
+                            fd(group.date),
                     countLabel = `${group.transactions.length} transaction${group.transactions.length === 1 ? '' : 's'}`;
                 return `<section class="transaction-date-group"><div class="transaction-date-group-heading"><h3 class="transaction-date-heading" data-date="${esc(group.date)}">${esc(dateLabel)}</h3><span class="transaction-count">${countLabel}</span></div><div class="transaction-date-card">${group.transactions.map(transaction => row(transaction, 1)).join('')}</div></section>`;
             }).join('') + (L.length > transactions.length ? '<div class="tx-load-more" id="tx-load-more" aria-hidden="true"></div>' : '')

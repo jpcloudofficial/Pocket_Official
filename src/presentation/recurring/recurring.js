@@ -5,7 +5,7 @@
             const scheduleDate = value => {
                 const [year, month, day] = String(value || '').split('-').map(Number);
                 return year && month >= 1 && month <= 12 && day > 0
-                    ? `${day} ${MO[month - 1]} ${year}`
+                    ? fd(value)
                     : 'Unknown date';
             };
             const waitingForFunds = rule => rule.active && rule.type === 'transfer' && rule.next <= today() &&

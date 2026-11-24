@@ -274,9 +274,6 @@
             border: 1px solid var(--bd);
             border-radius: 12px
         }
-.onboarding-custom-account .onboarding-fields{
-            flex: 1
-        }
 .onboarding-category-grid{
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr));
@@ -704,11 +701,33 @@ body.pocket-onboarding-active #m{
             display: grid;
             gap: 16px;
             align-self: start;
-            padding-bottom: 28px;
-            background: transparent
+            width: 100vw;
+            margin-top: -20px;
+            margin-left: calc(50% - 50vw);
+            padding: calc(8px + env(safe-area-inset-top, 0px)) max(24px, env(safe-area-inset-right, 0px)) 18px max(24px, env(safe-area-inset-left, 0px));
+            background: #0b100e;
+            color: #fff
+        }
+#m .onboarding-sticky-header .form-screen-header{
+            position: static;
+            grid-template-columns: 24px minmax(0, 1fr) max-content;
+            min-height: 52px;
+            padding: 6px 0;
+            background: transparent;
+            color: inherit
+        }
+#m .onboarding-form-screen-header .onboarding-skip-button{
+            width: auto;
+            min-width: 48px;
+            height: 36px;
+            padding: 0 8px;
+            border-radius: 10px;
+            color: inherit;
+            font-size: 13px;
+            white-space: nowrap
         }
 .onboarding-flow-header > span{
-            color: var(--mu);
+            color: #e5eee8;
             font-size: 12px;
             font-weight: 500
         }
@@ -723,6 +742,11 @@ body.pocket-onboarding-active #m{
 .onboarding-sticky-header .onboarding-progress{
             margin: 0
         }
+@media(max-width:560px){
+.onboarding-sticky-header{
+                margin-top: -14px
+            }
+}
 .onboarding-progress-segment{
             display: block;
             height: 4px;
@@ -749,6 +773,7 @@ body.pocket-onboarding-active #m{
             display: grid;
             grid-template-columns: minmax(0, 1fr);
             gap: 0;
+
             padding: 14px 20px;
             border-radius: 20px;
             background: var(--cd)
@@ -778,6 +803,14 @@ body.pocket-onboarding-active #m{
             flex: none;
             margin: 0;
             accent-color: var(--in)
+        }
+.onboarding-account-choice input{
+            order: 1;
+            margin-left: auto
+        }
+.onboarding-category-choice input{
+            order: 1;
+            margin-left: auto
         }
 .onboarding-account-icon{
             display: grid;
@@ -979,8 +1012,21 @@ body.pocket-onboarding-active #m{
             height: 18px;
             color: var(--in)
         }
-.onboarding-custom-account .onboarding-fields{
-            flex: 1
+.onboarding-custom-account{
+            align-items: center;
+            padding: 12px;
+            border-radius: 12px;
+            background: var(--sq)
+        }
+.onboarding-custom-account-name{
+            flex: 1;
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap
+        }
+.onboarding-custom-account > .ib{
+            flex: none
         }
 .onboarding-preference-card{
             display: grid;
