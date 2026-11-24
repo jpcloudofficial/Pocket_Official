@@ -381,7 +381,7 @@
     const budgetPage = main.dataset.view === 'bud';
     const cashbackPage = main.dataset.view === 'cash';
     const shoppingPage = main.dataset.view === 'shop';
-    const hideFab = main.dataset.view === 'set' || main.dataset.view === 'rep' || main.dataset.view === 'prof';
+    const hideFab = main.dataset.view === 'set' || main.dataset.view === 'rep' || main.dataset.view === 'prof' || shoppingPage;
     const shoppingFabLabel = shoppingPage && typeof window.shoppingListFabLabel === 'function' ? window.shoppingListFabLabel() : 'Add list';
     const fabLabel = accountPage ? 'Add account' : recurringPage ? 'Add schedule' : categoryPage ? 'New category' : goalPage ? 'New goal' : budgetPage ? 'Add budget' : cashbackPage ? 'Add cashback' : shoppingPage ? shoppingFabLabel : 'Add transaction';
     fab.classList.toggle('pocket-fab-labeled', accountPage || categoryPage || goalPage || budgetPage || cashbackPage || shoppingPage);
