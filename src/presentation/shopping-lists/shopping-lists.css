@@ -1,1 +1,237 @@
-﻿:root[data-feature="shop"] {   --pocket-feature-id: "shop"; }
+:root[data-feature="shop"] { --pocket-feature-id: "shop"; }
+.shopping-lists{
+            align-items: start
+        }
+.shopping-list-summary{
+            display: flex;
+            width: 100%;
+            min-width: 0;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 18px;
+            border: 1px solid var(--bd);
+            border-radius: 16px;
+            background: var(--cd);
+            color: var(--tx);
+            font: inherit;
+            text-align: left;
+            cursor: pointer;
+            transition: background-color .18s ease, border-color .18s ease
+        }
+.shopping-list-summary:hover{
+            background: var(--sq)
+        }
+.shopping-list-summary:focus-visible{
+            outline: 2px solid var(--tx);
+            outline-offset: 2px
+        }
+.shopping-list-summary span{
+            min-width: 0;
+            overflow-wrap: anywhere;
+            font-weight: 600
+        }
+.shopping-list-summary b{
+            flex: none;
+            color: var(--in);
+            font-size: 16px
+        }
+.shopping-list-detail{
+            display: flex;
+            flex-direction: column;
+            gap: 12px
+        }
+.shopping-list-heading{
+            display: flex;
+            align-items: center;
+            gap: 10px
+        }
+.shopping-list-heading h3{
+            margin: 0 0 3px;
+            font-size: 16px
+        }
+.shopping-list-heading small{
+            color: var(--mu)
+        }
+.shopping-list-total{
+            padding: 10px 0;
+            border-top: 1px solid var(--bd);
+            border-bottom: 1px solid var(--bd);
+            color: var(--mu)
+        }
+.shopping-list-total b{
+            color: var(--tx)
+        }
+.shopping-list-expense{
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            align-items: center;
+            gap: 8px 12px
+        }
+.shopping-list-expense small{
+            min-width: 0;
+            color: var(--mu)
+        }
+.shopping-list-items{
+            display: grid;
+            gap: 2px
+        }
+.shopping-list-item{
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto auto auto;
+            align-items: center;
+            gap: 8px;
+            min-height: 42px;
+            border-bottom: 1px solid var(--bd)
+        }
+.shopping-list-item:last-child{
+            border-bottom: 0
+        }
+.shopping-list-item label{
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-width: 0;
+            width: 100%;
+            margin: 0;
+            cursor: pointer
+        }
+.shopping-list-item input[type="checkbox"]{
+            width: 16px;
+            height: 16px;
+            flex: none;
+            margin: 0;
+            padding: 0
+        }
+.shopping-list-item label span{
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap
+        }
+.shopping-list-item-amount{
+            flex: none;
+            color: var(--mu);
+            font-size: 13px
+        }
+.shopping-list-item.is-checked label span{
+            color: var(--mu);
+            text-decoration: line-through
+        }
+.shopping-list-empty{
+            display: grid;
+            gap: 4px;
+            padding: 12px;
+            border: 1px dashed var(--bd);
+            border-radius: 12px;
+            text-align: left
+        }
+.shopping-list-empty b{
+            color: var(--tx)
+        }
+.shopping-list-empty small{
+            color: var(--mu)
+        }
+html[data-view="shop"] #m .card{
+            border-color: transparent;
+            box-shadow: none
+        }
+html[data-view="shop"] #m .pocket-feature-content >.row:first-child{
+            align-items: flex-start
+        }
+html[data-view="shop"] #m .pocket-feature-content >.row:first-child h2{
+            margin: 0;
+            font-size: 24px;
+            letter-spacing: -.04em
+        }
+html[data-view="shop"] #m .shopping-lists{
+            grid-template-columns: minmax(0, 1fr)
+        }
+html[data-view="shop"] #m .shopping-list-summary{
+            justify-content: flex-start;
+            gap: 13px;
+            min-height: 82px;
+            padding: 15px 16px;
+            border: 0;
+            border-radius: 18px;
+            background: var(--cd)
+        }
+html[data-view="shop"] #m .shopping-list-summary-icon{
+            display: grid;
+            flex: 0 0 46px;
+            width: 46px;
+            height: 46px;
+            place-items: center;
+            border-radius: 15px;
+            background: var(--sq);
+            color: var(--in)
+        }
+html[data-view="shop"] #m .shopping-list-summary-icon svg,
+html[data-view="shop"] #m .shopping-list-summary > svg{
+            width: 19px;
+            height: 19px
+        }
+html[data-view="shop"] #m .shopping-list-summary-copy{
+            display: grid;
+            flex: 1;
+            gap: 3px;
+            font-weight: 400
+        }
+html[data-view="shop"] #m .shopping-list-summary-copy b{
+            overflow-wrap: anywhere;
+            color: var(--tx);
+            font-size: 14px
+        }
+html[data-view="shop"] #m .shopping-list-summary-copy small{
+            color: var(--mu);
+            font-size: 11px
+        }
+html[data-view="shop"] #m .shopping-list-summary .shopping-list-summary-amount{
+            color: var(--in);
+            font-size: 14px
+        }
+html[data-view="shop"] #m .shopping-list-summary > svg{
+            flex: none;
+            color: var(--mu)
+        }
+html[data-view="shop"] #m .shopping-list-detail{
+            gap: 16px;
+            padding: 18px;
+            border-radius: 20px
+        }
+html[data-view="shop"] #m .shopping-list-total{
+            padding: 16px;
+            border-radius: 15px;
+            background: var(--sq)
+        }
+html[data-view="shop"] #m .shopping-list-total b{
+            color: var(--in);
+            font-size: 19px
+        }
+html[data-view="shop"] #m .shopping-list-expense{
+            flex-wrap: wrap;
+            gap: 10px
+        }
+html[data-theme=dark][data-view="shop"] #m .b1{
+            border-color: transparent;
+            background: #b8ef76;
+            color: #122016
+        }
+html[data-theme=dark][data-view="shop"] #m .b2{
+            border-color: transparent;
+            background: #203329;
+            color: #f2f6f3
+        }
+@media(prefers-color-scheme:dark) {
+html:not([data-theme=light])[data-view="shop"] #m .b1{
+                border-color: transparent;
+                background: #b8ef76;
+                color: #122016
+            }
+}
+@media(prefers-color-scheme:dark) {
+html:not([data-theme=light])[data-view="shop"] #m .b2{
+                border-color: transparent;
+                background: #203329;
+                color: #f2f6f3
+            }
+}

@@ -1,1 +1,611 @@
-﻿:root[data-feature="cash"] {   --pocket-feature-id: "cash"; }
+:root[data-feature="cash"] { --pocket-feature-id: "cash"; }
+.cashback-subtitle{
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 16px;
+            margin: 18px 0 10px
+        }
+.cashback-header{
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px
+        }
+.cashback-section-heading{
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin: 18px 0 10px
+        }
+.cashback-section-heading .cashback-subtitle{
+            margin: 0
+        }
+.cashback-total{
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex: 0 1 auto;
+            min-width: 0;
+            white-space: nowrap
+        }
+.cashback-total b,
+.cashback-amount{
+            color: var(--in)
+        }
+.cashback-total b{
+            min-width: 0;
+            overflow: hidden;
+            font-size: 17px;
+            text-overflow: ellipsis
+        }
+.cashback-count{
+            display: inline-grid;
+            min-width: 24px;
+            height: 24px;
+            place-items: center;
+            padding: 0 7px;
+            border-radius: 99px;
+            background: var(--sq);
+            color: var(--mu);
+            font-size: 12px
+        }
+.cashback-list{
+            margin-top: 0
+        }
+.cashback-card{
+            display: grid;
+            gap: 12px
+        }
+.cashback-card-heading{
+            display: grid;
+            grid-template-columns: 44px minmax(0, 1fr) auto;
+            align-items: center;
+            gap: 10px
+        }
+.cashback-amount{
+            min-width: 0;
+            max-width: 32vw;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap
+        }
+.cashback-card-title{
+            display: grid;
+            min-width: 0;
+            gap: 4px
+        }
+.cashback-card-title b,
+.cashback-card-meta b{
+            overflow-wrap: anywhere
+        }
+.cashback-card-meta{
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr)) auto;
+            align-items: center;
+            gap: 12px;
+            padding-top: 10px;
+            border-top: 1px solid var(--bd)
+        }
+.cashback-card-meta span{
+            display: grid;
+            gap: 4px
+        }
+.cashback-card-meta b{
+            font-size: 13px
+        }
+.cashback-card-meta .ib{
+            padding: 6px
+        }
+.cashback-card-actions{
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px
+        }
+.cashback-empty{
+            grid-column: 1 / -1
+        }
+@media(prefers-reduced-motion:reduce) {
+.pocket-select-menu.cashback-transaction-picker,
+.pocket-select-menu.cashback-transaction-picker.is-closing{
+                animation-duration: .01ms
+            }
+}
+.pocket-select-overlay.cashback-transaction-overlay{
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px));
+            background: #0009
+        }
+.pocket-select-menu.cashback-transaction-picker{
+            display: flex;
+            width: 100%;
+            max-width: 520px;
+            flex-direction: column;
+            gap: 12px;
+            overflow: hidden;
+            padding: 20px;
+            border-radius: 22px;
+            background: var(--cd);
+            box-shadow: 0 20px 60px #0008;
+            transform-origin: bottom center;
+            animation: cashback-transaction-picker-in .18s ease-out both
+        }
+.pocket-select-menu.cashback-transaction-picker.is-closing{
+            animation: cashback-transaction-picker-out .12s ease-in both
+        }
+.cashback-transaction-picker-header{
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 12px
+        }
+.cashback-transaction-picker-heading{
+            display: grid;
+            gap: 4px
+        }
+.cashback-transaction-picker-heading small{
+            color: var(--in);
+            font-size: 10px;
+            font-weight: 650;
+            letter-spacing: .08em
+        }
+.cashback-transaction-picker-heading h2{
+            margin: 0;
+            color: var(--tx);
+            font-size: 20px;
+            line-height: 1.2
+        }
+.cashback-transaction-picker-close{
+            display: grid;
+            flex: none;
+            width: 36px;
+            height: 36px;
+            place-items: center;
+            border: 0;
+            border-radius: 11px;
+            background: var(--sq);
+            color: var(--tx);
+            cursor: pointer
+        }
+.cashback-transaction-picker-close .ic{
+            width: 19px;
+            height: 19px
+        }
+.cashback-transaction-picker-close:focus-visible{
+            outline: 2px solid var(--in);
+            outline-offset: 2px
+        }
+.cashback-transaction-picker-search{
+            display: flex;
+            min-height: 48px;
+            align-items: center;
+            gap: 9px;
+            padding: 0 13px;
+            border: 1px solid var(--bd);
+            border-radius: 14px;
+            background: var(--bg);
+            color: var(--mu)
+        }
+.cashback-transaction-picker-search > span{
+            display: grid;
+            flex: none;
+            place-items: center
+        }
+.cashback-transaction-picker-search .ic{
+            width: 18px;
+            height: 18px
+        }
+.cashback-transaction-picker-search input{
+            width: 100%;
+            min-width: 0;
+            padding: 0;
+            border: 0;
+            outline: 0;
+            background: transparent;
+            color: var(--tx);
+            font: inherit;
+            font-size: 13px
+        }
+.cashback-transaction-picker-search input::placeholder{
+            color: var(--mu);
+            opacity: 1
+        }
+.cashback-transaction-picker-options{
+            min-height: 0;
+            flex: 1;
+            overflow-y: auto;
+            overscroll-behavior: contain;
+            border: 1px solid var(--bd);
+            border-radius: 14px;
+            background: var(--bg)
+        }
+.cashback-transaction-picker-options .pocket-select-option{
+            min-height: 48px;
+            padding: 12px 14px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap
+        }
+.cashback-transaction-picker-options .pocket-select-option[hidden]{
+            display: none
+        }
+.cashback-transaction-picker-empty{
+            margin: 0;
+            padding: 22px 12px;
+            color: var(--mu);
+            font-size: 13px;
+            text-align: center
+        }
+html[data-view="cash"] #m .card{
+            border-color: transparent;
+            box-shadow: none
+        }
+html[data-view="cash"] #m .pocket-feature-content >.row:first-child{
+            align-items: flex-start
+        }
+html[data-view="cash"] #m .pocket-feature-content >.row:first-child h2{
+            margin: 0;
+            font-size: 24px;
+            letter-spacing: -.04em
+        }
+html[data-view="cash"] #m .cashback-summary{
+            display: grid;
+            grid-template-columns: auto 1fr;
+            align-items: center;
+            gap: 5px 13px;
+            margin: 20px 0 22px;
+            padding: 22px;
+            border-radius: 22px
+        }
+html[data-view="cash"] #m .cashback-summary-icon{
+            display: grid;
+            grid-row: span 3;
+            width: 48px;
+            height: 48px;
+            place-items: center;
+            border-radius: 16px;
+            background: var(--sq);
+            color: var(--in)
+        }
+html[data-view="cash"] #m .cashback-summary-icon svg{
+            width: 23px;
+            height: 23px
+        }
+html[data-view="cash"] #m .cashback-summary small,
+html[data-view="cash"] #m .cashback-summary span{
+            color: var(--mu);
+            font-size: 12px
+        }
+html[data-view="cash"] #m .cashback-summary b{
+            font-size: 25px;
+            letter-spacing: -.04em
+        }
+html[data-view="cash"] #m .cashback-subtitle{
+            margin: 22px 0 12px;
+            font-size: 16px
+        }
+html[data-view="cash"] #m .cashback-list{
+            grid-template-columns: minmax(0, 1fr)
+        }
+html[data-theme=dark][data-view="cash"] #m .b1{
+            border-color: transparent;
+            background: #b8ef76;
+            color: #122016
+        }
+html[data-theme=dark][data-view="cash"] #m .b2{
+            border-color: transparent;
+            background: #203329;
+            color: #f2f6f3
+        }
+@media(prefers-color-scheme:dark) {
+html:not([data-theme=light])[data-view="cash"] #m .b1{
+                border-color: transparent;
+                background: #b8ef76;
+                color: #122016
+            }
+}
+@media(prefers-color-scheme:dark) {
+html:not([data-theme=light])[data-view="cash"] #m .b2{
+                border-color: transparent;
+                background: #203329;
+                color: #f2f6f3
+            }
+}
+#m[data-view="cash"] .pocket-feature-content >.cashback-header{
+            align-items: flex-start;
+            margin-top: -24px;
+            padding: 24px 0 0
+        }
+#m[data-view="cash"] .cashback-heading-copy{
+            display: grid;
+            order: 1;
+            gap: 14px;
+            min-width: 0
+        }
+#m[data-view="cash"] .cashback-eyebrow{
+            color: var(--in);
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: .04em
+        }
+#m[data-view="cash"] .cashback-heading-copy h2{
+            margin: 0;
+            font-size: 30px;
+            line-height: 1.15;
+            letter-spacing: -.035em
+        }
+#m[data-view="cash"] .cashback-header .page-menu-toggle{
+            order: 2;
+            margin: 5px 0 0 auto
+        }
+#m[data-view="cash"] .cashback-header .pocket-profile-button{
+            display: none
+        }
+html[data-view="cash"] #m .cashback-summary{
+            display: grid;
+            grid-template-columns: minmax(0, 1fr);
+            align-content: space-between;
+            gap: 0;
+            min-height: 152px;
+            margin: 34px 0 21px;
+            padding: 22px 20px;
+            border: 0;
+            border-radius: 20px;
+            background: #203c2a
+        }
+html[data-view="cash"] #m .cashback-summary > small,
+html[data-view="cash"] #m .cashback-summary > span{
+            color: var(--mu);
+            font-size: 12px
+        }
+html[data-view="cash"] #m .cashback-summary > b{
+            color: var(--in);
+            font-size: 36px;
+            line-height: 1.15;
+            letter-spacing: -.04em
+        }
+#m[data-view="cash"] .cashback-section-heading{
+            align-items: center;
+            justify-content: flex-start;
+            gap: 8px;
+            margin: 22px 0 23px
+        }
+#m[data-view="cash"] .cashback-section-heading .cashback-subtitle{
+            margin: 0;
+            color: var(--tx);
+            font-size: 16px;
+            font-weight: 650
+        }
+#m[data-view="cash"] .cashback-count{
+            min-width: 0;
+            height: auto;
+            padding: 0;
+            background: transparent;
+            color: var(--in);
+            font-size: 12px
+        }
+#m[data-view="cash"] .cashback-section-menu{
+            position: relative;
+            flex: none;
+            margin-left: auto
+        }
+#m[data-view="cash"] .cashback-section-menu summary{
+            display: grid;
+            width: 32px;
+            height: 32px;
+            place-items: center;
+            border-radius: 9px;
+            color: var(--mu);
+            cursor: pointer;
+            list-style: none
+        }
+#m[data-view="cash"] .cashback-section-menu summary::-webkit-details-marker{
+            display: none
+        }
+#m[data-view="cash"] .cashback-section-menu summary:hover,
+#m[data-view="cash"] .cashback-section-menu[open] summary{
+            background: var(--sq);
+            color: var(--tx)
+        }
+#m[data-view="cash"] .cashback-section-menu summary:focus-visible,
+#m[data-view="cash"] .cashback-section-menu-actions button:focus-visible{
+            outline: 2px solid var(--in);
+            outline-offset: 2px
+        }
+#m[data-view="cash"] .cashback-section-menu summary .ic{
+            width: 19px;
+            height: 19px
+        }
+#m[data-view="cash"] .cashback-section-menu-options{
+            position: absolute;
+            top: calc(100% + 5px);
+            right: 0;
+            z-index: 12;
+            display: grid;
+            width: min(260px, calc(100vw - 48px));
+            max-height: min(60vh, 360px);
+            overflow-y: auto;
+            gap: 4px;
+            padding: 6px;
+            border: 1px solid var(--bd);
+            border-radius: 12px;
+            background: var(--cd);
+            box-shadow: 0 10px 24px #0005
+        }
+#m[data-view="cash"] .cashback-section-menu-item{
+            display: grid;
+            gap: 6px;
+            padding: 7px
+        }
+#m[data-view="cash"] .cashback-section-menu-item + .cashback-section-menu-item{
+            border-top: 1px solid var(--bd)
+        }
+#m[data-view="cash"] .cashback-section-menu-item-label{
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 8px
+        }
+#m[data-view="cash"] .cashback-section-menu-item-label b{
+            min-width: 0;
+            overflow-wrap: anywhere;
+            color: var(--tx);
+            font-size: 12px;
+            font-weight: 600
+        }
+#m[data-view="cash"] .cashback-section-menu-item-label span{
+            flex: none;
+            color: var(--in);
+            font-size: 12px;
+            font-weight: 650
+        }
+#m[data-view="cash"] .cashback-section-menu-actions{
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 5px
+        }
+#m[data-view="cash"] .cashback-section-menu-actions button{
+            display: flex;
+            min-width: 0;
+            min-height: 36px;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 6px;
+            border: 0;
+            border-radius: 8px;
+            background: var(--sq);
+            color: var(--tx);
+            font: inherit;
+            font-size: 12px;
+            cursor: pointer
+        }
+#m[data-view="cash"] .cashback-section-menu-actions button:last-child{
+            color: var(--ex)
+        }
+#m[data-view="cash"] .cashback-section-menu-actions .ic{
+            width: 15px;
+            height: 15px;
+            flex: none
+        }
+#m[data-view="cash"] .cashback-list{
+            grid-template-columns: minmax(0, 1fr);
+            gap: 12px
+        }
+#m[data-view="cash"] .cashback-card{
+            display: grid;
+            gap: 16px;
+            min-width: 0;
+            padding: 20px;
+            border: 0;
+            border-radius: 20px;
+            background: var(--cd)
+        }
+#m[data-view="cash"] .cashback-card-heading{
+            grid-template-columns: 26px minmax(0, 1fr) auto;
+            gap: 10px
+        }
+#m[data-view="cash"] .cashback-card-icon{
+            display: grid;
+            width: 24px;
+            height: 24px;
+            place-items: center;
+            color: var(--mu)
+        }
+#m[data-view="cash"] .cashback-card-icon .ic{
+            width: 22px;
+            height: 22px
+        }
+#m[data-view="cash"] .cashback-card-title{
+            gap: 4px
+        }
+#m[data-view="cash"] .cashback-card-title b{
+            color: var(--tx);
+            font-size: 15px;
+            font-weight: 650
+        }
+#m[data-view="cash"] .cashback-card-title small{
+            color: var(--mu);
+            font-size: 11px
+        }
+#m[data-view="cash"] .cashback-amount{
+            max-width: none;
+            color: var(--in);
+            font-size: 19px;
+            font-weight: 700
+        }
+#m[data-view="cash"] .cashback-card-meta{
+            display: grid;
+            grid-template-columns: minmax(0, 1fr);
+            gap: 10px;
+            padding: 0;
+            border: 0
+        }
+#m[data-view="cash"] .cashback-card-meta > div{
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px
+        }
+#m[data-view="cash"] .cashback-card-meta small{
+            color: var(--mu);
+            font-size: 12px
+        }
+#m[data-view="cash"] .cashback-card-meta b{
+            color: var(--tx);
+            font-size: 13px;
+            font-weight: 500;
+            text-align: right
+        }
+#m[data-view="cash"] .cashback-card-actions button{
+            width: 100%;
+            min-height: 52px;
+            padding: 0 14px;
+            border: 0;
+            border-radius: 14px;
+            background: #203329;
+            color: var(--tx);
+            font: inherit;
+            font-size: 14px;
+            font-weight: 650;
+            cursor: pointer
+        }
+#m[data-view="cash"] .cashback-card-actions button:hover{
+            background: #263a2d
+        }
+#m[data-view="cash"] .cashback-empty{
+            padding: 20px;
+            border: 1px solid var(--bd);
+            border-radius: 20px;
+            background: var(--cd);
+            color: var(--mu);
+            line-height: 1.5
+        }
+@media (max-width: 760px) {
+#m[data-view="cash"]{
+                padding: 20px 24px 154px
+            }
+}
+@media (max-width: 760px) {
+#m[data-view="cash"] .pocket-feature-content >.cashback-header{
+                margin-top: -20px;
+                padding-top: 24px
+            }
+}
+@media (max-width: 760px) {
+html[data-view="cash"] .fab.pocket-fab-labeled{
+                right: 24px;
+                bottom: calc(96px + env(safe-area-inset-bottom, 0px));
+                left: 24px;
+                width: auto;
+                min-width: 0;
+                height: 52px;
+                justify-content: center;
+                padding: 0 16px;
+                border-radius: 15px
+            }
+}

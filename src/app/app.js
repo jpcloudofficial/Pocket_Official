@@ -1,4 +1,4 @@
-import { createRouter } from './router.js';
+import { createRouter, FEATURES } from './router.js';
 import { createComponentLoader } from './component-loader.js';
 
 const componentLoader = createComponentLoader();
@@ -17,15 +17,23 @@ function loadClassicScript(path) {
 async function initialize() {
   await loadClassicScript('src/app/pocket-app-legacy.js');
 
+  const featureTemplates = await Promise.all(
+    Object.entries(FEATURES).map(async ([id, feature]) => [id, await componentLoader.loadHtml(feature.html)]),
+  );
+  window.PocketFeatureTemplates = Object.fromEntries(featureTemplates);
+
   await Promise.all([
+    ...Object.values(FEATURES).map(feature => componentLoader.loadStyle(feature.css)),
+    ...Object.values(FEATURES).map(feature => componentLoader.loadScript(feature.js)),
+    componentLoader.loadStyle('src/presentation/common/enhancements.css'),
     componentLoader.loadScript('src/presentation/common/enhancements.js'),
     componentLoader.loadScript('src/infrastructure/browser/privacy-mask.js'),
     componentLoader.loadScript('src/infrastructure/browser/page-title-sync.js'),
-    componentLoader.loadScript('src/presentation/common/budget-alerts.js'),
   ]);
 
-  await import('../infrastructure/firebase/firebase-sync.js');
   router.initialize();
+  window.render();
+  await import('../infrastructure/firebase/firebase-sync.js');
   window.dispatchEvent(new CustomEvent('pocket:ready'));
 }
 

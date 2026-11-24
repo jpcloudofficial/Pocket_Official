@@ -1,1 +1,361 @@
-﻿:root[data-feature="goal"] {   --pocket-feature-id: "goal"; }
+:root[data-feature="goal"] { --pocket-feature-id: "goal"; }
+.goal-card{
+            display: flex;
+            flex-direction: column
+        }
+.goal-heading{
+            flex-wrap: nowrap
+        }
+.goal-amount{
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap
+        }
+.goal-amount small{
+            font-size: 12px;
+            font-weight: 400
+        }
+.goal-details-row{
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            align-items: center;
+            gap: 8px;
+            margin-top: 8px
+        }
+.goal-details-row small{
+            min-width: 0;
+            line-height: 1.4
+        }
+.goal-details-row .chip{
+            white-space: nowrap
+        }
+.goal-estimate{
+            display: block;
+            margin-top: auto;
+            padding-top: 8px;
+            min-height: 16px
+        }
+html[data-view="goal"] #m .card{
+            border-color: transparent;
+            box-shadow: none
+        }
+html[data-view="goal"] #m .pocket-feature-content >.row:first-child{
+            align-items: flex-start
+        }
+html[data-view="goal"] #m .pocket-feature-content >.row:first-child h2{
+            margin: 0;
+            font-size: 24px;
+            letter-spacing: -.04em
+        }
+html[data-view="goal"] #m .pocket-feature-content >.g.g2{
+            align-items: start;
+            gap: 14px
+        }
+html[data-view="goal"] #m .goal-card{
+            padding: 18px;
+            border-radius: 20px
+        }
+#m[data-view="goal"] .pocket-feature-content >.savings-goals-heading{
+            align-items: flex-start;
+            padding: 24px 0 16px
+        }
+html[data-view="goal"] #m .savings-heading-copy{
+            display: grid;
+            order: 1;
+            gap: 22px;
+            min-width: 0
+        }
+html[data-view="goal"] #m .savings-heading-copy > small{
+            color: var(--in);
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: .08em;
+            line-height: 1.2
+        }
+html[data-view="goal"] #m .savings-heading-copy h2{
+            margin: 0;
+            font-size: 30px;
+            line-height: 1.15;
+            letter-spacing: -.04em
+        }
+html[data-view="goal"] #m .savings-goals-heading .page-menu-toggle{
+            width: 32px;
+            height: 32px;
+            flex: none;
+            order: 2;
+            flex-direction: row;
+            gap: 4px;
+            margin: 15px 0 0 auto
+        }
+html[data-view="goal"] #m .savings-goals-heading .page-menu-toggle span{
+            width: 3px;
+            height: 3px;
+            border-radius: 50%
+        }
+html[data-view="goal"] #m .savings-goals-heading .page-menu-toggle[aria-expanded="true"] span{
+            opacity: 1;
+            transform: none
+        }
+html[data-view="goal"] #m .savings-goals-heading .pocket-profile-button{
+            display: none
+        }
+html[data-view="goal"] #m .savings-goals-description{
+            margin: 16px 0 14px;
+            color: var(--mu);
+            font-size: 12px;
+            line-height: 1.5
+        }
+html[data-view="goal"] #m .pocket-feature-content >.savings-goal-list{
+            gap: 20px
+        }
+html[data-view="goal"] #m .goal-card{
+            gap: 0;
+            padding: 20px 20px 18px;
+            border-radius: 22px
+        }
+.goal-card-heading{
+            display: flex;
+            min-height: 24px;
+            align-items: center;
+            gap: 10px
+        }
+.goal-card-icon{
+            display: grid;
+            width: 26px;
+            height: 26px;
+            flex: none;
+            place-items: center;
+            color: var(--mu)
+        }
+.goal-card-icon .ic{
+            width: 22px;
+            height: 22px
+        }
+.goal-card-heading > b{
+            min-width: 0;
+            overflow: hidden;
+            color: var(--tx);
+            font-size: 15px;
+            font-weight: 650;
+            text-overflow: ellipsis;
+            white-space: nowrap
+        }
+.goal-balance-row{
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            gap: 12px;
+            margin-top: 14px
+        }
+html[data-view="goal"] #m .goal-amount{
+            margin: 0;
+            font-size: 28px;
+            font-weight: 750;
+            letter-spacing: -.04em
+        }
+.goal-percentage{
+            flex: none;
+            color: var(--in);
+            font-size: 12px;
+            font-weight: 700
+        }
+.goal-target-label,
+.goal-meta,
+html[data-view="goal"] #m .goal-estimate{
+            color: var(--mu);
+            font-size: 11px;
+            line-height: 1.4
+        }
+.goal-target-label{
+            display: block;
+            margin-top: 6px
+        }
+html[data-view="goal"] #m .goal-card .bar{
+            height: 6px;
+            margin: 10px 0 15px;
+            background: var(--bd)
+        }
+.goal-meta{
+            display: block
+        }
+html[data-view="goal"] #m .goal-estimate{
+            min-height: 0;
+            margin-top: 14px;
+            padding: 0
+        }
+.goal-fund-button{
+            display: flex;
+            width: 100%;
+            min-height: 52px;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 9px;
+            padding: 0 16px;
+            border: 0;
+            border-radius: 14px;
+            background: var(--bd);
+            color: var(--tx);
+            font: inherit;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer
+        }
+.goal-fund-button .ic{
+            width: 18px;
+            height: 18px
+        }
+#f.pocket-goal-form .form-screen-header{
+            min-height: 64px;
+            padding: 8px 24px 4px
+        }
+#f.pocket-goal-form .form-screen-intro{
+            padding: 7px 24px 19px
+        }
+#f.pocket-goal-form .form-eyebrow{
+            letter-spacing: .06em
+        }
+#f.pocket-goal-form .form-screen-intro h3{
+            margin-top: 9px;
+            font-size: 28px;
+            line-height: 1.1;
+            letter-spacing: -.03em
+        }
+#f.pocket-goal-form .form-screen-intro p{
+            margin-top: 28px;
+            font-size: 12px;
+            line-height: 1.5
+        }
+#f.pocket-goal-form .goal-form-fields{
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            padding: 0 24px 12px
+        }
+#f.pocket-goal-form .goal-form-fields > label{
+            gap: 2px
+        }
+#f.pocket-goal-form .goal-form-fields > label[data-field="date"],
+#f.pocket-goal-form .goal-form-fields > label[data-field="acc"]{
+            margin-top: 3px
+        }
+#f.pocket-goal-form .goal-form-fields > label > input,
+#f.pocket-goal-form .goal-form-fields > label > .form-select-trigger,
+#f.pocket-goal-form .goal-form-fields > label > .date-input-wrap{
+            margin: 0
+        }
+#f.pocket-goal-form .goal-form-amount-card{
+            display: grid;
+            gap: 22px;
+            padding: 23px 20px 21px;
+            border-radius: 20px;
+            background: var(--cd)
+        }
+#f.pocket-goal-form .goal-form-amount-card > label{
+            display: grid;
+            gap: 2px;
+            margin: 0
+        }
+#f.pocket-goal-form .goal-amount-input{
+            display: flex;
+            min-width: 0;
+            min-height: 52px;
+            align-items: center;
+            gap: 4px;
+            margin: 0;
+            box-sizing: border-box;
+            padding: 0 14px;
+            border: 1px solid var(--bd);
+            border-radius: 12px;
+            background: var(--sq);
+            color: var(--tx);
+            font-size: 14px
+        }
+#f.pocket-goal-form .goal-amount-input:focus-within{
+            border-color: var(--in);
+            box-shadow: 0 0 0 2px color-mix(in srgb, var(--in) 18%, transparent)
+        }
+#f.pocket-goal-form .form-fields .goal-form-amount-card .goal-amount-input input{
+            width: 100%;
+            min-width: 0;
+            min-height: 0;
+            padding: 0;
+            border: 0;
+            outline: 0;
+            background: transparent;
+            color: inherit;
+            font: inherit
+        }
+#f.pocket-goal-form .goal-amount-input input::placeholder{
+            color: var(--tx);
+            opacity: 1
+        }
+#f.pocket-goal-form > .row.end{
+            display: grid;
+            grid-template-columns: minmax(0, 1fr);
+            gap: 10px;
+            padding: 12px 24px calc(24px + env(safe-area-inset-bottom, 0px));
+            box-shadow: none
+        }
+#f.pocket-goal-form > .row.end button{
+            min-height: 52px;
+            border-radius: 14px
+        }
+@media(max-width:760px) {
+html[data-view="goal"] #m .pocket-feature-content >.g.g2{
+                grid-template-columns: minmax(0, 1fr)
+            }
+}
+@media(max-width:760px) {
+html[data-view="goal"] #m .pocket-feature-content >.savings-goal-list{
+                grid-template-columns: minmax(0, 1fr)
+            }
+}
+@media(max-width:760px) {
+#m[data-view="goal"]{
+                padding: 16px 24px 154px
+            }
+}
+@media(max-width:760px) {
+html[data-view="goal"] .fab.pocket-fab-labeled{
+                right: 24px;
+                bottom: calc(96px + env(safe-area-inset-bottom, 0px));
+                left: 24px;
+                width: auto;
+                min-width: 0;
+                height: 52px;
+                justify-content: center;
+                padding: 0 16px;
+                border-radius: 15px
+            }
+}
+@media(max-width:760px) {
+#f.pocket-goal-form > .row.end{
+                padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px))
+            }
+}
+html[data-theme=dark][data-view="goal"] #m .b1{
+            border-color: transparent;
+            background: #b8ef76;
+            color: #122016
+        }
+html[data-theme=dark][data-view="goal"] #m .b2{
+            border-color: transparent;
+            background: #203329;
+            color: #f2f6f3
+        }
+@media(prefers-color-scheme:dark) {
+html:not([data-theme=light])[data-view="goal"] #m .b1{
+                border-color: transparent;
+                background: #b8ef76;
+                color: #122016
+            }
+}
+@media(prefers-color-scheme:dark) {
+html:not([data-theme=light])[data-view="goal"] #m .b2{
+                border-color: transparent;
+                background: #203329;
+                color: #f2f6f3
+            }
+}

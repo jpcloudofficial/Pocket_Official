@@ -1,1 +1,555 @@
-﻿:root[data-feature="tx"] {   --pocket-feature-id: "tx"; }
+:root[data-feature="tx"] { --pocket-feature-id: "tx"; }
+.pocket-fab-menu{
+            position: fixed;
+            right: 22px;
+            bottom: calc(82px + env(safe-area-inset-bottom,0px));
+            z-index: 30;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            transform-origin: bottom right;
+            transition: transform .24s ease, opacity .24s ease
+        }
+.pocket-fab-menu button{
+            display: flex;
+            min-width: 156px;
+            min-height: 48px;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 14px;
+            border: 0;
+            border-radius: 12px;
+            background: var(--cd);
+            color: var(--tx);
+            box-shadow: 0 8px 22px #0004;
+            font-weight: 700;
+            cursor: pointer
+        }
+.pocket-fab-menu button .mini{
+            display: grid;
+            width: 26px;
+            height: 26px;
+            place-items: center;
+            border-radius: 8px;
+            background: var(--sq)
+        }
+.pocket-fab-menu button[data-kind="expense"] .mini{ color: var(--ex) }
+.pocket-fab-menu button[data-kind="income"] .mini{ color: var(--in) }
+.pocket-fab-menu button[data-kind="transfer"] .mini{ color: var(--tr) }
+body.pocket-actions-scroll-hidden .pocket-fab-menu{
+            transform: translateX(calc(100% + 80px));
+            opacity: 0;
+            pointer-events: none
+        }
+.pocket-fab-menu.pocket-fab-opening{
+            animation: pocket-fab-menu-in .2s cubic-bezier(.2,.8,.2,1) both
+        }
+.pocket-fab-menu.pocket-fab-closing{
+            pointer-events: none;
+            animation: pocket-fab-menu-out .18s ease-in both
+        }
+.pocket-fab-menu.pocket-fab-opening button{
+            animation: pocket-fab-action-in .2s cubic-bezier(.2,.8,.2,1) both
+        }
+@keyframes pocket-fab-menu-in{
+            from{ opacity: 0; transform: scale(.7) translateY(8px) }
+            to{ opacity: 1; transform: scale(1) translateY(0) }
+        }
+@keyframes pocket-fab-menu-out{
+            from{ opacity: 1; transform: scale(1) translateY(0) }
+            to{ opacity: 0; transform: scale(.7) translateY(8px) }
+        }
+@keyframes pocket-fab-action-in{
+            from{ opacity: 0; transform: translateY(8px) scale(.94) }
+            to{ opacity: 1; transform: translateY(0) scale(1) }
+        }
+@media (max-width: 760px){
+.pocket-fab-menu{
+                right: 14px;
+                bottom: calc(82px + env(safe-area-inset-bottom,0px))
+            }
+}
+@media (prefers-reduced-motion: reduce){
+.pocket-fab-menu{
+                transition: none !important
+            }
+}
+html[data-view="tx"],
+html[data-view="tx"] body{
+            scrollbar-color: var(--mu) var(--bg);
+            scrollbar-width: thin
+        }
+html[data-view="tx"]::-webkit-scrollbar,
+html[data-view="tx"] body::-webkit-scrollbar{
+            width: 12px;
+            height: 12px
+        }
+html[data-view="tx"]::-webkit-scrollbar-track,
+html[data-view="tx"] body::-webkit-scrollbar-track{
+            background: transparent
+        }
+html[data-view="tx"]::-webkit-scrollbar-thumb,
+html[data-view="tx"] body::-webkit-scrollbar-thumb{
+            border: 3px solid transparent;
+            border-radius: 999px;
+            background: var(--mu);
+            background-clip: content-box
+        }
+html[data-view="tx"]::-webkit-scrollbar-thumb:hover,
+html[data-view="tx"] body::-webkit-scrollbar-thumb:hover{
+            background: var(--tx);
+            background-clip: content-box
+        }
+.transaction-date-group + .transaction-date-group{
+            margin-top: 16px
+        }
+.transaction-date-heading{
+            margin: 0 0 4px;
+            color: var(--mu);
+            font-size: 14px;
+            font-weight: 700;
+            text-align: center
+        }
+.transaction-scroll-month{
+            position: fixed;
+            top: 50%;
+            right: 16px;
+            z-index: 21;
+            min-width: 112px;
+            padding: 9px 16px;
+            border: 1px solid var(--bd);
+            border-radius: 999px;
+            background: var(--cd);
+            box-shadow: 0 6px 20px #0005;
+            color: var(--tx);
+            font-size: 15px;
+            font-weight: 700;
+            text-align: center;
+            opacity: 0;
+            transform: translate(8px, -50%);
+            pointer-events: none;
+            transition: opacity .16s ease, transform .16s ease
+        }
+.transaction-scroll-month.is-visible{
+            opacity: 1;
+            transform: translate(0, -50%)
+        }
+@media (prefers-reduced-motion: reduce) {
+.transaction-scroll-month{
+                transition: none
+            }
+}
+.pocket-select-menu.transaction-filter-menu .pocket-select-option{
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap
+        }
+:root[data-theme="dark"][data-view="tx"]{
+            color-scheme: dark;
+            --bg: #0b100e;
+            --cd: #142019;
+            --tx: #f2f6f3;
+            --mu: #a8b8af;
+            --bd: #263a28;
+            --sq: #142019;
+            --in: #b8ef76;
+            --ex: #ffa899;
+            --dashboard-icon-bg: #223329;
+            --dashboard-nav-active: #263a28;
+            --transaction-icon-bg: #223329
+        }
+:root[data-view="tx"]{
+            --dashboard-icon-bg: var(--sq);
+            --dashboard-nav-active: var(--sq);
+            --transaction-icon-bg: var(--sq)
+        }
+#m[data-view="tx"]{
+            font-family: Inter, 'Plus Jakarta Sans', system-ui, sans-serif
+        }
+#m[data-view="tx"] .pocket-feature-content >.transaction-page-heading{
+            align-items: center;
+            gap: 12px;
+            margin-top: -24px;
+            padding: 20px 0 18px
+        }
+#m[data-view="tx"] .transaction-heading-copy{
+            display: grid;
+            flex: 1;
+            min-width: 0;
+            gap: 12px
+        }
+#m[data-view="tx"] .transaction-heading-copy > small{
+            color: var(--in);
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: .02em;
+            line-height: 1.2
+        }
+#m[data-view="tx"] .transaction-heading-copy h2{
+            margin: 0;
+            overflow: hidden;
+            font-size: 28px !important;
+            line-height: 1.2;
+            text-overflow: ellipsis;
+            white-space: nowrap
+        }
+#m[data-view="tx"] .transaction-page-heading .page-menu-toggle{
+            order: 3;
+            width: 32px;
+            height: 32px;
+            flex: none;
+            margin-left: auto;
+            color: var(--mu)
+        }
+#m[data-view="tx"] .transaction-page-heading .page-menu-toggle .dashboard-icon{
+            display: block;
+            width: 24px;
+            height: 24px
+        }
+#m[data-view="tx"] .transaction-page-heading .pocket-profile-button{
+            display: none !important
+        }
+#m[data-view="tx"] .pocket-feature-content >.f.transaction-filters{
+            display: flex;
+            max-width: 760px;
+            flex-direction: column;
+            gap: 12px;
+            margin: 4px auto 16px
+        }
+#m[data-view="tx"] .transaction-search{
+            display: flex;
+            width: 100%;
+            min-width: 0;
+            height: 52px;
+            align-items: center;
+            gap: 12px;
+            padding: 0 14px;
+            border: 1px solid var(--bd);
+            border-radius: 14px;
+            background: var(--cd)
+        }
+#m[data-view="tx"] .transaction-search img{
+            display: block;
+            width: 24px;
+            height: 24px;
+            flex: none
+        }
+#m[data-view="tx"] .transaction-search input{
+            width: 100%;
+            min-width: 0;
+            height: 100%;
+            padding: 0;
+            border: 0;
+            outline: 0;
+            background: transparent;
+            color: var(--tx);
+            font: inherit;
+            font-size: 14px
+        }
+#m[data-view="tx"] .transaction-search input::placeholder{
+            color: var(--mu);
+            opacity: 1
+        }
+#m[data-view="tx"] .transaction-search:focus-within{
+            border-color: var(--in)
+        }
+#m[data-view="tx"] .transaction-filter-row{
+            position: relative;
+            z-index: 6;
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+            gap: 8px
+        }
+#m[data-view="tx"] .transaction-filter-chip,
+#m[data-view="tx"] .transaction-filters-toggle{
+            display: flex;
+            min-width: 0;
+            min-height: 40px;
+            align-items: center;
+            justify-content: center;
+            border: 0;
+            border-radius: 999px;
+            background: var(--sq)
+        }
+#m[data-view="tx"] .transaction-filter-chip select{
+            width: 100%;
+            min-width: 0;
+            height: 40px;
+            padding: 0 12px;
+            overflow: hidden;
+            border: 0;
+            border-radius: 999px;
+            appearance: none;
+            -webkit-appearance: none;
+            background: transparent;
+            background-image: none;
+            color: var(--tx);
+            font: inherit;
+            font-size: 11px;
+            text-overflow: ellipsis;
+            white-space: nowrap
+        }
+#m[data-view="tx"] .transaction-filter-chip .form-select-trigger{
+            width: 100%;
+            min-width: 0;
+            height: 40px;
+            padding: 0 12px;
+            overflow: hidden;
+            border: 0;
+            border-radius: 999px;
+            background-color: transparent;
+            background-image: none;
+            color: var(--tx);
+            font-size: 11px;
+            line-height: 1;
+            text-align: center;
+            text-overflow: ellipsis;
+            white-space: nowrap
+        }
+#m[data-view="tx"] .transaction-filter-chip select:focus-visible,
+#m[data-view="tx"] .transaction-filters-toggle:focus-visible,
+#m[data-view="tx"] .transaction-add-button:focus-visible{
+            outline: 2px solid var(--in);
+            outline-offset: 3px
+        }
+#m[data-view="tx"] .transaction-filters-toggle{
+            gap: 6px;
+            padding: 0 12px;
+            color: var(--tx);
+            font: inherit;
+            font-size: 11px;
+            font-weight: 500;
+            cursor: pointer
+        }
+#m[data-view="tx"] .transaction-filters-toggle svg{
+            display: block;
+            width: 16px;
+            height: 16px;
+            flex: none;
+            fill: none;
+            stroke: currentColor;
+            stroke-linecap: round;
+            stroke-width: 1.6
+        }
+#m[data-view="tx"] .transaction-date-range{
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+            align-items: center;
+            gap: 8px
+        }
+#m[data-view="tx"] .transaction-date-range .date-input-wrap,
+#m[data-view="tx"] .transaction-date-range input[type="date"]{
+            height: 48px
+        }
+#m[data-view="tx"] .transaction-date-range input[type="date"]{
+            padding: 0 38px 0 11px;
+            border: 1px solid var(--bd);
+            border-radius: 12px;
+            background-color: var(--cd)
+        }
+#m[data-view="tx"] .transaction-date-range .date-input-value,
+#m[data-view="tx"] .transaction-date-range .date-input-placeholder{
+            right: 38px;
+            left: 11px;
+            font-size: 12px
+        }
+#m[data-view="tx"] .transaction-date-separator{
+            color: var(--in);
+            font-size: 16px
+        }
+#m[data-view="tx"] .transaction-advanced-filters{
+            position: absolute;
+            top: calc(100% + 8px);
+            right: 0;
+            z-index: 10;
+            width: min(260px, calc(100vw - 48px));
+            padding: 12px;
+            border: 1px solid var(--bd);
+            border-radius: 14px;
+            background: var(--cd);
+            box-shadow: 0 10px 28px #0006
+        }
+#m[data-view="tx"] .transaction-advanced-filters[hidden]{
+            display: none
+        }
+#m[data-view="tx"] .transaction-advanced-filters label{
+            display: grid;
+            gap: 6px;
+            color: var(--mu);
+            font-size: 12px
+        }
+#m[data-view="tx"] .transaction-advanced-filters select{
+            width: 100%;
+            min-width: 0
+        }
+#m[data-view="tx"] #tl.transaction-list{
+            width: 100%;
+            max-width: 760px;
+            margin: 0 auto
+        }
+#m[data-view="tx"] .transaction-date-group + .transaction-date-group{
+            margin-top: 20px
+        }
+#m[data-view="tx"] .transaction-date-group-heading{
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 12px
+        }
+#m[data-view="tx"] .transaction-date-heading{
+            min-width: 0;
+            margin: 0;
+            color: var(--tx);
+            font-size: 17px;
+            font-weight: 600;
+            text-align: left
+        }
+#m[data-view="tx"] .transaction-count{
+            flex: none;
+            color: var(--in);
+            font-size: 12px;
+            font-weight: 500;
+            white-space: nowrap
+        }
+#m[data-view="tx"] .transaction-date-card{
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            padding: 10px 20px;
+            overflow: hidden;
+            border-radius: 20px;
+            background: var(--cd)
+        }
+#m[data-view="tx"] .transaction-date-card .tx-list-row{
+            display: grid;
+            grid-template-columns: 42px minmax(0, 1fr) auto;
+            align-items: center;
+            column-gap: 12px;
+            row-gap: 0;
+            padding: 10px 0;
+            border: 0;
+            border-radius: 0
+        }
+#m[data-view="tx"] .transaction-date-card .tx-list-row > .dot{
+            display: grid;
+            width: 42px;
+            height: 42px;
+            grid-column: 1;
+            grid-row: 1;
+            place-items: center;
+            border-radius: 12px;
+            background: var(--transaction-icon-bg) !important;
+            color: var(--tx)
+        }
+#m[data-view="tx"] .transaction-date-card .tx-list-row > .dot .dashboard-icon{
+            display: block;
+            width: 24px;
+            height: 24px
+        }
+#m[data-view="tx"] .transaction-date-card .tx-list-row > .tx-copy{
+            min-width: 0;
+            grid-column: 2;
+            grid-row: 1;
+            gap: 3px
+        }
+#m[data-view="tx"] .transaction-date-card .tx-copy > b{
+            overflow: hidden;
+            font-size: 14px;
+            font-weight: 500;
+            text-overflow: ellipsis;
+            white-space: nowrap
+        }
+#m[data-view="tx"] .transaction-date-card .tx-meta{
+            overflow: hidden;
+            color: var(--mu);
+            font-size: 11px;
+            text-overflow: ellipsis;
+            white-space: nowrap
+        }
+#m[data-view="tx"] .transaction-date-card .tx-list-row > .tx-end{
+            min-width: 0;
+            grid-column: 3;
+            grid-row: 1;
+            justify-content: flex-end;
+            gap: 5px
+        }
+#m[data-view="tx"] .transaction-date-card .tx-amount{
+            max-width: 108px;
+            font-size: 14px
+        }
+#m[data-view="tx"] .transaction-date-card .tx-actions{
+            gap: 2px
+        }
+#m[data-view="tx"] .transaction-date-card .tx-actions .ib{
+            width: 24px;
+            height: 24px;
+            padding: 4px
+        }
+#m[data-view="tx"] .transaction-date-card .tx-actions .ic{
+            width: 15px;
+            height: 15px
+        }
+#m[data-view="tx"] .transaction-empty{
+            padding: 20px;
+            border: 1px solid var(--bd);
+            border-radius: 18px;
+            background: var(--cd);
+            color: var(--mu);
+            text-align: center
+        }
+#m[data-view="tx"] .transaction-add-button{
+            display: flex;
+            width: 100%;
+            max-width: 760px;
+            min-height: 52px;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin: 20px auto 0;
+            border: 0;
+            border-radius: 14px;
+            background: #b8ef76;
+            color: #102015;
+            font: inherit;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer
+        }
+#m[data-view="tx"] .transaction-add-button:hover{
+            background: #c5f58f
+        }
+html[data-view="tx"] .fab,
+html[data-view="tx"] .pocket-fab-menu,
+html[data-view="tx"] .pocket-account-transfer{
+            display: none !important
+        }
+@media (max-width: 760px) {
+#m[data-view="tx"]{
+                padding: 20px 24px 132px
+            }
+}
+@media (max-width: 760px) {
+#m[data-view="tx"] .pocket-feature-content >.transaction-page-heading{
+                top: env(safe-area-inset-top, 0px);
+                margin-top: -20px;
+                padding: 20px 0 18px
+            }
+}
+@media (prefers-reduced-motion: reduce) {
+#m[data-view="tx"] .transaction-add-button{
+                transition: none
+            }
+}
+html[data-theme=dark] .transaction-add-button{
+            border-color: transparent;
+            background: #b8ef76;
+            color: #122016
+        }
+@media(prefers-color-scheme:dark) {
+html:not([data-theme=light]) .transaction-add-button{
+                border-color: transparent;
+                background: #b8ef76;
+                color: #122016
+            }
+}

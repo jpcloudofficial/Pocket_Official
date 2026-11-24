@@ -51,7 +51,6 @@ function syncDateInput(input) {
         const ONBOARDING_STEPS = ['accounts', 'categories', 'preferences', 'optional'];
         const DASHBOARD_WIDGETS = [
             ['summary', 'Balance summary', true],
-            ['alerts', 'Budget alerts', true],
             ['shortcuts', 'Dashboard shortcuts (mobile)', true],
             ['actions', 'Quick actions', true],
             ['accounts', 'Accounts', true],
@@ -717,6 +716,7 @@ function syncDateInput(input) {
             const isBudgetForm = title === 'Set budget' || title === 'Edit budget';
             const isCashbackForm = title === 'Track cashback' || title === 'Edit cashback';
             const isRecurringForm = title === 'New recurring transaction' || title === 'Edit recurring transaction';
+            const isGoalForm = title === 'New savings goal' || title === 'Edit goal';
             const formCopy = {
                 'Add account': ['EVERY PESO HAS A PLACE', ''],
                 'Edit account': ['EVERY BALANCE, TOGETHER', 'Update your account details.'],
@@ -724,7 +724,7 @@ function syncDateInput(input) {
                 'Edit budget': ['GIVE YOUR SPENDING A LIMIT', 'Update your monthly category limit.'],
                 'New recurring transaction': ['SET IT ONCE. STAY ON TRACK.', 'Schedule a regular transaction.'],
                 'Edit recurring transaction': ['SET IT ONCE. STAY ON TRACK.', 'Update this recurring schedule.'],
-                'New savings goal': ['MAKE ROOM FOR WHAT MATTERS', 'Give your goal a name, target, and timeline.'],
+                'New savings goal': ['MAKE ROOM FOR WHAT MATTERS', 'Give your goal a name, a target, and a little momentum.'],
                 'Edit goal': ['MAKE ROOM FOR WHAT MATTERS', 'Update your goal and its timeline.'],
                 'Add money to goal': ['A LITTLE CLOSER EACH TIME', 'Choose how much to add to your savings goal.'],
                 'Name your list': ['BUY WITH A PLAN', 'Create a list for your next shopping trip.'],
@@ -786,6 +786,8 @@ function syncDateInput(input) {
                     x.t === 'area' ? `<textarea name="${x.k}" rows="2">${esc(v)}</textarea>` :
                     isBudgetForm && x.k === 'amt' ?
                     `<span class="budget-amount-input"><span aria-hidden="true">₱</span><input name="${x.k}" type="number" step="0.01" value="${esc(v)}" placeholder="0.00" aria-label="Monthly budget amount"></span>` :
+                    isGoalForm && (x.k === 'target' || x.k === 'current') ?
+                    `<span class="goal-amount-input"><span aria-hidden="true">₱</span><input name="${x.k}" type="number" step="0.01" value="${esc(v)}" placeholder="0.00"></span>` :
                     x.k === 'amount' ?
                     `<span class="amount-input-wrap"><span class="amount-currency">₱</span><input name="${x.k}" type="text" inputmode="decimal" value="${esc(v)}" placeholder="0.00"></span>` :
                     `<input name="${x.k}" type="${x.t||'text'}" value="${esc(v)}" ${x.t==='number'?'step="0.01"':''}${x.placeholder?` placeholder="${esc(x.placeholder)}"`:''}${x.k==='title'?(isRecurringForm?' placeholder="Name this transaction"':vals.type==='income'?' placeholder="Where did it come from?"':vals.type==='transfer'?' placeholder="Name this transfer"':' placeholder="What was it for?"'):''}${x.k==='cashbackAmount'?' placeholder="₱0.00"':''}${x.k==='note'?' placeholder="Add a note..."':''}>`;
@@ -796,15 +798,18 @@ function syncDateInput(input) {
                 `<div class="form-fields account-form-fields">${f.slice(0, 2).map(fld).join('')}<section class="account-form-card account-balance-card">${f.slice(2, 3).map(fld).join('')}</section><section class="account-form-card account-color-card"><div class="account-color-heading"><span>Account color</span><button type="button" class="account-color-toggle" aria-label="Collapse account color section" aria-expanded="true" aria-controls="account-color-options" onclick="toggleAccountColor(this)">${ic('arrow-up')}</button></div><div class="account-color-fields" id="account-color-options">${f.slice(3).map(x=>fld(x.k==='color'?{...x,hideLabel:true}:x)).join('')}</div></section></div>` :
                 isBudgetForm ?
                 `<div class="form-fields budget-form-fields"><section class="budget-form-card">${f.map(fld).join('')}</section>${formError}<section class="budget-form-note"><div><b>A plan, not a restriction.</b><p>Budgets are flexible, and you can adjust them whenever your priorities change.</p></div></section></div>` :
+                isGoalForm ?
+                `<div class="form-fields goal-form-fields">${f.slice(0, 1).map(fld).join('')}<section class="goal-form-amount-card">${f.slice(1, 3).map(fld).join('')}</section>${f.slice(3).map(fld).join('')}</div>` :
                 `<div class="form-fields">${f.map(fld).join('')}</div>`;
             const formClasses = [
                 isAccountForm ? 'pocket-account-form' : '',
                 isBudgetForm ? 'pocket-budget-form' : '',
+                isGoalForm ? 'pocket-goal-form' : '',
                 isCashbackForm ? 'pocket-cashback-form' : '',
                 isRecurringForm ? 'pocket-recurring-form' : '',
                 isTransactionForm || title === 'Record shopping expense' ? 'pocket-transaction-form' : ''
             ].filter(Boolean).join(' ');
-            const formActions = isBudgetForm || isRecurringForm ?
+            const formActions = isBudgetForm || isRecurringForm || isGoalForm ?
                 `<button type="button" class="b1" id="sv">${esc(displaySaveLabel)}</button><button type="button" class="b2" onclick="cl()">Cancel</button>` :
                 `<button type="button" class="b2" onclick="cl()">Cancel</button><button type="button" class="b1" id="sv">${esc(displaySaveLabel)}</button>`;
             ov(
@@ -1479,68 +1484,14 @@ function syncDateInput(input) {
                 }
             })
         }
-        const DISMISSED_BUDGET_ALERTS_KEY = 'pocket.monthlyBudgetAlerts.dismissed';
-        function readDismissedBudgetAlerts() {
-            try {
-                const value = JSON.parse(localStorage.getItem(DISMISSED_BUDGET_ALERTS_KEY) || '{}');
-                return value && typeof value === 'object' && !Array.isArray(value) ? value : {}
-            } catch (error) {
-                console.warn('Unable to read dismissed budget alerts', error);
-                return {}
-            }
+        function overBudgetCategoryNames(key = ym(today())) {
+            return bstat(key).filter(item => item.p > 100)
+                .map(item => C(item.id)?.name || 'Unknown category')
         }
-        function dismissBudgetAlert(id, alert, direction = 1) {
-            const dismissed = readDismissedBudgetAlerts();
-            dismissed[id] = true;
-            try {
-                localStorage.setItem(DISMISSED_BUDGET_ALERTS_KEY, JSON.stringify(dismissed))
-            } catch (error) {
-                console.warn('Unable to save dismissed budget alerts', error)
-            }
-            if (!alert) return;
-            alert.style.setProperty('--warn-dismiss-x', `${direction * 110}%`);
-            alert.classList.add('is-dismissing');
-            window.setTimeout(() => alert.remove(), 180)
-        }
-        function wireBudgetAlertDismissal() {
-            const main = $('#m');
-            if (main.dataset.budgetAlertDismissReady) return;
-            main.dataset.budgetAlertDismissReady = '1';
-            let gesture = null;
-            main.addEventListener('click', event => {
-                const button = event.target.closest('[data-dismiss-budget-alert]');
-                if (button) dismissBudgetAlert(button.dataset.dismissBudgetAlert, button.closest('.warn'))
-            });
-            main.addEventListener('pointerdown', event => {
-                if (!event.isPrimary || event.button !== 0 || event.target.closest('button,a,input,select,textarea')) return;
-                const alert = event.target.closest('.warn[data-budget-alert-id]');
-                if (alert) gesture = { alert, id: alert.dataset.budgetAlertId, x: event.clientX, y: event.clientY }
-            });
-            main.addEventListener('pointerup', event => {
-                if (!gesture) return;
-                const current = gesture,
-                    dx = event.clientX - current.x,
-                    dy = event.clientY - current.y;
-                gesture = null;
-                if (Math.abs(dx) < 64 || Math.abs(dx) < Math.abs(dy) * 1.25) return;
-                dismissBudgetAlert(current.id, current.alert, Math.sign(dx))
-            });
-            main.addEventListener('pointercancel', () => { gesture = null })
-        }
-        const alerts = () => {
-            const dismissed = readDismissedBudgetAlerts();
-            return bstat().filter(x => x.msg).sort((first, second) =>
-                (C(first.id)?.name || '').localeCompare(C(second.id)?.name || '', undefined, { sensitivity: 'base' }) ||
-                first.id.localeCompare(second.id)
-            ).map(x => {
-                const level = x.p > 100 ? 'over' : x.p >= 100 ? 'reached' : 'near',
-                    alertId = `${ym(today())}:${x.id}:${level}`;
-                if (dismissed[alertId]) return '';
-                return `<div class="warn" role="alert" data-budget-alert-id="${esc(alertId)}">${ic('alert-triangle')}<span class="warn-copy">${esc(C(x.id)?.name)} ${x.msg} (${Math.round(x.p)}% of ${peso(x.b)})</span><button type="button" class="warn-dismiss" data-dismiss-budget-alert="${esc(alertId)}" aria-label="Dismiss ${esc(C(x.id)?.name)} budget alert">×</button></div>`
-            }).join('')
-        };
-        const V = {};
-        wireBudgetAlertDismissal();
+        const V = Object.fromEntries(
+            ['dash', 'tx', 'cash', 'acc', 'bud', 'goal', 'shop', 'rec', 'rep', 'cat', 'prof', 'set']
+                .map(view => [view, null])
+        );
         let selectedShoppingListId = '';
         function accountPageChanged(carousel) {
             const indicator = $('#account-page-indicator'),
@@ -1696,69 +1647,6 @@ function syncDateInput(input) {
                 }
             })
         }
-        V.dash = () => {
-            const [a, b] = rng(), T = D.tx.filter(t => t.date >= a && t.date <= b), inc = sum(T, 'income'), exp =
-                sum(T, 'expense'), tot = D.acc.filter(x => !isSav(x)).reduce((s, x) => s + bal(x), 0), cr = D.acc.filter(x => x.type === 'Credit Card')
-                .reduce((s, x) => s + bal(x), 0), av = tot - cr, n = new Date(), ks = [], L = [];
-            for (let i = 5; i >= 0; i--) {
-                const d = new Date(n.getFullYear(), n.getMonth() - i, 1);
-                ks.push(ym(iso(d)));
-                L.push(MO[d.getMonth()])
-            }
-            const reportYear = new Date().getFullYear(),
-                reportTransactions = D.tx.filter(t => +t.date.slice(0, 4) === reportYear),
-                reportMonthly = i => reportTransactions.filter(t => +t.date.slice(5, 7) === i + 1),
-                reportIncome = MO.map((_, i) => sum(reportMonthly(i), 'income')),
-                reportExpenses = MO.map((_, i) => sum(reportMonthly(i), 'expense')),
-                reportBalanceHistory = MO.map((_, i) => D.acc.reduce((total, account) =>
-                    total + bal(account, iso(new Date(reportYear, i + 1, 0))), 0));
-            const card = (l, v, c, s = '') =>
-                `<div class="card"><small>${l}</small><div class="big" style="color:${c||'inherit'}">${peso(v)}</div><small>${s}</small></div>`;
-            const accountCard = x => {
-                const balance = bal(x);
-                const accountType = x.type === 'E-Wallet' ? 'E-wallet' :
-                    ['Digital Bank', 'Traditional Bank'].includes(x.type) ? 'Digital bank' : x.type;
-                const accountIcon = ['Digital Bank', 'Traditional Bank'].includes(x.type) ? 'bank' : 'wallet';
-                return `<button type="button" class="dashboard-account-row" onclick="go('acc')" aria-label="Open ${esc(x.name)}, balance ${esc(pesoBalance(balance))}"><span class="dashboard-account-icon">${dashboardIcon(accountIcon)}</span><span class="dashboard-account-copy"><b>${esc(x.name)}</b><small>${esc(accountType)}</small></span><b class="dashboard-account-balance${balance<0?' is-negative':''}">${pesoBalance(balance)}</b></button>`
-            };
-            const widgets = D.dashboardWidgets;
-            const summaryWidget = widgets.summary ?
-                `<div class="hero dashboard-balance-card"><div class="dashboard-balance-label"><small>Total balance</small></div><div class="hb">${peso(tot,1)}</div><small class="pocket-summary-amounts">Available ${peso(av)}${cr<0?' · Card owed '+peso(-cr):''}</small><div class="two"><div><small>↙ Income</small><div class="hn" style="color:var(--in)">${peso(inc, inc === 0)}</div></div><div><small>↗ Expenses</small><div class="hn" style="color:var(--ex)">${peso(exp, exp === 0)}</div></div></div></div>` :
-                '';
-            const shortcutsWidget = widgets.shortcuts ?
-                `<section class="dashboard-shortcuts dashboard-section" aria-labelledby="dashboard-shortcuts-title"><div class="dashboard-section-heading"><h3 class="sec" id="dashboard-shortcuts-title">Your shortcuts</h3></div><div class="quick-actions-grid"><button class="quick-action" onclick="go('bud')"><span class="quick-action-icon quick-action-budget" aria-hidden="true">${dashboardIcon('chart')}</span><span>Budgets</span></button><button class="quick-action" onclick="go('cash')"><span class="quick-action-icon quick-action-cashback" aria-hidden="true">${dashboardIcon('gift')}</span><span>Cashback</span></button><button class="quick-action" onclick="go('rec')"><span class="quick-action-icon quick-action-recurring" aria-hidden="true">${dashboardIcon('repeat')}</span><span>Recurring</span></button><button class="quick-action" onclick="go('goal')"><span class="quick-action-icon quick-action-savings" aria-hidden="true">${dashboardIcon('goal')}</span><span>Goals</span></button><button class="quick-action" onclick="go('shop')"><span class="quick-action-icon quick-action-shopping" aria-hidden="true">${dashboardIcon('cart')}</span><span>Lists</span></button></div></section>` :
-                '';
-            const actionsWidget = widgets.actions ?
-                `<div class="row end" style="margin-top:18px"><button class="b2" onclick="quickAdd('expense')">${ic('plus')} Expense</button><button class="b2" onclick="quickAdd('income')">${ic('plus')} Income</button><button class="b2" onclick="quickAdd('transfer')">${ic('arrow-left-right')} Transfer</button></div>` :
-                '';
-            const accountsWidget = widgets.accounts ?
-                `<section class="dashboard-section dashboard-accounts"><div class="dashboard-section-heading"><h3 class="sec">My accounts</h3><button type="button" class="dashboard-section-link" onclick="go('acc')">See all <span aria-hidden="true">→</span></button></div>${D.acc.length?`<div class="dashboard-account-card">${D.acc.slice(0,4).map(accountCard).join('')}</div>`:'<div class="empty dashboard-empty">No accounts yet.</div>'}</section>` :
-                '';
-            const transactionsWidget = widgets.transactions ?
-                `<section class="dashboard-section dashboard-transactions"><div class="dashboard-section-heading"><h3 class="sec">Recent transactions</h3><button type="button" class="dashboard-section-link" onclick="go('tx')">See all <span aria-hidden="true">→</span></button></div>${D.tx.length?`<div class="dashboard-recent-card">${sorted().slice(0,3).map(t=>row(t,false,true)).join('')}</div>`:'<div class="empty dashboard-empty">No transactions yet.</div>'}</section>` :
-                '';
-            const reportCards = [];
-            if (widgets.incomeExpenses) {
-                reportCards.push(`<div class="card"><h3>Income vs. expenses</h3>${bars([ks.map(k=>sum(D.tx.filter(t=>ym(t.date)===k),'income')),ks.map(k=>sum(D.tx.filter(t=>ym(t.date)===k),'expense'))],L,['#16a34a','#ea580c'])}</div>`);
-            }
-            if (widgets.expensesByCategory) reportCards.push(`<div class="card"><h3>Expenses by category</h3>${catBars(T)}</div>`);
-            if (widgets.spendingTrend) reportCards.push(`<div class="card"><h3>Spending trend (${reportYear})</h3>${line(reportExpenses,MO,'#ea580c')}</div>`);
-            if (widgets.accountBalanceHistory) reportCards.push(`<div class="card"><h3>Account balance history (${reportYear})</h3>${line(reportBalanceHistory,MO,'#2563eb')}</div>`);
-            if (widgets.monthlySavings) reportCards.push(`<div class="card"><h3>Monthly savings (${reportYear})</h3>${bars([reportIncome.map((income,i)=>income-reportExpenses[i])],MO,['#16a34a'])}</div>`);
-            const reportsWidget = reportCards.length ? D.tx.length ?
-                `<div class="g g2">${reportCards.join('')}</div>` :
-                `<div class="card dashboard-empty-reports"><span aria-hidden="true">${ic('bar-chart-3')}</span><div><b>Your reports will appear here</b><small>Add your first transaction to see income, expenses, and trends.</small></div></div>` :
-                '';
-            const emptyDashboard = DASHBOARD_WIDGETS.some(([id]) => widgets[id]) ? '' :
-                '<div class="empty card">No dashboard sections are visible. Go to Settings and select Customize Dashboard to add sections.</div>';
-            const now = new Date(),
-                hour = now.getHours(),
-                greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening',
-                dashboardTitle = D.name ? `${greeting}, ${esc(D.name)}` : greeting,
-                dashboardDate = `${new Intl.DateTimeFormat('en-PH', { weekday: 'long' }).format(now)}, ${now.getDate()} ${new Intl.DateTimeFormat('en-PH', { month: 'long' }).format(now)}`.toUpperCase(),
-                dashboardAlerts = widgets.alerts ? alerts() : '';
-            return `<div class="row sp pocket-privacy-header dashboard-heading"><div class="dashboard-heading-copy"><small class="dashboard-date">${dashboardDate}</small><h2 style="font-size:28px">${dashboardTitle}</h2></div></div>${summaryWidget}<button type="button" class="dashboard-add-button" onclick="primaryAdd()">${ic('plus')}<span>Add transaction</span></button>${dashboardAlerts?`<section class="dashboard-alerts" aria-label="Budget alerts">${dashboardAlerts}</section>`:''}${gettingStartedChecklist()}${shortcutsWidget}${actionsWidget}${accountsWidget}${transactionsWidget}${reportsWidget}${emptyDashboard}`
-        };
 
         const onboardingDraft = () => onboardingState && onboardingState.draft;
         function saveOnboardingProgress() {
@@ -2095,101 +1983,11 @@ function syncDateInput(input) {
             ];
             return `<section class="card getting-started" aria-labelledby="getting-started-title"><div class="row sp"><div><h3 id="getting-started-title">Getting started</h3><small>Your progress stays on this device.</small></div><button type="button" class="ib" aria-label="Dismiss getting started checklist" onclick="dismissGettingStarted()">${ic('x')}</button></div><div class="getting-started-list">${tasks.map(([id, title, done, description]) => `<div class="getting-started-item${done ? ' is-done' : ''}"><span class="getting-started-check" aria-hidden="true">${ic(done ? 'check' : 'circle')}</span><span class="getting-started-copy"><b>${title}</b><small>${description}</small></span><button type="button" class="chip" onclick="startGettingStartedTask('${id}')">${done ? 'View' : 'Start'}</button></div>`).join('')}</div></section>`
         }
-        function renderOnboarding() {
-            if (!onboardingDraft()) {
-                onboardingState = createOnboardingState();
-                persistOnboardingState()
-            }
-            const draft = onboardingDraft(),
-                brand = `<div class="onboarding-brand"><span class="onboarding-brand-icon">${ic('wallet')}</span><span>Pocket</span></div>`,
-                notice = onboardingPersistenceError ?
-                    '<p class="onboarding-storage-warning" role="status">Setup progress could not be saved on this device. Keep Pocket open until you finish.</p>' : '';
-            if (onboardingState.step === 'welcome') {
-                    return `<div class="onboarding-shell onboarding-welcome"><section class="onboarding-hero">${brand}<h1>Welcome to Pocket</h1><p class="onboarding-tagline">Every peso, accounted for.</p><p>Track accounts, record expenses and income, and keep an eye on budgets and savings goals.</p></section><section class="onboarding-panel"><h2>Let’s get things set up.</h2><p class="onboarding-muted">You can always change these later.</p><div class="onboarding-feature-list"><div><span>${ic('wallet')}</span><div><b>Your accounts</b><small>See your real balances in one place.</small></div></div><div><span>${ic('file-text')}</span><div><b>Your spending</b><small>Record income and expenses as they happen.</small></div></div><div><span>${ic('target')}</span><div><b>Your goals</b><small>Set budgets and savings goals at your pace.</small></div></div></div>${notice}<button type="button" class="b1 onboarding-primary" onclick="beginOnboarding()">Get Started</button><div class="onboarding-welcome-actions"><button type="button" class="b2" onclick="showText('Restore backup','',1)">${ic('upload')} Restore Backup</button><button type="button" class="b2" onclick="startDemoMode()">${ic('eye')} Explore Demo Mode</button></div></section></div>`
-            }
-            if (onboardingState.step === 'complete') {
-                    return `<div class="onboarding-shell onboarding-complete"><section class="onboarding-hero">${brand}<span class="onboarding-complete-mark" aria-hidden="true">${ic('check')}</span><h1>You’re ready to go.</h1><p>Welcome to Pocket. Your setup is saved on this device.</p></section><section class="onboarding-panel"><h2>Your setup</h2><div class="onboarding-completion-stats"><div><b>${draft.accounts.length}</b><small>accounts configured</small></div><div><b>${[...draft.categories.filter(category => category.g === 'Financial' || draft.categoryIds.includes(category.id)), ...draft.customCategories].length}</b><small>categories ready</small></div></div><div class="onboarding-first-transaction"><span>${ic('file-text')}</span><p><b>Record your first transaction</b><small>Tap the + button on your dashboard, choose Expense or Income, then enter the amount, category, and account.</small></p></div><p class="onboarding-muted">${draft.accounts.length ? 'Your opening balances are ready to use.' : 'You skipped accounts. Add one before recording a transaction.'}</p>${notice}<p id="onboarding-error" class="onboarding-inline-error" role="alert"></p><div class="onboarding-navigation"><button type="button" class="onboarding-text-button" onclick="onboardingBack()">Back</button><button type="button" class="b1 onboarding-primary" onclick="finishOnboarding()">Open Dashboard</button></div></section></div>`
-            }
-            const stepIndex = ONBOARDING_STEPS.indexOf(onboardingState.step),
-                stepTitles = ['Accounts', 'Categories', 'Preferences', 'Optional goals'],
-                heading = stepTitles[stepIndex] || 'Setup',
-                percent = Math.round((stepIndex + 1) / ONBOARDING_STEPS.length * 100);
-            let content = '';
-            if (onboardingState.step === 'accounts') {
-                const suggestions = SUGGESTED_ACCOUNTS.map(suggestion => {
-                    const selected = draft.accounts.find(account => account.key === suggestion.key);
-                    return `<div class="onboarding-account-card${selected ? ' is-selected' : ''}"><label class="onboarding-account-choice"><input type="checkbox"${selected ? ' checked' : ''} onchange="toggleOnboardingAccount('${suggestion.key}',this.checked)"><span class="onboarding-account-icon">${ic(suggestion.icon)}</span><span><b>${suggestion.name}</b><small>${suggestion.type}</small></span></label>${selected ? `<label class="onboarding-field">Initial balance (₱)<input type="number" step="0.01" value="${esc(selected.initial)}" aria-label="${suggestion.name} initial balance" oninput="updateOnboardingAccount('${suggestion.key}','initial',this.value)"></label>` : ''}</div>`
-                }).join(''),
-                    customAccounts = draft.accounts.filter(account => account.key.startsWith('custom-')).map(account =>
-                        `<div class="onboarding-custom-account"><div class="onboarding-fields"><label class="onboarding-field">Account name<input type="text" maxlength="40" value="${esc(account.name)}" oninput="updateOnboardingAccount('${account.key}','name',this.value)"></label><label class="onboarding-field">Type<select aria-label="${esc(account.name)} type" onchange="updateOnboardingAccount('${account.key}','type',this.value)">${TYPES.map(([value, label]) => `<option value="${esc(value)}"${account.type === value ? ' selected' : ''}>${esc(label)}</option>`).join('')}</select></label><label class="onboarding-field">Initial balance (₱)<input type="number" step="0.01" value="${esc(account.initial)}" oninput="updateOnboardingAccount('${account.key}','initial',this.value)"></label></div><button type="button" class="ib" aria-label="Remove ${esc(account.name)}" onclick="removeOnboardingAccount('${account.key}')">${ic('trash-2')}</button></div>`
-                    ).join('');
-                content = `<p class="onboarding-step-description">Choose any accounts you use and enter their current opening balances. You can add more later.</p><div class="onboarding-account-grid">${suggestions}</div><section class="onboarding-custom-section"><h3>Add a custom account</h3><div class="onboarding-fields"><label class="onboarding-field">Account name<input id="onboarding-account-name" type="text" maxlength="40" autocomplete="off"></label><label class="onboarding-field">Type<select id="onboarding-account-type">${TYPES.map(([value, label]) => `<option value="${esc(value)}">${esc(label)}</option>`).join('')}</select></label><label class="onboarding-field">Initial balance (₱)<input id="onboarding-account-balance" type="number" step="0.01" value="0"></label></div><button type="button" class="b2" onclick="addOnboardingAccount()">${ic('plus')} Add account</button><p id="onboarding-account-error" class="onboarding-inline-error" role="alert"></p>${customAccounts}</section>`
-            } else if (onboardingState.step === 'categories') {
-                const categoryGroup = (group, title) => `<section class="onboarding-category-group"><h3>${title}</h3><div class="onboarding-category-grid">${draft.categories.filter(category => category.g === group).map(category => {
-                    const required = category.g === 'Income' && category.name.toLowerCase() === 'cashback',
-                        checked = required || draft.categoryIds.includes(category.id);
-                    return `<label class="onboarding-category-choice"><input type="checkbox"${checked ? ' checked' : ''}${required ? ' disabled' : ''} onchange="toggleOnboardingCategory('${esc(category.id)}',this.checked)"><span>${esc(category.name)}</span>${required ? '<small>Always included</small>' : ''}</label>`
-                }).join('')}</div></section>`;
-                const customCategories = draft.customCategories.map(category =>
-                    `<div class="onboarding-custom-category"><span>${ic(category.icon)} ${esc(category.name)} <small>${category.g === 'Income' ? 'Income' : 'Expense'}</small></span><button type="button" class="ib" aria-label="Remove ${esc(category.name)}" onclick="removeOnboardingCategory('${esc(category.id)}')">${ic('trash-2')}</button></div>`
-                ).join('');
-                content = `<p class="onboarding-step-description">Pocket starts with useful expense and income categories. Keep the defaults or uncheck any you don’t use.</p>${categoryGroup('Daily', 'Expense categories')}${categoryGroup('Income', 'Income categories')}<p class="onboarding-category-note">${ic('arrow-left-right')} Financial categories are included automatically for transfers, savings, and debt payments.</p><section class="onboarding-custom-section"><h3>Add a category</h3><div class="onboarding-fields"><label class="onboarding-field">Category name<input id="onboarding-category-name" type="text" maxlength="40" autocomplete="off"></label><label class="onboarding-field">Type<select id="onboarding-category-type"><option value="Daily">Expense</option><option value="Income">Income</option></select></label></div><button type="button" class="b2" onclick="addOnboardingCategory()">${ic('plus')} Add category</button><p id="onboarding-category-error" class="onboarding-inline-error" role="alert"></p>${customCategories}</section>`
-            } else if (onboardingState.step === 'preferences') {
-                content = `<p class="onboarding-step-description">Choose how Pocket looks and how reports group your activity.</p><div class="onboarding-preference-card"><div><b>Currency</b><small>PHP · Philippine Peso (₱)</small></div><div><b>Date format</b><small>Used across Pocket</small></div><select aria-label="Date format" onchange="updateOnboardingPreference('dateFormat',this.value)">${DATE_FORMATS.map(format => `<option value="${format}"${draft.dateFormat === format ? ' selected' : ''}>${format}</option>`).join('')}</select></div><div class="onboarding-preference-block"><b>Appearance</b><div class="onboarding-choice-row" role="group" aria-label="Choose appearance">${[['dark', 'Dark'], ['light', 'Light']].map(([value, label]) => `<button type="button" class="onboarding-choice${draft.theme === value ? ' is-selected' : ''}" aria-pressed="${draft.theme === value}" onclick="updateOnboardingPreference('theme','${value}')">${ic(value === 'dark' ? 'moon' : 'sun')} ${label}</button>`).join('')}</div></div><div class="onboarding-preference-block"><label class="onboarding-field">Financial period<select aria-label="Financial period" onchange="updateOnboardingPreference('financialPeriod',this.value)">${[['weekly', 'Weekly'], ['monthly', 'Monthly'], ['yearly', 'Yearly']].map(([value, label]) => `<option value="${value}"${draft.financialPeriod === value ? ' selected' : ''}>${label}</option>`).join('')}</select></label><small>Used as the default date range in Reports.</small></div>`
-            } else if (onboardingState.step === 'optional') {
-                const selectedIds = new Set(draft.categoryIds),
-                    budgetCategories = [...draft.categories, ...draft.customCategories].filter(category =>
-                        category.g === 'Daily' && (category.id.startsWith('c_') && draft.customCategories.includes(category) || selectedIds.has(category.id))
-                    ),
-                    budgetRows = budgetCategories.map(category =>
-                        `<label class="onboarding-budget-row"><span>${esc(category.name)}</span><input type="number" min="0" max="1000000000000" step="0.01" value="${esc(draft.budgets[category.id] ?? '')}" aria-label="${esc(category.name)} monthly budget" placeholder="Skip" oninput="updateOnboardingBudget('${esc(category.id)}',this.value)"></label>`
-                    ).join(''),
-                    goals = draft.goals.map(goal =>
-                        `<div class="onboarding-goal-row"><label class="onboarding-field">Goal name<input type="text" maxlength="80" value="${esc(goal.name)}" oninput="updateOnboardingGoal('${goal.key}','name',this.value)"></label><label class="onboarding-field">Target amount (₱)<input type="number" min="0.01" max="1000000000000" step="0.01" value="${esc(goal.target)}" oninput="updateOnboardingGoal('${goal.key}','target',this.value)"></label><button type="button" class="ib" aria-label="Remove goal" onclick="removeOnboardingGoal('${goal.key}')">${ic('trash-2')}</button></div>`
-                    ).join('');
-                content = `<p class="onboarding-step-description">Both are optional. You can set or change them any time.</p><details class="onboarding-optional-section"><summary>Set monthly category budgets</summary><div class="onboarding-budget-list">${budgetRows || '<small>Select an expense category first to add a budget.</small>'}</div></details><section class="onboarding-optional-section"><div class="row sp"><div><h3>Savings goals</h3><small>Start with a name and a target amount.</small></div><button type="button" class="b2" onclick="addOnboardingGoal()">${ic('plus')} Add goal</button></div>${goals || '<p class="onboarding-muted">No goals yet.</p>'}</section>`
-            }
-            const skip = onboardingState.step === 'accounts'
-                ? '<button type="button" class="onboarding-text-button" onclick="onboardingSkipAccounts()">Skip adding accounts</button>'
-                : onboardingState.step === 'optional'
-                    ? '<button type="button" class="onboarding-text-button" onclick="onboardingSkipOptional()">Skip optional steps</button>'
-                    : '';
-            return `<div class="onboarding-shell"><header class="onboarding-flow-header">${brand}<span>Step ${stepIndex + 1} of ${ONBOARDING_STEPS.length}</span></header><div class="onboarding-progress" role="progressbar" aria-label="Setup progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${percent}"><span style="width:${percent}%"></span></div><section class="onboarding-panel onboarding-step-panel"><h1>${heading}</h1>${content}${notice}<p id="onboarding-error" class="onboarding-inline-error" role="alert"></p><div class="onboarding-navigation${skip ? ' with-options' : ''}"><button type="button" class="onboarding-text-button" onclick="onboardingBack()">Back</button>${skip}<button type="button" class="b1 onboarding-primary" onclick="onboardingContinue()">${onboardingState.step === 'optional' ? 'Review setup' : 'Continue'}</button></div></section></div>`
-        }
 
         const transactionLongMonthFormatter = new Intl.DateTimeFormat('en-US', { month: 'long' });
         const TRANSACTION_PAGE_SIZE = 50;
         let txPageLimit = TRANSACTION_PAGE_SIZE,
             transactionFiltersOpen = false;
-        function txList() {
-            const q = U.q.toLowerCase(),
-                L = sorted().filter(t => (!q || t.title.toLowerCase().includes(q)) && (!U.c || t.cat === U.c) && (!U
-                        .a || t.acc === U.a || t.to === U.a) && (!U.ty || (U.ty === 'flow' ? t.type !== 'transfer' : t.type === U.ty)) && (!U.tf || t.date >= U
-                    .tf) && (!U.tt || t.date <= U.tt));
-            if (!L.length) return '<div class="empty transaction-empty">No transactions match. Try clearing a filter or add one.</div>';
-            const transactions = L.slice(0, txPageLimit);
-            const now = new Date(),
-                todayDate = iso(now),
-                yesterdayDate = iso(new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1)),
-                groups = [];
-            transactions.forEach(transaction => {
-                let group = groups[groups.length - 1];
-                if (!group || group.date !== transaction.date) {
-                    group = { date: transaction.date, transactions: [] };
-                    groups.push(group);
-                }
-                group.transactions.push(transaction);
-            });
-            return groups.map(group => {
-                const [year, month, day] = group.date.split('-').map(Number),
-                    date = new Date(year, month - 1, day),
-                    dateLabel = group.date === todayDate ? `Today · ${day} ${MO[month - 1]}` :
-                        group.date === yesterdayDate ? `Yesterday · ${day} ${MO[month - 1]}` :
-                            `${day} ${transactionLongMonthFormatter.format(date)}`,
-                    countLabel = `${group.transactions.length} transaction${group.transactions.length === 1 ? '' : 's'}`;
-                return `<section class="transaction-date-group"><div class="transaction-date-group-heading"><h3 class="transaction-date-heading" data-date="${esc(group.date)}">${esc(dateLabel)}</h3><span class="transaction-count">${countLabel}</span></div><div class="transaction-date-card">${group.transactions.map(transaction => row(transaction, 1)).join('')}</div></section>`;
-            }).join('') + (L.length > transactions.length ? '<div class="tx-load-more" id="tx-load-more" aria-hidden="true"></div>' : '')
-        }
 
         function fl() {
             txPageLimit = TRANSACTION_PAGE_SIZE;
@@ -2219,72 +2017,6 @@ function syncDateInput(input) {
         document.addEventListener('keydown', event => {
             if (event.key === 'Escape') closeTransactionFilters()
         });
-        const cashbackSection = () => {
-            const recentClaims = status => D.cashbacks.map((claim, index) => ({
-                claim,
-                index,
-                date: status === 'received' ? claim.receivedDate || claim.created : claim.created
-            })).filter(({ claim }) => claim.status === status)
-                .sort((first, second) =>
-                    (second.date || '').localeCompare(first.date || '') || second.index - first.index
-                ).map(({ claim }) => claim),
-                pending = recentClaims('pending'),
-                received = recentClaims('received');
-            const claimCard = claim => {
-                const expense = D.tx.find(item => item.id === claim.expenseId);
-                const transactionType = expense?.type === 'transfer' ? 'Transfer' : 'Expense';
-                const timingLabel = claim.status === 'received' ? 'Received' : 'Added';
-                const timingDate = claim.status === 'received' ? claim.receivedDate : claim.created;
-                const title = claim.expenseTitle || expense?.title || 'Linked transaction';
-                const formatDate = value => {
-                    const [year, month, day] = String(value || '').split('-').map(Number);
-                    return year && month >= 1 && month <= 12 && day ? `${day} ${MO[month - 1]} ${year}` : 'Unknown date';
-                };
-                const actions = claim.status === 'pending'
-                    ? `<div class="cashback-card-actions"><button type="button" onclick="markCashbackReceived('${claim.id}')">Mark as received</button></div>`
-                    : '';
-                return `<article class="card cashback-card"><div class="cashback-card-heading"><span class="cashback-card-icon" aria-hidden="true">${ic('gift')}</span><div class="cashback-card-title"><b>${esc(title)}</b><small>${transactionType} · ${formatDate(claim.expenseDate || expense?.date || claim.created)}</small></div><b class="cashback-amount">${peso(claim.amount)}</b></div><div class="cashback-card-meta"><div><small>Deposit account</small><b>${esc(A(claim.account)?.name || 'Unknown account')}</b></div><div><small>${timingLabel}</small><b>${formatDate(timingDate)}</b></div></div>${actions}</article>`
-            };
-            const receivedTotal = received.reduce((total, claim) => total + claim.amount, 0),
-                pendingTotal = pending.reduce((total, claim) => total + claim.amount, 0);
-            const sectionHeading = (title, claims) => {
-                const menu = claims.length ? `<details class="cashback-section-menu"><summary aria-label="Manage ${title.toLowerCase()} cashback claims">${ic('more-horizontal')}</summary><div class="cashback-section-menu-options">${claims.map(claim => {
-                    const expense = D.tx.find(item => item.id === claim.expenseId),
-                        claimTitle = claim.expenseTitle || expense?.title || 'Linked transaction';
-                    return `<div class="cashback-section-menu-item"><div class="cashback-section-menu-item-label"><b>${esc(claimTitle)}</b><span>${peso(claim.amount)}</span></div><div class="cashback-section-menu-actions"><button type="button" aria-label="Edit cashback for ${esc(claimTitle)}" onclick="this.closest('details').open=false;editCashback('${claim.id}')">${ic('pencil')}Edit</button><button type="button" aria-label="Delete cashback for ${esc(claimTitle)}" onclick="this.closest('details').open=false;deleteCashback('${claim.id}')">${ic('trash-2')}Delete</button></div></div>`
-                }).join('')}</div></details>` : '';
-                return `<div class="cashback-section-heading"><h3 class="cashback-subtitle">${title}</h3><span class="cashback-count">${claims.length}</span>${menu}</div>`
-            };
-            return `<div class="cashback-header"><div class="cashback-heading-copy"><small class="cashback-eyebrow">EVERY PESO COMES BACK</small><h2>Cashback</h2></div></div><section class="card cashback-summary"><small>Total received</small><b>${peso(receivedTotal)}</b><span>${peso(pendingTotal)} pending</span></section>${sectionHeading('Pending', pending)}<div class="g g2 cashback-list">${pending.length ? pending.map(claimCard).join('') : '<div class="empty card cashback-empty">Add a claim from an expense or transfer in Transactions.</div>'}</div>${sectionHeading('Received', received)}<div class="g g2 cashback-list">${received.length ? received.map(claimCard).join('') : '<div class="empty card cashback-empty">Cashback marked received will appear here as income.</div>'}</div>`
-        };
-        V.tx = () => {
-            const options = (items, selected, allLabel) =>
-                `<option value=""${selected ? '' : ' selected'}>${allLabel}</option>` + items.map(item =>
-                    `<option value="${esc(item.id)}"${selected === item.id ? ' selected' : ''}>${esc(item.name)}</option>`
-                ).join(''),
-                typeOptions = [['', 'All types'], ['income', 'Income'], ['expense', 'Expense'], ['transfer', 'Transfer'], ['flow', 'Income and expenses']],
-                filtersOpen = transactionFiltersOpen || Boolean(U.ty);
-            return `<div class="row sp pocket-privacy-header transaction-page-heading"><div class="transaction-heading-copy"><small>YOUR MONEY, IN MOTION</small><h2>Transactions</h2></div></div>
-<div class="f transaction-filters">
-  <label class="transaction-search"><img src="assets/dashboard-icons/search.svg" width="24" height="24" alt=""><input aria-label="Search transactions" placeholder="Search transactions" value="${esc(U.q)}" oninput="U.q=this.value;fl()"></label>
-  <div class="transaction-filter-row">
-    <div class="transaction-filter-chip"><select aria-label="Filter by category" onchange="U.c=this.value;fl()">${options(D.cats, U.c, 'All categories')}</select></div>
-    <div class="transaction-filter-chip"><select aria-label="Filter by account" onchange="U.a=this.value;fl()">${options(D.acc, U.a, 'All accounts')}</select></div>
-    <button type="button" class="transaction-filters-toggle" id="transaction-filters-toggle" aria-controls="transaction-advanced-filters" aria-expanded="${filtersOpen}" onclick="toggleTransactionFilters()"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4"/></svg><span>Filters</span></button>
-    <div class="transaction-advanced-filters" id="transaction-advanced-filters"${filtersOpen ? '' : ' hidden'}>
-      <label>Type<select aria-label="Filter by type" onchange="U.ty=this.value;fl()">${typeOptions.map(([value, label]) => `<option value="${value}"${value === U.ty ? ' selected' : ''}>${label}</option>`).join('')}</select></label>
-    </div>
-  </div>
-  <div class="transaction-date-range">
-    <span class="date-input-wrap date-filter${U.tf ? '' : ' is-empty'}"><input type="date" aria-label="From date" value="${esc(U.tf)}" onchange="U.tf=this.value;syncDateInput(this);fl()"><span class="date-input-value">${esc(fd(U.tf))}</span><span class="date-input-placeholder">From date</span></span>
-    <span class="transaction-date-separator" aria-hidden="true">→</span>
-    <span class="date-input-wrap date-filter${U.tt ? '' : ' is-empty'}"><input type="date" aria-label="To date" value="${esc(U.tt)}" onchange="U.tt=this.value;syncDateInput(this);fl()"><span class="date-input-value">${esc(fd(U.tt))}</span><span class="date-input-placeholder">To date</span></span>
-  </div>
-</div>
-<div id="tl" class="transaction-list">${txList()}</div>
-<button type="button" class="transaction-add-button" onclick="primaryAdd()">+ <span>Add transaction</span></button>
-<div class="transaction-scroll-month" id="transaction-scroll-month" aria-hidden="true"></div>`
-        };
         const transactionMonthFormatter = new Intl.DateTimeFormat(undefined, { month: 'short', year: 'numeric' });
         let transactionScrollHideTimer = 0;
         function updateTransactionMonthIndicator() {
@@ -2298,8 +2030,8 @@ function syncDateInput(input) {
                 return;
             }
             const list = $('#tl'),
-                filters = $('#m > .f'),
-                header = $('#m > .row:first-child'),
+                filters = $('#m .pocket-feature-content > .f'),
+                header = $('#m .pocket-feature-content > .row:first-child'),
                 listBounds = list?.getBoundingClientRect(),
                 filtersBottom = filters?.getBoundingClientRect().bottom,
                 headerBottom = header?.getBoundingClientRect().bottom || 0;
@@ -2343,7 +2075,6 @@ function syncDateInput(input) {
             loadMoreTransactionsAtBottom();
             updateTransactionMonthIndicator()
         }, { passive: true });
-        V.cash = () => cashbackSection();
         const trForm = () => txFormT();
 
         function txFormT() {
@@ -2437,37 +2168,6 @@ function syncDateInput(input) {
             'This account has transactions. Delete or move them first.') : ask('Delete this account?', () => {
             D.acc = D.acc.filter(a => a.id !== id)
         });
-        V.acc = () => {
-            const accounts = accountStackAccounts();
-            const stackGap = 68,
-                stackHeight = accounts.length ? 160 + (accounts.length - 1) * stackGap : 0,
-                totalBalance = D.acc.filter(account => !isSav(account)).reduce((total, account) => total + bal(account), 0),
-                savingsBalance = D.acc.filter(isSav).reduce((total, account) => total + bal(account), 0);
-            const visibleAccounts = accounts;
-            const accountRows = accounts.map(account => {
-                const balance = bal(account);
-                return `<button type="button" class="accounts-list-row" onclick="accForm('${account.id}')" aria-label="Edit ${esc(account.name)}"><span class="accounts-list-icon">${ic(account.icon || 'wallet')}</span><span class="accounts-list-copy"><b>${esc(account.name)}</b><small>${esc(account.type)} · since ${fd(account.created)}</small></span><b class="accounts-list-balance${balance < 0 ? ' is-negative' : ''}">${pesoBalance(balance)}</b></button>`
-            }).join('');
-            const cards = visibleAccounts.map((account, index) => {
-                const balance = bal(account);
-                const isFront = index === visibleAccounts.length - 1;
-                const balanceNote = account.type === 'Credit Card' ? 'Liability · not counted in available balance' :
-                    isSav(account) ? 'Savings · kept separate from total balance' : `Initial ${pesoBalance(account.initial)}`;
-                const actions = isFront ?
-                    `<div class="account-stack-actions"><button class="ib" onclick="accForm('${account.id}')" aria-label="Edit ${esc(account.name)}">${ic('pencil')}</button><button class="ib" onclick="delAcc('${account.id}')" aria-label="Delete ${esc(account.name)}">${ic('trash-2')}</button></div>` :
-                    '';
-                return `<article class="account-stack-card${isFront ? ' is-front' : ''}" data-account-id="${esc(account.id)}" style="--account-accent:${esc(account.color)};--stack-offset:${index * stackGap}px;z-index:${index}"><div class="account-stack-card-heading"><div class="account-stack-name"><span class="account-stack-icon">${ic(account.icon || 'wallet')}</span><span class="account-stack-name-copy"><b>${esc(account.name)}</b><small>${esc(account.type)} · since ${fd(account.created)}</small></span></div><b class="account-stack-balance" style="color:${balance < 0 ? 'var(--ex)' : 'var(--tx)'}">${pesoBalance(balance)}</b></div><div class="account-stack-card-footer"><small>${balanceNote}</small>${actions}</div></article>`
-            }).join('');
-            const accountCount = `${accounts.length} ${accounts.length === 1 ? 'account' : 'accounts'}`;
-            const stackView = accounts.length ?
-                `<div class="account-stack-wrap"><div class="account-stack-footer"><small>Swipe sideways to switch accounts.</small></div><div class="account-stack" role="region" aria-label="Account cards. Swipe sideways to switch accounts." tabindex="0" style="height:${stackHeight}px">${cards}</div></div>` :
-                '<div class="empty accounts-empty">No accounts yet. Add one to get started.</div>';
-            const accountContent = accountViewMode === 'list' ?
-                accounts.length ? `<div class="accounts-list">${accountRows}</div>` :
-                    '<div class="empty accounts-empty">No accounts yet. Add one to get started.</div>' :
-                stackView;
-            return `<div class="accounts-page"><div class="row sp accounts-heading"><div class="accounts-heading-copy"><small class="accounts-eyebrow">EVERY BALANCE, TOGETHER</small><h2>Accounts</h2></div></div><section class="accounts-balance-card" aria-label="Account balance summary"><small>Total balance · ${accountCount}</small><strong>${pesoBalance(totalBalance)}</strong><div><span>Savings</span><b>${pesoBalance(savingsBalance)}</b></div></section><div class="accounts-list-heading"><h3>Your accounts</h3><button type="button" class="accounts-view-toggle" onclick="toggleAccountViewMode()" aria-label="Switch to ${accountViewMode === 'list' ? 'card' : 'list'} view">${accountViewMode === 'list' ? 'List view' : 'Card view'}<span aria-hidden="true">⌄</span></button></div>${accountContent}</div>`
-        };
 
         function budForm(id) {
             openForm(id ? 'Edit budget' : 'Set budget', () => [{
@@ -2499,33 +2199,13 @@ function syncDateInput(input) {
             budgetMonthOffset += amount;
             render()
         }
-        V.bud = () => {
-            const categoryName = id => C(id)?.name || 'Unknown category',
-                month = new Date(new Date().getFullYear(), new Date().getMonth() + budgetMonthOffset, 1),
-                monthKey = ym(iso(month)),
-                monthLabel = new Intl.DateTimeFormat('en-PH', { month: 'long', year: 'numeric' }).format(month),
-                L = bstat(monthKey).sort((first, second) =>
-                    categoryName(first.id).localeCompare(categoryName(second.id), undefined, { sensitivity: 'base' }) ||
-                    first.id.localeCompare(second.id)
-                );
-                overBudgetNames = L.filter(item => item.p > 100).map(item => categoryName(item.id)),
-                overBudgetList = overBudgetNames.length < 2 ? overBudgetNames[0] :
-                    `${overBudgetNames.slice(0, -1).join(', ')} and ${overBudgetNames[overBudgetNames.length - 1]}`,
-                budgetAlert = overBudgetNames.length ? `<section class="budgets-overview-alert" role="status"><span class="budgets-overview-alert-icon" aria-hidden="true">${ic('alert-triangle')}</span><div><b>${overBudgetNames.length} budget${overBudgetNames.length === 1 ? '' : 's'} over their limit</b><small>Keep an eye on ${esc(overBudgetList)}.</small></div></section>` : '';
-            return `<div class="row sp budgets-heading"><div class="budgets-heading-copy"><small>A LITTLE PLAN, MORE CONTROL.</small><h2>Budgets</h2></div></div><div class="budgets-page"><div class="budgets-month"><button type="button" class="budgets-month-button" onclick="shiftBudgetMonth(-1)" aria-label="Previous month">${ic('chevron-left')}</button><strong aria-live="polite">${esc(monthLabel)}</strong><button type="button" class="budgets-month-button" onclick="shiftBudgetMonth(1)" aria-label="Next month">${ic('chevron-right')}</button></div>${budgetAlert}<div class="budgets-list">${L.length ? L.map(x => {
-                const c = C(x.id) || { name: 'Unknown category', color: '#999', icon: 'tag' },
-                    col = x.p >= 100 ? 'var(--ex)' : 'var(--in)',
-                    percent = Number.isFinite(x.p) ? Math.round(x.p) : '∞',
-                    progress = Number.isFinite(x.p) ? Math.min(100, Math.max(0, x.p)) : 100;
-                return `<article class="card budget-card"><div class="budget-card-heading"><span class="budget-card-icon" style="--budget-icon-color:${esc(c.color)}">${ic(c.icon || 'tag')}</span><b>${esc(c.name)}</b><details class="budget-card-menu"><summary aria-label="Budget options for ${esc(c.name)}">${ic('more-horizontal')}</summary><div class="budget-card-menu-options"><button type="button" onclick="budForm('${esc(x.id)}')">${ic('pencil')}Edit budget</button><button type="button" onclick="delBudget('${esc(x.id)}')">${ic('trash-2')}Remove budget</button></div></details></div><div class="budget-card-amounts"><div><small>Spent</small><strong>${peso(x.s)}</strong></div><small>of <b>${peso(x.b)}</b> budget</small></div><div class="bar"><i style="width:${progress}%;background:${col}"></i></div><div class="budget-card-footer"><small>${x.b >= x.s ? `${peso(x.b - x.s)} remaining` : `${peso(x.s - x.b)} over budget`}</small><b style="color:${col}">${percent}%</b></div></article>`
-            }).join('') : '<div class="empty card budgets-empty">No budgets yet. Set one for a category to track your spending.</div>'}</div></div>`
-        };
 
         function goalForm(id) {
             const g = id ? D.goals.find(x => x.id === id) : null;
             openForm(g ? 'Edit goal' : 'New savings goal', () => [{
                 k: 'name',
                 l: 'Goal name',
+                placeholder: 'What are you saving for?',
                 req: 1
             }, {
                 k: 'target',
@@ -2550,7 +2230,7 @@ function syncDateInput(input) {
                     ['', 'None'], ...D.acc.map(a => [a.id, a.name])
                 ]
             }], g || {
-                current: '0',
+                current: '',
                 date: iso(new Date(Date.now() + 18144e6))
             }, v => {
                 const o = {
@@ -2564,7 +2244,7 @@ function syncDateInput(input) {
                     id: uid(),
                     ...o
                 })
-            })
+            }, null, g ? 'Save changes' : 'Create goal')
         }
         const fund = id => openForm('Add money to goal', () => [{
             k: 'amt',
@@ -2575,8 +2255,6 @@ function syncDateInput(input) {
         }], {}, v => {
             D.goals.find(x => x.id === id).current += +v.amt
         });
-        V.goal = () =>
-            `<div class="row sp"><div><h2>Savings goals</h2><small>Track progress separately from your account balances.</small></div></div><div class="g g2">${D.goals.length?D.goals.map(g=>{const p=Math.min(100,g.current/g.target*100),mo=Math.max(1,Math.ceil((new Date(g.date)-new Date())/2629e6));return`<div class="card goal-card"><div class="row goal-heading"><span style="color:var(--in);display:inline-flex">${ic('target')}</span><b class="gr">${esc(g.name)}</b><button class="ib" onclick="goalForm('${g.id}')">${ic('pencil')}</button><button class="ib" onclick="ask('Delete this goal?',()=>D.goals=D.goals.filter(x=>x.id!=='${g.id}'))">${ic('trash-2')}</button></div><div class="big goal-amount">${peso(g.current)} <small>of ${peso(g.target)}</small></div><div class="bar"><i style="width:${p}%;background:var(--in)"></i></div><div class="goal-details-row"><small>${Math.round(p)}% · by ${fd(g.date)}${A(g.acc)?' · '+esc(A(g.acc).name):''}</small><button class="chip" onclick="fund('${g.id}')">+ Add money</button></div><small class="goal-estimate">${p<100?`≈ ${peso((g.target-g.current)/mo)} per month to stay on track`:'Goal reached 🎉'}</small></div>`}).join(''):'<div class="empty card">No goals yet. Create one to start saving toward it.</div>'}</div>`;
         function shoppingListForm(id) {
             const list = id ? D.shoppingLists.find(item => item.id === id) : null;
             openForm(list ? 'Edit shopping list' : 'Name your list', () => [{
@@ -2727,54 +2405,6 @@ function syncDateInput(input) {
             D.shoppingLists = D.shoppingLists.filter(list => list.id !== id);
             if (selectedShoppingListId === id) selectedShoppingListId = ''
         });
-        V.shop = () => {
-            const selectedList = D.shoppingLists.find(list => list.id === selectedShoppingListId);
-            if (selectedShoppingListId && !selectedList) selectedShoppingListId = '';
-            if (selectedList) {
-                const items = selectedList.items.length ? selectedList.items.map(item =>
-                    `<div class="shopping-list-item${item.checked ? ' is-checked' : ''}"><label><input type="checkbox"${item.checked ? ' checked' : ''} onchange="toggleShoppingItem('${selectedList.id}','${item.id}')"><span>${esc(item.name)}</span></label><b class="shopping-list-item-amount">${peso(item.estimatedAmount || 0)}</b><button type="button" class="ib" aria-label="Edit ${esc(item.name)}" onclick="shoppingItemForm('${selectedList.id}','${item.id}')">${ic('pencil')}</button><button type="button" class="ib" aria-label="Remove ${esc(item.name)}" onclick="deleteShoppingItem('${selectedList.id}','${item.id}')">${ic('trash-2')}</button></div>`
-                ).join('') : '<div class="shopping-list-empty"><b>No items yet</b><small>Tap Add item to start your list.</small></div>';
-                const linkedExpense = D.tx.find(transaction =>
-                    transaction.id === selectedList.expenseTransactionId && transaction.type === 'expense'
-                );
-                const expenseAction = linkedExpense
-                    ? `<div class="shopping-list-expense"><small>Expense recorded · ${peso(linkedExpense.amount)} · ${fd(linkedExpense.date)}</small><button type="button" class="chip" onclick="editTx('${linkedExpense.id}')">Edit</button></div>`
-                    : `<div class="shopping-list-expense"><small>Expense not recorded yet</small><button type="button" class="b1" onclick="recordShoppingListExpense('${selectedList.id}')">Record expense</button></div>`;
-                return `<div class="row sp"><div><h2>Shopping List</h2></div><button type="button" class="chip" onclick="closeShoppingList()">All lists</button></div><section class="card shopping-list-detail"><div class="shopping-list-heading"><div class="gr"><h3>${esc(selectedList.name)}</h3></div><button type="button" class="ib" aria-label="Rename ${esc(selectedList.name)}" onclick="shoppingListForm('${selectedList.id}')">${ic('pencil')}</button><button type="button" class="ib" aria-label="Delete ${esc(selectedList.name)}" onclick="deleteShoppingList('${selectedList.id}')">${ic('trash-2')}</button></div><div class="row sp shopping-list-total"><span>Estimated amount</span><b>${peso(shoppingListEstimate(selectedList))}</b></div>${expenseAction}<div class="shopping-list-items">${items}</div></section>`
-            }
-            const lists = D.shoppingLists.map(list => {
-                const estimate = shoppingListEstimate(list),
-                    remaining = list.items.filter(item => !item.checked).length;
-                return `<button type="button" class="shopping-list-summary" aria-label="Open ${esc(list.name)}, ${remaining} item${remaining === 1 ? '' : 's'} remaining, estimated amount ${peso(estimate)}" onclick="openShoppingList('${list.id}')"><span class="shopping-list-summary-icon">${ic('shopping-bag')}</span><span class="shopping-list-summary-copy"><b>${esc(list.name)}</b><small>${remaining} item${remaining === 1 ? '' : 's'} remaining</small></span><b class="shopping-list-summary-amount">${peso(estimate)}</b>${ic('chevron-right')}</button>`
-            }).join('');
-            return `<div class="row sp"><div><h2>Shopping List</h2><small>Organize what you need to buy.</small></div></div><div class="g g2 shopping-lists">${lists || '<div class="empty card">No shopping lists yet. Tap “Add list” to create one.</div>'}</div>`
-        };
-        V.rec = () => {
-            const frequencyName = frequency => RECURRENCES.find(item => item[0] === frequency)?.[1] || 'Recurring';
-            const scheduleDate = value => {
-                const [year, month, day] = String(value || '').split('-').map(Number);
-                return year && month >= 1 && month <= 12 && day > 0
-                    ? `${day} ${MO[month - 1]} ${year}`
-                    : 'Unknown date';
-            };
-            const waitingForFunds = rule => rule.active && rule.type === 'transfer' && rule.next <= today() &&
-                A(rule.acc) && !od(A(rule.acc)) && bal(A(rule.acc)) < rule.amount;
-            const active = D.recurring.filter(rule => rule.active),
-                paused = D.recurring.filter(rule => !rule.active);
-            const card = rule => {
-                const title = rule.title || 'Transfer',
-                    category = rule.type === 'transfer' ? 'Transfer' : C(rule.cat)?.name || 'Uncategorized',
-                    accountLabel = rule.type === 'income' ? 'Deposited to' : rule.type === 'transfer' ? 'From account' : 'Paid from',
-                    accountName = A(rule.acc)?.name || 'Unknown account',
-                    amount = `${rule.type === 'expense' ? '−' : rule.type === 'income' ? '+' : ''}${peso(rule.amount)}`,
-                    waiting = waitingForFunds(rule),
-                    nextPayment = rule.active ? scheduleDate(rule.next) : `Paused · ${scheduleDate(rule.next)}`;
-                return `<article class="card recurring-card"><div class="recurring-card-heading"><span class="recurring-card-icon">${ic(rule.type === 'transfer' ? 'arrow-left-right' : rule.type === 'income' ? 'wallet' : 'zap')}</span><div class="recurring-card-title"><b>${esc(title)}</b><small>${esc(frequencyName(rule.frequency))} · ${esc(category)}</small></div><details class="recurring-card-menu"><summary aria-label="Manage ${esc(title)}" title="Manage schedule">${dashboardIcon('more')}</summary><div class="recurring-card-menu-items"><button type="button" onclick="recurringForm('${rule.id}');this.closest('details').open=false">Edit schedule</button><button type="button" onclick="deleteRecurring('${rule.id}');this.closest('details').open=false">Delete schedule</button></div></details></div><b class="recurring-card-amount">${amount}</b><div class="recurring-card-details"><div class="recurring-card-detail"><span>Next payment</span><b class="${waiting ? 'is-waiting' : ''}">${waiting ? 'Waiting for funds' : nextPayment}</b></div><div class="recurring-card-detail"><span>${accountLabel}</span><b>${esc(accountName)}</b></div>${rule.type === 'transfer' ? `<div class="recurring-card-detail"><span>To account</span><b>${esc(A(rule.to)?.name || 'Unknown account')}</b></div>` : ''}<small class="recurring-card-start">Starts ${scheduleDate(rule.start)}</small></div><button type="button" class="recurring-toggle" onclick="toggleRecurring('${rule.id}')">${rule.active ? 'Pause schedule' : 'Resume schedule'}</button></article>`
-            };
-            const sectionHeading = (title, schedules) => `<div class="recurring-section-heading"><b>${title}</b><small>${schedules.length} schedule${schedules.length === 1 ? '' : 's'}</small></div>`;
-            const emptyState = `<div class="card recurring-empty"><span class="recurring-empty-icon">${ic('repeat')}</span><div><b>${paused.length ? 'No active schedules' : 'No schedules yet'}</b><small>${paused.length ? 'Resume a paused schedule or add a new one.' : 'Add one for a regular bill, subscription, salary, or transfer.'}</small></div></div>`;
-            return `<div class="row recurring-header"><div class="recurring-heading-copy"><small>LESS TO REMEMBER</small><h2>Recurring</h2><p>Set schedules for regular expenses, income, and transfers.</p></div></div>${sectionHeading('Active', active)}<div class="recurring-list">${active.length ? active.map(card).join('') : emptyState}</div>${paused.length ? `${sectionHeading('Paused', paused)}<div class="recurring-list">${paused.map(card).join('')}</div>` : ''}<small class="recurring-note">Due items are added while Pocket is open. Missed schedules catch up next time.</small>`
-        };
         const REPORT_COLORS = ['#16a34a', '#ea580c', '#2563eb'],
             REPORT_RANGES = [['weekly', 'Weekly'], ['monthly', 'Monthly'], ['yearly', 'Yearly'], ['custom', 'Custom']];
         const reportDate = value => {
@@ -3225,83 +2855,6 @@ function syncDateInput(input) {
             txPageLimit = TRANSACTION_PAGE_SIZE;
             go('tx')
         }
-        V.rep = () => {
-            const period = reportPeriod(),
-                rangeTransactions = period.valid ? reportRangeTransactions(D.tx, period.start, period.end) : [],
-                transactions = rangeTransactions.filter(transaction =>
-                    transaction.type !== 'transfer' && (!U.ra || transaction.acc === U.ra) &&
-                    (!U.rc || transaction.cat === U.rc)
-                ),
-                buckets = period.buckets,
-                bucketTransactions = bucket => transactions.filter(transaction =>
-                    transaction.date >= bucket.start && transaction.date <= bucket.end
-                ),
-                incomeSeries = { name: 'Income', type: 'income', color: REPORT_COLORS[0], values: buckets.map(bucket => sum(bucketTransactions(bucket), 'income')) },
-                expenseSeries = { name: 'Expenses', type: 'expense', color: REPORT_COLORS[1], values: buckets.map(bucket => sum(bucketTransactions(bucket), 'expense')) },
-                incomeExpenses = reportLineChart(buckets, [incomeSeries, expenseSeries]),
-                spendingSeries = { name: 'Expenses', type: 'expense', color: REPORT_COLORS[1], values: expenseSeries.values },
-                spendingTrend = reportBarChart(buckets, [spendingSeries]),
-                categoryTotals = new Map();
-            transactions.filter(transaction => transaction.type === 'expense').forEach(transaction =>
-                categoryTotals.set(transaction.cat, (categoryTotals.get(transaction.cat) || 0) + transaction.amount)
-            );
-            const categoryEntries = [...categoryTotals].map(([id, value]) => {
-                const category = C(id);
-                return { id, value, name: category?.name || 'Uncategorized', color: category?.color || '#78716c' }
-            }).sort((first, second) => second.value - first.value);
-            const expenseBreakdown = reportDonutChart(categoryEntries, period);
-            const budgetCategories = Object.keys(D.budgets).filter(id => !U.rc || id === U.rc).map(id => ({
-                id,
-                name: C(id)?.name || 'Uncategorized',
-                planned: reportBudgetAmount(id, period.start, period.end),
-                actual: transactions.filter(transaction => transaction.type === 'expense' && transaction.cat === id)
-                    .reduce((total, transaction) => total + transaction.amount, 0)
-            })).filter(category => category.planned || category.actual);
-            const budgetBuckets = budgetCategories.map(category => ({
-                start: period.start, end: period.end, label: category.name
-            }));
-            const budgetVsActual = !transactions.some(transaction => transaction.type === 'expense') ?
-                reportEmpty() : reportBarChart(budgetBuckets, [
-                    { name: 'Planned', color: '#2563eb', type: 'expense', values: budgetCategories.map(category => category.planned) },
-                    { name: 'Actual', color: '#ea580c', type: 'expense', values: budgetCategories.map(category => category.actual) }
-                ]);
-            const savingAccounts = D.acc.filter(account => account.type === 'Savings' && (!U.ra || account.id === U.ra)),
-                savingsBuckets = buckets.map(bucket => ({ ...bucket, label: reportDayLabel(bucket.end) })),
-                openingSavings = savingAccounts.reduce((total, account) => total + bal(account,
-                    iso(new Date(reportDate(period.start).getFullYear(), reportDate(period.start).getMonth(), reportDate(period.start).getDate() - 1))), 0),
-                savingsSeries = {
-                    name: 'Savings balance',
-                    color: '#2563eb',
-                    values: [openingSavings, ...savingsBuckets.map(bucket => savingAccounts.reduce((total, account) =>
-                        total + bal(account, bucket.end), 0))]
-                },
-                savingsChartBuckets = [{ start: period.start, end: period.start, label: 'Start' }, ...savingsBuckets],
-                savingsGrowth = !savingAccounts.length ? reportEmpty('No savings accounts match this filter.') :
-                    reportLineChart(savingsChartBuckets, [savingsSeries], 'No savings balance history available.', true);
-            const accounts = D.acc.filter(account => !U.ra || account.id === U.ra),
-                accountDistribution = reportAccountBars(accounts, period.end, 'No accounts to show.');
-            const cashFlowSeries = [
-                { name: 'Inflows', type: 'income', color: REPORT_COLORS[0], values: incomeSeries.values },
-                { name: 'Outflows', type: 'expense', color: REPORT_COLORS[1], values: expenseSeries.values },
-                { name: 'Net cash flow', type: 'flow', color: REPORT_COLORS[2], values: incomeSeries.values.map((value, index) => value - expenseSeries.values[index]) }
-            ],
-                cashFlowChart = reportLineChart(buckets, cashFlowSeries),
-                rangeLabel = REPORT_RANGES.find(([value]) => value === U.reportRange)?.[1] || 'Monthly',
-                selectedReportFilters = [U.ra ? A(U.ra)?.name : '', U.rc ? C(U.rc)?.name : ''].filter(Boolean),
-                activeReportFilterCount = Number(!!U.ra) + Number(!!U.rc);
-            const chartCard = (title, chart) => `<section class="card report-card"><h3>${title}</h3>${chart}</section>`;
-            return `<div class="row sp"><h2>Reports</h2></div>
-<div class="card report-filter-toolbar"><div class="report-filter-toolbar-copy"><small>${rangeLabel} overview${selectedReportFilters.length ? ` · ${selectedReportFilters.map(esc).join(' · ')}` : ''}</small><b>${period.valid ? `${fd(period.start)} – ${fd(period.end)}` : 'Choose a valid date range.'}</b></div><button type="button" class="b2" onclick="openReportFilters()">${ic('settings')} Filters${activeReportFilterCount ? `<span class="report-filter-count">${activeReportFilterCount}</span>` : ''}</button></div>
-${period.valid ? `<div class="g g2 report-grid">
-${chartCard('Income vs. Expenses', incomeExpenses)}
-${chartCard('Expense Breakdown', expenseBreakdown)}
-${chartCard('Monthly Spending Trends', spendingTrend)}
-${chartCard('Budget vs. Actual', budgetVsActual)}
-${chartCard('Savings Growth', savingsGrowth)}
-${chartCard('Account Distribution', accountDistribution)}
-${chartCard('Cash Flow', cashFlowChart)}
-</div>` : `<div class="empty card">The start date must be on or before the end date.</div>`}`
-        };
 
         function catForm(id) {
             const c = id ? C(id) : null;
@@ -3347,8 +2900,6 @@ ${chartCard('Cash Flow', cashFlowChart)}
             'This category is in use by transactions or a budget.') : ask('Delete this category?', () => {
             D.cats = D.cats.filter(c => c.id !== id)
         });
-        V.cat = () =>
-            `<div class="row sp"><h2>Categories</h2></div>${[['Daily','Daily expenses'],['Financial','Financial transactions'],['Income','Income']].map(([g,l])=>`<div class="card" style="margin-top:14px"><h3>${l}</h3>${D.cats.filter(c=>c.g===g).sort((a,b)=>a.name.localeCompare(b.name,undefined,{sensitivity:'base'})||a.id.localeCompare(b.id)).map(c=>`<div class="tx"><span class="dot" style="background:${c.color}22;color:${c.color}">${ic(c.icon)}</span><b class="gr">${esc(c.name)}</b><button class="ib" onclick="catForm('${c.id}')">${ic('pencil')}</button><button class="ib" onclick="delCat('${c.id}')">${ic('trash-2')}</button></div>`).join('')}</div>`).join('')}`;
 
         function csv() {
             const q = s => '"' + String(s ?? '').replace(/"/g, '""') + '"';
@@ -3438,14 +2989,6 @@ ${chartCard('Cash Flow', cashFlowChart)}
         function showSetupInstructions() {
             ov(`<h3>Getting started</h3><p class="settings-note">Start with your accounts, then record income or expenses. Budgets and savings goals are optional and can be changed any time.</p><div class="settings-actions"><button type="button" class="b2" onclick="cl();go('acc');accForm()">${ic('wallet')} Add an account</button><button type="button" class="b2" onclick="cl();go('tx');quickAdd('expense')">${ic('file-text')} Record a transaction</button><button type="button" class="b2" onclick="cl();go('bud');budForm()">${ic('gauge')} Set a budget</button><button type="button" class="b2" onclick="cl();go('goal');goalForm()">${ic('target')} Create a savings goal</button><button type="button" class="b2" onclick="cl();go('cat')">${ic('tag')} Customize categories</button></div><div class="row end" style="margin-top:12px"><button type="button" class="b1" onclick="cl()">Done</button></div>`)
         }
-        function profileSettingsCard() {
-            const initial = D.name.trim().charAt(0).toUpperCase() || 'P';
-            const colors = PROFILE_COLORS.map(([name, color]) =>
-                `<button type="button" class="profile-color-swatch" style="--profile-swatch:${color}" aria-label="${name} profile color" aria-pressed="${D.profileAccent===color}" onclick="D.profileAccent='${color}';save();render()"></button>`
-            ).join('');
-            const photoActions = `<div class="profile-photo-actions"><button type="button" class="b2" onclick="document.getElementById('profile-photo-input').click()">${D.profilePhoto?'Change photo':'Upload photo'}</button>${D.profilePhoto?'<button type="button" class="b2" onclick="pocketApp.removeProfilePhoto()">Remove photo</button>':''}</div><input class="profile-photo-input" type="file" id="profile-photo-input" accept="image/*" aria-label="Choose a profile picture" onchange="pocketApp.uploadProfilePhoto(this)"><small class="profile-photo-note">Choose a photo from your device.</small>`;
-            return `<div class="card profile-card" id="profile-settings" style="--profile-accent:${D.profileAccent}"><h3>Profile</h3><div class="profile-summary"><div class="profile-avatar" id="profile-avatar" aria-hidden="true"><span class="profile-avatar-fallback">${esc(initial)}</span>${D.profilePhoto?`<img src="${esc(D.profilePhoto)}" data-photo-url="${esc(D.profilePhoto)}" alt="">`:''}</div><div class="profile-identity"><strong id="profile-name-preview">${esc(D.name||'Your profile')}</strong><small>Personalize your Pocket profile</small>${photoActions}</div></div><label class="profile-name-field">Display name<input id="profile-name" type="text" maxlength="32" autocomplete="name" aria-label="Profile display name" placeholder="Your name" value="${esc(D.name)}" onchange="D.name=this.value.trim().slice(0,32);save();render()"></label><div class="profile-email-row"><span>Account email</span><strong id="profile-email">Sign in to see your account email.</strong></div><div class="profile-color-setting"><span>Profile color</span><div class="profile-color-options" role="group" aria-label="Profile color">${colors}</div></div><small class="settings-note">Your display name and profile color sync to your signed-in devices.</small></div>`;
-        }
         async function uploadProfilePhoto(input) {
             const file = input.files?.[0];
             input.value = '';
@@ -3498,25 +3041,6 @@ ${chartCard('Cash Flow', cashFlowChart)}
             save();
             render();
         }
-        const cloudSyncCard = () =>
-            `<div class="card cloud-sync-card" id="cloud-sync-card">
-  <div class="cloud-sync-intro"><h3>Cloud sync</h3><p class="settings-note">Sync your data across devices.</p></div>
-  <p id="cloud-sync-status" class="cloud-sync-status" role="status">Connecting to Firebase…</p>
-  <p class="cloud-sync-error" id="cloud-sync-error" role="alert" hidden></p>
-  <div id="cloud-login-options"><button class="b2 cloud-google-button" type="button" data-cloud-action="google-sign-in">Continue with Google</button><details class="cloud-email-options"><summary>Use email instead</summary><form id="cloud-auth-form"><label>Email<input id="cloud-email" type="email" autocomplete="email" required></label><label>Password<input id="cloud-password" type="password" autocomplete="current-password" minlength="6" required></label><div class="settings-actions"><button class="b1" type="submit" data-cloud-action="sign-in">Sign in</button><button class="b2" type="button" data-cloud-action="signup">Create account</button><button class="b2" type="button" data-cloud-action="password-reset">Forgot password?</button></div></form></details></div>
-  <div id="cloud-user-controls" hidden><div class="cloud-account-row"><div class="cloud-account-copy"><small>Signed in as</small><strong id="cloud-sync-email"></strong></div><button class="b2" type="button" data-cloud-action="sign-out">Sign out</button></div></div>
-  <div id="cloud-conflict" class="cloud-conflict" hidden><p>Cloud data changed while this device also has local changes. Choose which copy to keep.</p><div class="settings-actions"><button class="b1" type="button" data-cloud-action="use-cloud">Use cloud copy</button><button class="b2" type="button" data-cloud-action="keep-local">Keep this device</button></div></div>
-</div>`;
-        V.prof = () =>
-            `<div class="row sp"><h2>Profile</h2></div><div class="g g2 profile-layout">${profileSettingsCard()}${cloudSyncCard()}</div>`;
-        V.set = () =>
-            `<div class="row sp"><h2>Settings</h2></div><div class="g g2">
-<div class="card settings-preferences"><h3>Preferences</h3><div class="settings-preference-list"><div class="settings-preference-row"><span>Currency</span><b>Philippine Peso (₱)</b></div><div class="settings-preference-row"><span>Date format</span><select aria-label="Date format" onchange="D.dateFormat=this.value;save();render()">${DATE_FORMATS.map(format=>`<option value="${format}"${currentDateFormat()===format?' selected':''}>${format}</option>`).join('')}</select></div><div class="settings-preference-row"><span>Financial period</span><select aria-label="Financial period" onchange="D.financialPeriod=this.value;U.reportRange=this.value;save();render()">${[['weekly','Weekly'],['monthly','Monthly'],['yearly','Yearly']].map(([value,label])=>`<option value="${value}"${D.financialPeriod===value?' selected':''}>${label}</option>`).join('')}</select></div><div class="settings-preference-row"><span>Theme</span><button class="b2" onclick="D.theme=D.theme==='dark'?'light':'dark';save();render()">${ic(D.theme==='dark'?'sun':'moon')} ${D.theme==='dark'?'Light':'Dark'} mode</button></div></div><div class="settings-preference-dashboard"><small>Dashboard</small><button class="b2 dashboard-layout-setting" onclick="dashboardSettingsForm()">${ic('bar-chart-3')} Customize Dashboard</button></div></div>
-<div class="card"><h3>Manage</h3><div class="settings-actions"><button class="b2" onclick="go('acc')">${ic('wallet')} Accounts</button><button class="b2" onclick="go('cat')">${ic('tag')} Categories</button><button class="b2" onclick="go('bud')">${ic('gauge')} Budgets</button><button class="b2" onclick="go('goal')">${ic('target')} Savings goals</button><button class="b2" onclick="go('rec')">${ic('repeat')} Recurring transactions</button><button class="b2" onclick="go('cash')">${ic('coins')} Cashback</button></div></div>
-<div class="card"><h3>Getting started</h3><p class="settings-note">Review setup tips or explore Pocket with sample data. Demo changes are temporary and do not affect your data.</p><div class="settings-actions"><button type="button" class="b2" onclick="showSetupInstructions()">${ic('book')} Setup instructions</button><button type="button" class="b2" onclick="startDemoMode()">${ic('eye')} Explore demo mode</button></div></div>
-<div class="card"><h3>Export</h3><div class="settings-actions"><button class="b2" onclick="showText('Transactions (CSV)',csv())">${ic('file-text')} Transactions CSV</button><button class="b2" onclick="showText('Monthly report (CSV)',repCsv())">${ic('bar-chart-3')} Report CSV</button><button class="b2" onclick="exportAllData()">${ic('download')} Export all data (JSON)</button></div></div>
-<div class="card"><h3>Back up &amp; restore</h3><div class="settings-actions"><button class="b2" onclick="showText('Backup',JSON.stringify(D))">${ic('save')} View / copy backup</button><button class="b2" onclick="showText('Restore backup','',1)">${ic('upload')} Restore backup</button></div><small class="settings-note">Data is saved in this browser. Backups are files you download and store yourself; Pocket does not upload them to the cloud.</small></div>
-<div class="card"><h3>Data management</h3><small class="settings-note">These actions can clear or replace local data. You’ll be asked to confirm before they run.</small><div class="settings-actions" style="margin-top:10px"><button class="b2" style="color:var(--ex)" onclick="clearTransactionHistory()">${ic('trash-2')} Clear transaction history</button><button class="b2" onclick="ask('Reset all amounts to ₱0? This clears every transaction, sets all account balances to ₱0 and empties savings goals.',()=>zero(D),'Reset')">${ic('rotate-ccw')} Reset all amounts</button><button class="b2" onclick="ask('Load the sample data? Your changes will be lost.',()=>{D=seed();D.v2=D.v3=1},'Load')">${ic('rotate-ccw')} Load sample data</button></div></div></div>`;
         const NAV = ['dash', 'tx', 'acc', 'rep', 'set'];
         const TITLE_MENU_GROUPS = [
             ['pages', '', [
@@ -3741,22 +3265,7 @@ ${chartCard('Cash Flow', cashFlowChart)}
             if (v === 'prof') window.scrollTo(0, 0);
             const from = NAV.indexOf(previousView),
                 to = NAV.indexOf(v);
-            const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
-            if (previousView !== v && v === 'prof' && !reduceMotion) {
-                $('#m').querySelectorAll('.profile-layout > .card').forEach((card, index) => {
-                    if (typeof card.animate !== 'function') return;
-                    const animation = card.animate([
-                        { opacity: 0, transform: 'translateY(14px) scale(.985)' },
-                        { opacity: 1, transform: 'translateY(0) scale(1)' }
-                    ], {
-                        duration: 360,
-                        delay: index * 65,
-                        easing: 'cubic-bezier(.22,.68,0,1)',
-                        fill: 'both'
-                    });
-                    animation.onfinish = () => animation.cancel();
-                });
-            }
+            if (previousView !== v) window.PocketFeatures?.[v]?.onEnter?.();
             if (from >= 0 && to >= 0 && from !== to) {
                 const main = $('#m');
                 if (typeof main.animate === 'function') {
@@ -3809,37 +3318,55 @@ ${chartCard('Cash Flow', cashFlowChart)}
                 ''
         }
 
+        function renderFeatureTemplate(featureId, content) {
+            const markup = window.PocketFeatureTemplates?.[featureId];
+            if (typeof markup !== 'string') throw new Error(`Missing HTML template for feature "${featureId}".`);
+            const template = document.createElement('template');
+            template.innerHTML = markup;
+            const root = template.content.querySelector('.pocket-feature');
+            const mount = root?.querySelector('[data-feature-content]');
+            if (root?.dataset.feature !== featureId || !mount) {
+                throw new Error(`Invalid HTML template for feature "${featureId}".`);
+            }
+            mount.innerHTML = content;
+            return template.innerHTML;
+        }
+
         function render() {
             closeTitleMenu();
             if (onboardingActive) {
+                if (typeof window.PocketFeatures?.onboarding !== 'function') return;
                 document.body.classList.add('pocket-onboarding-active');
                 document.documentElement.dataset.theme = onboardingDraft()?.theme || D.theme;
                 document.documentElement.dataset.view = 'onboarding';
+                window.dispatchEvent(new CustomEvent('pocket:viewchange', { detail: { view: 'onboarding' } }));
                 document.querySelector('meta[name=theme-color]').content =
                     (onboardingDraft()?.theme || D.theme) === 'dark' ? '#000000' : '#f5f5f4';
                 destroyReportCharts();
                 $('#m').dataset.view = 'onboarding';
-                $('#m').innerHTML = renderOnboarding();
+                $('#m').innerHTML = renderFeatureTemplate('onboarding', window.PocketFeatures.onboarding());
                 wireRenderedSelects($('#m'));
                 return
             }
+            if (typeof V[U.v] !== 'function') return;
             document.body.classList.remove('pocket-onboarding-active');
             persistCurrentView();
             document.documentElement.dataset.theme = D.theme;
             document.documentElement.dataset.view = U.v;
+            window.dispatchEvent(new CustomEvent('pocket:viewchange', { detail: { view: U.v } }));
             document.querySelector('meta[name=theme-color]').content = (U.v === 'dash' || U.v === 'tx' || U.v === 'acc') && D.theme === 'dark'
                 ? '#0b100e'
                 : D.theme === 'dark' ? '#000000' : '#f5f5f4';
             syncNavbar();
             $('#m').dataset.view = U.v;
             destroyReportCharts();
-            $('#m').innerHTML = renderDemoModeBanner() + V[U.v]();
+            $('#m').innerHTML = renderFeatureTemplate(U.v, renderDemoModeBanner() + V[U.v]());
             if (U.v === 'rep') {
                 const reportRoot = $('#m');
                 renderReportCharts(reportRoot);
                 const charts = reportChartInstances.slice();
                 requestAnimationFrame(() => charts.forEach(chart => {
-                    if (chart.canvas.isConnected) chart.resize()
+                    if (chart.canvas?.isConnected) chart.resize()
                 }));
             }
             wireRenderedSelects($('#m'));
@@ -3847,6 +3374,7 @@ ${chartCard('Cash Flow', cashFlowChart)}
             if (U.v === 'acc') wireAccountStack();
             lu()
         }
+        window.render = render;
         const okId = s => typeof s === 'string' && /^[\w-]{1,40}$/.test(s),
             okCol = s => /^#[0-9a-fA-F]{6}$/.test(s),
             okD = s => /^\d{4}-\d\d-\d\d$/.test(s),

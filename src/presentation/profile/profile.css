@@ -1,1 +1,260 @@
-﻿:root[data-feature="prof"] {   --pocket-feature-id: "prof"; }
+:root[data-feature="prof"] { --pocket-feature-id: "prof"; }
+.profile-layout{
+            grid-template-columns: repeat(2, minmax(0, 1fr))
+        }
+.profile-card{
+            border-top: 3px solid var(--profile-accent)
+        }
+.profile-summary{
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 4px 0 16px
+        }
+.profile-avatar{
+            position: relative;
+            display: grid;
+            place-items: center;
+            flex: none;
+            width: 60px;
+            height: 60px;
+            overflow: hidden;
+            border-radius: 50%;
+            background: var(--profile-accent);
+            color: #fff;
+            font-size: 21px;
+            font-weight: 700
+        }
+.profile-avatar img{
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover
+        }
+.profile-identity{
+            display: grid;
+            gap: 3px;
+            min-width: 0
+        }
+.profile-identity strong{
+            overflow-wrap: anywhere;
+            font-size: 16px
+        }
+.profile-photo-actions{
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 3px
+        }
+.profile-photo-input{
+            display: none
+        }
+.profile-photo-note{
+            line-height: 1.35
+        }
+.profile-identity small,
+.profile-email-row>span,
+.profile-color-setting>span{
+            color: var(--mu)
+        }
+.profile-name-field{
+            display: grid;
+            gap: 6px;
+            margin-bottom: 12px;
+            color: var(--mu);
+            font-size: 13px
+        }
+.profile-email-row{
+            display: grid;
+            gap: 4px;
+            padding: 12px 0;
+            border-top: 1px solid var(--bd);
+            font-size: 13px
+        }
+.profile-email-row strong{
+            overflow-wrap: anywhere;
+            font-weight: 500
+        }
+.profile-color-setting{
+            display: grid;
+            gap: 8px;
+            padding-top: 12px;
+            border-top: 1px solid var(--bd);
+            font-size: 13px
+        }
+.profile-color-options{
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px
+        }
+.profile-color-swatch{
+            display: grid;
+            place-items: center;
+            flex: none;
+            width: 40px;
+            height: 40px;
+            padding: 4px;
+            border: 2px solid transparent;
+            border-radius: 50%;
+            background: transparent;
+            cursor: pointer
+        }
+.profile-color-swatch::before{
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: var(--profile-swatch);
+            content: ''
+        }
+.profile-color-swatch[aria-pressed=true]{
+            border-color: var(--tx)
+        }
+.cloud-sync-card{
+            display: grid;
+            gap: 12px
+        }
+.cloud-sync-intro{
+            display: grid;
+            gap: 4px
+        }
+.cloud-sync-intro h3,
+.cloud-sync-intro .settings-note,
+.cloud-sync-status,
+.cloud-sync-error{
+            margin: 0
+        }
+.cloud-sync-intro .settings-note{
+            color: var(--mu)
+        }
+.cloud-sync-status{
+            padding: 10px 12px;
+            border: 1px solid var(--bd);
+            border-radius: 12px;
+            color: var(--mu);
+            font-size: 13px
+        }
+.cloud-account-row{
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 12px;
+            border: 1px solid var(--bd);
+            border-radius: 12px;
+            background: var(--sq)
+        }
+.cloud-account-copy{
+            display: grid;
+            min-width: 0;
+            gap: 4px
+        }
+.cloud-account-copy small{
+            color: var(--mu)
+        }
+.cloud-account-copy strong{
+            overflow-wrap: anywhere
+        }
+.cloud-account-row .b2{
+            flex: none;
+            min-height: 44px;
+            margin: 0
+        }
+.cloud-login-options{
+            display: grid;
+            gap: 12px
+        }
+.cloud-sync-card form:not([hidden]),
+.cloud-sync-card #cloud-user-controls:not([hidden]){
+            display: grid;
+            gap: 12px
+        }
+.cloud-sync-card label{
+            display: grid;
+            gap: 6px;
+            color: var(--mu);
+            font-size: 13px
+        }
+.cloud-sync-card input{
+            width: 100%
+        }
+.cloud-google-button{
+            width: 100%;
+            justify-content: center
+        }
+.cloud-email-options{
+            border-top: 1px solid var(--bd);
+            padding-top: 10px
+        }
+.cloud-email-options summary{
+            color: var(--mu);
+            cursor: pointer;
+            font-size: 13px
+        }
+.cloud-sync-error{
+            color: var(--ex)
+        }
+.cloud-conflict{
+            margin-top: 12px
+        }
+@media(max-width:760px) {
+.profile-layout{
+                grid-template-columns: 1fr
+            }
+}
+html[data-view="prof"] #m .card{
+            border-color: transparent;
+            box-shadow: none
+        }
+html[data-view="prof"] #m .pocket-feature-content >.row:first-child{
+            align-items: flex-start
+        }
+html[data-view="prof"] #m .pocket-feature-content >.row:first-child h2{
+            margin: 0;
+            font-size: 24px;
+            letter-spacing: -.04em
+        }
+html[data-view="prof"] #m .pocket-feature-content >.g.g2{
+            align-items: start;
+            gap: 14px
+        }
+html[data-view="prof"] #m .profile-layout > .card{
+            padding: 18px;
+            border-radius: 20px
+        }
+html[data-view="prof"] #m .card h3{
+            margin-top: 0;
+            font-size: 15px
+        }
+html[data-view="prof"] #m .profile-layout > .profile-card{
+            border-top: 0
+        }
+@media(max-width:760px) {
+html[data-view="prof"] #m .pocket-feature-content >.g.g2{
+                grid-template-columns: minmax(0, 1fr)
+            }
+}
+html[data-theme=dark][data-view="prof"] #m .b1{
+            border-color: transparent;
+            background: #b8ef76;
+            color: #122016
+        }
+html[data-theme=dark][data-view="prof"] #m .b2{
+            border-color: transparent;
+            background: #203329;
+            color: #f2f6f3
+        }
+@media(prefers-color-scheme:dark) {
+html:not([data-theme=light])[data-view="prof"] #m .b1{
+                border-color: transparent;
+                background: #b8ef76;
+                color: #122016
+            }
+}
+@media(prefers-color-scheme:dark) {
+html:not([data-theme=light])[data-view="prof"] #m .b2{
+                border-color: transparent;
+                background: #203329;
+                color: #f2f6f3
+            }
+}

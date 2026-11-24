@@ -24,64 +24,6 @@
   };
   const isHidden = () => { try { return localStorage.getItem(PRIVACY_KEY) === '1'; } catch { return false; } };
 
-  const installStyles = () => {
-    if (document.querySelector('#pocket-dashboard-style')) return;
-    const style = document.createElement('style');
-    style.id = 'pocket-dashboard-style';
-    style.textContent = `
-      .pocket-carousel{display:block;width:100%;overflow:hidden;margin-top:16px;touch-action:pan-y;user-select:none;-webkit-user-select:none}
-      .pocket-carousel-track{display:flex;width:100%;transition:transform .35s cubic-bezier(.22,.8,.25,1);will-change:transform}
-      .pocket-carousel-track>.hero{position:relative;display:block;flex:0 0 100%;width:100%;min-width:100%;margin:0;padding-right:66px}
-      .pocket-carousel-track.is-dragging{transition:none!important}
-      .pocket-carousel-controls{display:none!important}
-      .pocket-privacy-button{position:absolute;right:14px;top:14px;width:40px;height:40px;padding:0;display:grid;place-items:center;border:1px solid var(--bd);border-radius:11px;background:var(--cd);color:var(--mu);cursor:pointer;z-index:2}
-      .pocket-privacy-button svg{display:block}
-      .pocket-privacy-header{margin-bottom:10px}
-      .pocket-privacy-header>.pocket-privacy-button{position:static;flex:0 0 40px;margin-left:auto}
-      .pocket-profile-button{position:relative;display:grid;place-items:center;flex:none;width:38px;height:38px;overflow:hidden;padding:0;border:0;border-radius:50%;background:var(--profile-accent);color:#fff;font:inherit;font-weight:700;cursor:pointer}
-      .pocket-profile-button img{position:absolute;inset:0;width:100%;height:100%;border-radius:inherit;object-fit:cover;opacity:0;transition:opacity .15s ease}
-      .pocket-profile-button img.is-loaded{opacity:1}
-      .pocket-profile-button:focus-visible{outline:2px solid var(--tx);outline-offset:2px}
-      .page-menu-toggle{display:flex;flex:none;width:32px;height:32px;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:0;border:0;border-radius:9px;background:transparent;color:var(--mu);cursor:pointer;transition:color .18s ease}
-      .page-menu-toggle span{display:block;width:16px;height:2px;border-radius:2px;background:currentColor;transition:transform .2s ease,opacity .16s ease}
-      .page-menu-toggle[aria-expanded="true"] span:first-child{transform:translateY(6px) rotate(45deg)}
-      .page-menu-toggle[aria-expanded="true"] span:nth-child(2){opacity:0}
-      .page-menu-toggle[aria-expanded="true"] span:last-child{transform:translateY(-6px) rotate(-45deg)}
-      .page-menu-toggle:focus-visible{outline:2px solid var(--tx);outline-offset:2px}
-      .pocket-page-header{flex-wrap:nowrap}
-      .pocket-page-heading{flex:1 1 auto;min-width:0}
-      h2.pocket-page-title{position:relative;display:block;width:100%;max-width:100%;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-      .pocket-fab-menu{position:fixed;right:22px;bottom:calc(82px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:8px;z-index:30;transform-origin:bottom right}
-      .pocket-fab-menu button{border:0;border-radius:12px;padding:10px 14px;min-width:156px;min-height:48px;background:var(--cd);color:var(--tx);box-shadow:0 8px 22px #0004;display:flex;align-items:center;gap:10px;font-weight:700;cursor:pointer}
-      .pocket-fab-menu button .mini{display:grid;place-items:center;width:26px;height:26px;border-radius:8px;background:var(--sq)}
-      .pocket-fab-menu button[data-kind="expense"] .mini{color:var(--ex)}
-      .pocket-fab-menu button[data-kind="income"] .mini{color:var(--in)}
-      .pocket-fab-menu button[data-kind="transfer"] .mini{color:var(--tr)}
-      .pocket-account-transfer{position:fixed;right:22px;bottom:82px;z-index:21;width:147px;height:52px;padding:0 16px;border:1px solid var(--bd);border-radius:28px;background:var(--cd);color:var(--tx);box-shadow:0 4px 14px #0004;display:flex;align-items:center;justify-content:center;gap:8px;font:inherit;font-weight:700;cursor:pointer}
-      .pocket-account-transfer svg{width:24px;height:24px;flex:none}
-      body.pocket-modal-open .pocket-account-transfer{display:none!important}
-      .pocket-fab-menu,.pocket-account-transfer{transition:transform .24s ease,opacity .24s ease}
-      body.pocket-actions-scroll-hidden .fab,body.pocket-actions-scroll-hidden .pocket-account-transfer,body.pocket-actions-scroll-hidden .pocket-fab-menu{transform:translateX(calc(100% + 80px));opacity:0;pointer-events:none}
-      html[data-view="acc"] body.pocket-actions-scroll-hidden .fab.pocket-fab-labeled,html[data-view="acc"] body.pocket-actions-scroll-hidden .pocket-account-transfer{transform:none}
-      @media(max-width:760px){
-        .fab{right:14px}
-      }
-      .pocket-hidden{display:none!important}
-      .fab{z-index:22;transition:opacity .2s ease,transform .2s ease}
-      .fab.pocket-fab-open{opacity:0;transform:scale(.7);pointer-events:none}
-      .pocket-fab-menu.pocket-fab-opening{animation:pocket-fab-menu-in .2s cubic-bezier(.2,.8,.2,1) both}
-      .pocket-fab-menu.pocket-fab-closing{pointer-events:none;animation:pocket-fab-menu-out .18s ease-in both}
-      .pocket-fab-menu.pocket-fab-opening button{animation:pocket-fab-action-in .2s cubic-bezier(.2,.8,.2,1) both}
-      @keyframes pocket-fab-menu-in{from{opacity:0;transform:scale(.7) translateY(8px)}to{opacity:1;transform:scale(1) translateY(0)}}
-      @keyframes pocket-fab-menu-out{from{opacity:1;transform:scale(1) translateY(0)}to{opacity:0;transform:scale(.7) translateY(8px)}}
-      @keyframes pocket-fab-action-in{from{opacity:0;transform:translateY(8px) scale(.94)}to{opacity:1;transform:translateY(0) scale(1)}}
-      #m.pocket-private .pocket-private-amount{user-select:none}
-      @media(max-width:760px){.pocket-fab-menu{right:14px;bottom:calc(82px + env(safe-area-inset-bottom,0px))}.pocket-account-transfer{right:14px;bottom:calc(142px + env(safe-area-inset-bottom,0px))}}
-      @media(prefers-reduced-motion:reduce){.pocket-carousel-track,.pocket-fab-menu,.pocket-account-transfer,.fab,.page-menu-toggle,.page-menu-toggle span{transition:none!important}}
-    `;
-    document.head.append(style);
-  };
-
   const pageTitle = () => main.querySelector(':scope > .row.sp h2');
   const setTitle = () => {
     if (main.dataset.view !== 'dash') return;
@@ -467,7 +409,6 @@
   let queued = false;
   const enhance = () => {
     queued = false;
-    installStyles();
     if (main.dataset.view !== 'set') {
       if (main.dataset.view === 'dash') setTitle();
       addCarousel();

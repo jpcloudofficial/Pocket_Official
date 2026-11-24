@@ -1,18 +1,74 @@
-const ROUTES = {
-  onboarding: 'src/presentation/onboarding/onboarding.html',
-  dash: 'src/presentation/dashboard/dashboard.html',
-  tx: 'src/presentation/transactions/transactions.html',
-  cash: 'src/presentation/cashback/cashback.html',
-  rec: 'src/presentation/recurring/recurring.html',
-  acc: 'src/presentation/accounts/accounts.html',
-  bud: 'src/presentation/budgets/budgets.html',
-  goal: 'src/presentation/goals/goals.html',
-  shop: 'src/presentation/shopping-lists/shopping-lists.html',
-  rep: 'src/presentation/reports/reports.html',
-  cat: 'src/presentation/categories/categories.html',
-  prof: 'src/presentation/profile/profile.html',
-  set: 'src/presentation/settings/settings.html',
+export const FEATURES = {
+  onboarding: {
+    html: 'src/presentation/onboarding/onboarding.html',
+    css: 'src/presentation/onboarding/onboarding.css',
+    js: 'src/presentation/onboarding/onboarding.js',
+  },
+  dash: {
+    html: 'src/presentation/dashboard/dashboard.html',
+    css: 'src/presentation/dashboard/dashboard.css',
+    js: 'src/presentation/dashboard/dashboard.js',
+  },
+  tx: {
+    html: 'src/presentation/transactions/transactions.html',
+    css: 'src/presentation/transactions/transactions.css',
+    js: 'src/presentation/transactions/transactions.js',
+  },
+  cash: {
+    html: 'src/presentation/cashback/cashback.html',
+    css: 'src/presentation/cashback/cashback.css',
+    js: 'src/presentation/cashback/cashback.js',
+  },
+  rec: {
+    html: 'src/presentation/recurring/recurring.html',
+    css: 'src/presentation/recurring/recurring.css',
+    js: 'src/presentation/recurring/recurring.js',
+  },
+  acc: {
+    html: 'src/presentation/accounts/accounts.html',
+    css: 'src/presentation/accounts/accounts.css',
+    js: 'src/presentation/accounts/accounts.js',
+  },
+  bud: {
+    html: 'src/presentation/budgets/budgets.html',
+    css: 'src/presentation/budgets/budgets.css',
+    js: 'src/presentation/budgets/budgets.js',
+  },
+  goal: {
+    html: 'src/presentation/goals/goals.html',
+    css: 'src/presentation/goals/goals.css',
+    js: 'src/presentation/goals/goals.js',
+  },
+  shop: {
+    html: 'src/presentation/shopping-lists/shopping-lists.html',
+    css: 'src/presentation/shopping-lists/shopping-lists.css',
+    js: 'src/presentation/shopping-lists/shopping-lists.js',
+  },
+  rep: {
+    html: 'src/presentation/reports/reports.html',
+    css: 'src/presentation/reports/reports.css',
+    js: 'src/presentation/reports/reports.js',
+  },
+  cat: {
+    html: 'src/presentation/categories/categories.html',
+    css: 'src/presentation/categories/categories.css',
+    js: 'src/presentation/categories/categories.js',
+  },
+  prof: {
+    html: 'src/presentation/profile/profile.html',
+    css: 'src/presentation/profile/profile.css',
+    js: 'src/presentation/profile/profile.js',
+  },
+  set: {
+    html: 'src/presentation/settings/settings.html',
+    css: 'src/presentation/settings/settings.css',
+    js: 'src/presentation/settings/settings.js',
+  },
 };
+
+const ROUTES = Object.fromEntries(
+  Object.entries(FEATURES).map(([id, feature]) => [id, feature.html]),
+);
 
 export function createRouter() {
   let currentView = null;

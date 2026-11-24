@@ -1,10 +1,66 @@
-﻿export const feature = {
-  id: "onboarding",
-  title: "Onboarding",
-  html: "onboarding.html",
-  css: "onboarding.css"
-};
+(() => {
+    window.PocketFeatures = window.PocketFeatures || {};
+        function renderOnboarding() {
+            if (!onboardingDraft()) {
+                onboardingState = createOnboardingState();
+                persistOnboardingState()
+            }
+            const draft = onboardingDraft(),
+                brand = `<div class="onboarding-brand"><span class="onboarding-brand-icon">${ic('wallet')}</span><span>Pocket</span></div>`,
+                notice = onboardingPersistenceError ?
+                    '<p class="onboarding-storage-warning" role="status">Setup progress could not be saved on this device. Keep Pocket open until you finish.</p>' : '';
+            if (onboardingState.step === 'welcome') {
+                    return `<div class="onboarding-shell onboarding-welcome"><section class="onboarding-hero">${brand}<h1>Welcome to Pocket</h1><p class="onboarding-tagline">Every peso, accounted for.</p><p>Track accounts, record expenses and income, and keep an eye on budgets and savings goals.</p></section><section class="onboarding-panel"><h2>Let’s get things set up.</h2><p class="onboarding-muted">You can always change these later.</p><div class="onboarding-feature-list"><div><span>${ic('wallet')}</span><div><b>Your accounts</b><small>See your real balances in one place.</small></div></div><div><span>${ic('file-text')}</span><div><b>Your spending</b><small>Record income and expenses as they happen.</small></div></div><div><span>${ic('target')}</span><div><b>Your goals</b><small>Set budgets and savings goals at your pace.</small></div></div></div>${notice}<button type="button" class="b1 onboarding-primary" onclick="beginOnboarding()">Get Started</button><div class="onboarding-welcome-actions"><button type="button" class="b2" onclick="showText('Restore backup','',1)">${ic('upload')} Restore Backup</button><button type="button" class="b2" onclick="startDemoMode()">${ic('eye')} Explore Demo Mode</button></div></section></div>`
+            }
+            if (onboardingState.step === 'complete') {
+                    return `<div class="onboarding-shell onboarding-complete"><section class="onboarding-hero">${brand}<span class="onboarding-complete-mark" aria-hidden="true">${ic('check')}</span><h1>You’re ready to go.</h1><p>Welcome to Pocket. Your setup is saved on this device.</p></section><section class="onboarding-panel"><h2>Your setup</h2><div class="onboarding-completion-stats"><div><b>${draft.accounts.length}</b><small>accounts configured</small></div><div><b>${[...draft.categories.filter(category => category.g === 'Financial' || draft.categoryIds.includes(category.id)), ...draft.customCategories].length}</b><small>categories ready</small></div></div><div class="onboarding-first-transaction"><span>${ic('file-text')}</span><p><b>Record your first transaction</b><small>Tap the + button on your dashboard, choose Expense or Income, then enter the amount, category, and account.</small></p></div><p class="onboarding-muted">${draft.accounts.length ? 'Your opening balances are ready to use.' : 'You skipped accounts. Add one before recording a transaction.'}</p>${notice}<p id="onboarding-error" class="onboarding-inline-error" role="alert"></p><div class="onboarding-navigation"><button type="button" class="onboarding-text-button" onclick="onboardingBack()">Back</button><button type="button" class="b1 onboarding-primary" onclick="finishOnboarding()">Open Dashboard</button></div></section></div>`
+            }
+            const stepIndex = ONBOARDING_STEPS.indexOf(onboardingState.step),
+                stepTitles = ['Accounts', 'Categories', 'Preferences', 'Optional goals'],
+                heading = stepTitles[stepIndex] || 'Setup',
+                percent = Math.round((stepIndex + 1) / ONBOARDING_STEPS.length * 100);
+            let content = '';
+            if (onboardingState.step === 'accounts') {
+                const suggestions = SUGGESTED_ACCOUNTS.map(suggestion => {
+                    const selected = draft.accounts.find(account => account.key === suggestion.key);
+                    return `<div class="onboarding-account-card${selected ? ' is-selected' : ''}"><label class="onboarding-account-choice"><input type="checkbox"${selected ? ' checked' : ''} onchange="toggleOnboardingAccount('${suggestion.key}',this.checked)"><span class="onboarding-account-icon">${ic(suggestion.icon)}</span><span><b>${suggestion.name}</b><small>${suggestion.type}</small></span></label>${selected ? `<label class="onboarding-field">Initial balance (₱)<input type="number" step="0.01" value="${esc(selected.initial)}" aria-label="${suggestion.name} initial balance" oninput="updateOnboardingAccount('${suggestion.key}','initial',this.value)"></label>` : ''}</div>`
+                }).join(''),
+                    customAccounts = draft.accounts.filter(account => account.key.startsWith('custom-')).map(account =>
+                        `<div class="onboarding-custom-account"><div class="onboarding-fields"><label class="onboarding-field">Account name<input type="text" maxlength="40" value="${esc(account.name)}" oninput="updateOnboardingAccount('${account.key}','name',this.value)"></label><label class="onboarding-field">Type<select aria-label="${esc(account.name)} type" onchange="updateOnboardingAccount('${account.key}','type',this.value)">${TYPES.map(([value, label]) => `<option value="${esc(value)}"${account.type === value ? ' selected' : ''}>${esc(label)}</option>`).join('')}</select></label><label class="onboarding-field">Initial balance (₱)<input type="number" step="0.01" value="${esc(account.initial)}" oninput="updateOnboardingAccount('${account.key}','initial',this.value)"></label></div><button type="button" class="ib" aria-label="Remove ${esc(account.name)}" onclick="removeOnboardingAccount('${account.key}')">${ic('trash-2')}</button></div>`
+                    ).join('');
+                content = `<p class="onboarding-step-description">Choose any accounts you use and enter their current opening balances. You can add more later.</p><div class="onboarding-account-grid">${suggestions}</div><section class="onboarding-custom-section"><h3>Add a custom account</h3><div class="onboarding-fields"><label class="onboarding-field">Account name<input id="onboarding-account-name" type="text" maxlength="40" autocomplete="off"></label><label class="onboarding-field">Type<select id="onboarding-account-type">${TYPES.map(([value, label]) => `<option value="${esc(value)}">${esc(label)}</option>`).join('')}</select></label><label class="onboarding-field">Initial balance (₱)<input id="onboarding-account-balance" type="number" step="0.01" value="0"></label></div><button type="button" class="b2" onclick="addOnboardingAccount()">${ic('plus')} Add account</button><p id="onboarding-account-error" class="onboarding-inline-error" role="alert"></p>${customAccounts}</section>`
+            } else if (onboardingState.step === 'categories') {
+                const categoryGroup = (group, title) => `<section class="onboarding-category-group"><h3>${title}</h3><div class="onboarding-category-grid">${draft.categories.filter(category => category.g === group).map(category => {
+                    const required = category.g === 'Income' && category.name.toLowerCase() === 'cashback',
+                        checked = required || draft.categoryIds.includes(category.id);
+                    return `<label class="onboarding-category-choice"><input type="checkbox"${checked ? ' checked' : ''}${required ? ' disabled' : ''} onchange="toggleOnboardingCategory('${esc(category.id)}',this.checked)"><span>${esc(category.name)}</span>${required ? '<small>Always included</small>' : ''}</label>`
+                }).join('')}</div></section>`;
+                const customCategories = draft.customCategories.map(category =>
+                    `<div class="onboarding-custom-category"><span>${ic(category.icon)} ${esc(category.name)} <small>${category.g === 'Income' ? 'Income' : 'Expense'}</small></span><button type="button" class="ib" aria-label="Remove ${esc(category.name)}" onclick="removeOnboardingCategory('${esc(category.id)}')">${ic('trash-2')}</button></div>`
+                ).join('');
+                content = `<p class="onboarding-step-description">Pocket starts with useful expense and income categories. Keep the defaults or uncheck any you don’t use.</p>${categoryGroup('Daily', 'Expense categories')}${categoryGroup('Income', 'Income categories')}<p class="onboarding-category-note">${ic('arrow-left-right')} Financial categories are included automatically for transfers, savings, and debt payments.</p><section class="onboarding-custom-section"><h3>Add a category</h3><div class="onboarding-fields"><label class="onboarding-field">Category name<input id="onboarding-category-name" type="text" maxlength="40" autocomplete="off"></label><label class="onboarding-field">Type<select id="onboarding-category-type"><option value="Daily">Expense</option><option value="Income">Income</option></select></label></div><button type="button" class="b2" onclick="addOnboardingCategory()">${ic('plus')} Add category</button><p id="onboarding-category-error" class="onboarding-inline-error" role="alert"></p>${customCategories}</section>`
+            } else if (onboardingState.step === 'preferences') {
+                content = `<p class="onboarding-step-description">Choose how Pocket looks and how reports group your activity.</p><div class="onboarding-preference-card"><div><b>Currency</b><small>PHP · Philippine Peso (₱)</small></div><div><b>Date format</b><small>Used across Pocket</small></div><select aria-label="Date format" onchange="updateOnboardingPreference('dateFormat',this.value)">${DATE_FORMATS.map(format => `<option value="${format}"${draft.dateFormat === format ? ' selected' : ''}>${format}</option>`).join('')}</select></div><div class="onboarding-preference-block"><b>Appearance</b><div class="onboarding-choice-row" role="group" aria-label="Choose appearance">${[['dark', 'Dark'], ['light', 'Light']].map(([value, label]) => `<button type="button" class="onboarding-choice${draft.theme === value ? ' is-selected' : ''}" aria-pressed="${draft.theme === value}" onclick="updateOnboardingPreference('theme','${value}')">${ic(value === 'dark' ? 'moon' : 'sun')} ${label}</button>`).join('')}</div></div><div class="onboarding-preference-block"><label class="onboarding-field">Financial period<select aria-label="Financial period" onchange="updateOnboardingPreference('financialPeriod',this.value)">${[['weekly', 'Weekly'], ['monthly', 'Monthly'], ['yearly', 'Yearly']].map(([value, label]) => `<option value="${value}"${draft.financialPeriod === value ? ' selected' : ''}>${label}</option>`).join('')}</select></label><small>Used as the default date range in Reports.</small></div>`
+            } else if (onboardingState.step === 'optional') {
+                const selectedIds = new Set(draft.categoryIds),
+                    budgetCategories = [...draft.categories, ...draft.customCategories].filter(category =>
+                        category.g === 'Daily' && (category.id.startsWith('c_') && draft.customCategories.includes(category) || selectedIds.has(category.id))
+                    ),
+                    budgetRows = budgetCategories.map(category =>
+                        `<label class="onboarding-budget-row"><span>${esc(category.name)}</span><input type="number" min="0" max="1000000000000" step="0.01" value="${esc(draft.budgets[category.id] ?? '')}" aria-label="${esc(category.name)} monthly budget" placeholder="Skip" oninput="updateOnboardingBudget('${esc(category.id)}',this.value)"></label>`
+                    ).join(''),
+                    goals = draft.goals.map(goal =>
+                        `<div class="onboarding-goal-row"><label class="onboarding-field">Goal name<input type="text" maxlength="80" value="${esc(goal.name)}" oninput="updateOnboardingGoal('${goal.key}','name',this.value)"></label><label class="onboarding-field">Target amount (₱)<input type="number" min="0.01" max="1000000000000" step="0.01" value="${esc(goal.target)}" oninput="updateOnboardingGoal('${goal.key}','target',this.value)"></label><button type="button" class="ib" aria-label="Remove goal" onclick="removeOnboardingGoal('${goal.key}')">${ic('trash-2')}</button></div>`
+                    ).join('');
+                content = `<p class="onboarding-step-description">Both are optional. You can set or change them any time.</p><details class="onboarding-optional-section"><summary>Set monthly category budgets</summary><div class="onboarding-budget-list">${budgetRows || '<small>Select an expense category first to add a budget.</small>'}</div></details><section class="onboarding-optional-section"><div class="row sp"><div><h3>Savings goals</h3><small>Start with a name and a target amount.</small></div><button type="button" class="b2" onclick="addOnboardingGoal()">${ic('plus')} Add goal</button></div>${goals || '<p class="onboarding-muted">No goals yet.</p>'}</section>`
+            }
+            const skip = onboardingState.step === 'accounts'
+                ? '<button type="button" class="onboarding-text-button" onclick="onboardingSkipAccounts()">Skip adding accounts</button>'
+                : onboardingState.step === 'optional'
+                    ? '<button type="button" class="onboarding-text-button" onclick="onboardingSkipOptional()">Skip optional steps</button>'
+                    : '';
+            return `<div class="onboarding-shell"><header class="onboarding-flow-header">${brand}<span>Step ${stepIndex + 1} of ${ONBOARDING_STEPS.length}</span></header><div class="onboarding-progress" role="progressbar" aria-label="Setup progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${percent}"><span style="width:${percent}%"></span></div><section class="onboarding-panel onboarding-step-panel"><h1>${heading}</h1>${content}${notice}<p id="onboarding-error" class="onboarding-inline-error" role="alert"></p><div class="onboarding-navigation${skip ? ' with-options' : ''}"><button type="button" class="onboarding-text-button" onclick="onboardingBack()">Back</button>${skip}<button type="button" class="b1 onboarding-primary" onclick="onboardingContinue()">${onboardingState.step === 'optional' ? 'Review setup' : 'Continue'}</button></div></section></div>`
+        }
 
-export function initializeFeature() {
-  document.documentElement.dataset.feature = feature.id;
-}
+    window.PocketFeatures.onboarding = renderOnboarding;
+})();
