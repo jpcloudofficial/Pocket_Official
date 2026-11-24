@@ -17,6 +17,8 @@ body {
 }
 
 #pocket-navbar {
+    position: relative;
+    isolation: isolate;
     display: grid;
     width: 100%;
     height: 60px;
@@ -29,7 +31,29 @@ body {
     box-shadow: 0 10px 30px #0006
 }
 
+#pocket-navbar::before {
+    position: absolute;
+    top: 6px;
+    bottom: 6px;
+    left: 6px;
+    z-index: 0;
+    width: calc((100% - 12px) / 5);
+    border-radius: 999px;
+    background: #263a28;
+    content: "";
+    opacity: 0;
+    pointer-events: none;
+    transform: translateX(calc(var(--active-index, 0) * 100%));
+    transition: transform .28s cubic-bezier(.22, .68, 0, 1), opacity .18s ease
+}
+
+#pocket-navbar[data-active="true"]::before {
+    opacity: 1
+}
+
 #pocket-navbar button {
+    position: relative;
+    z-index: 1;
     display: grid;
     min-width: 0;
     height: 46px;
@@ -40,11 +64,7 @@ body {
     background: transparent;
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
-    transition: background-color .18s ease, transform .18s ease
-}
-
-#pocket-navbar button[aria-current="page"] {
-    background: #263a28
+    transition: transform .18s ease
 }
 
 #pocket-navbar button:active {
@@ -67,6 +87,7 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
+    #pocket-navbar::before,
     #pocket-navbar button {
         transition: none
     }

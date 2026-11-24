@@ -212,7 +212,7 @@
     place-items: center;
     border: 0;
     border-radius: 11px;
-    background: var(--sq);
+    background: transparent;
     color: var(--tx);
     cursor: pointer
 }

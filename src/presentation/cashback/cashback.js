@@ -29,11 +29,18 @@
             const receivedTotal = received.reduce((total, claim) => total + claim.amount, 0),
                 pendingTotal = pending.reduce((total, claim) => total + claim.amount, 0);
             const sectionHeading = (title, claims) => {
-                const menu = claims.length ? `<details class="cashback-section-menu"><summary aria-label="Manage ${title.toLowerCase()} cashback claims">${ic('more-horizontal')}</summary><div class="cashback-section-menu-options">${claims.map(claim => {
+                const optionsHtml = claims.map(claim => {
                     const expense = D.tx.find(item => item.id === claim.expenseId),
                         claimTitle = claim.expenseTitle || expense?.title || 'Linked transaction';
-                    return `<div class="cashback-section-menu-item"><div class="cashback-section-menu-item-label"><b>${esc(claimTitle)}</b><span>${peso(claim.amount)}</span></div><div class="cashback-section-menu-actions"><button type="button" aria-label="Edit cashback for ${esc(claimTitle)}" onclick="this.closest('details').open=false;PocketFeatures.cash.editClaim('${claim.id}')">${ic('pencil')}Edit</button><button type="button" aria-label="Delete cashback for ${esc(claimTitle)}" onclick="this.closest('details').open=false;PocketFeatures.cash.deleteClaim('${claim.id}')">${ic('trash-2')}Delete</button></div></div>`
-                }).join('')}</div></details>` : '';
+                    return `<div class="cashback-section-menu-item"><div class="cashback-section-menu-item-label"><b>${esc(claimTitle)}</b><span>${peso(claim.amount)}</span></div><div class="cashback-section-menu-actions"><button type="button" class="pocket-action-menu-option" data-action="edit" data-entity-id="${esc(claim.id)}" aria-label="Edit cashback for ${esc(claimTitle)}">${ic('pencil')}Edit</button><button type="button" class="pocket-action-menu-option is-destructive" data-action="delete" data-entity-id="${esc(claim.id)}" aria-label="Delete cashback for ${esc(claimTitle)}">${ic('trash-2')}Delete</button></div></div>`
+                }).join(''),
+                    menu = claims.length ? window.PocketActionMenu.render({
+                        owner: 'cashback',
+                        label: `Manage ${title.toLowerCase()} cashback claims`,
+                        className: 'cashback-section-menu',
+                        triggerIcon: ic('more-horizontal'),
+                        optionsHtml
+                    }) : '';
                 return `<div class="cashback-section-heading"><h3 class="cashback-subtitle">${title}</h3><span class="cashback-count">${claims.length}</span>${menu}</div>`
             };
             return `${window.PocketPageHeader({ eyebrow: 'EVERY PESO COMES BACK', title: 'Cashback' })}<section class="card cashback-summary"><small>Total received</small><b>${peso(receivedTotal)}</b><span>${peso(pendingTotal)} pending</span></section>${sectionHeading('Pending', pending)}<div class="g g2 cashback-list">${pending.length ? pending.map(claimCard).join('') : '<div class="empty card cashback-empty">Add a claim from an expense or transfer in Transactions.</div>'}</div>${sectionHeading('Received', received)}<div class="g g2 cashback-list">${received.length ? received.map(claimCard).join('') : '<div class="empty card cashback-empty">Cashback marked received will appear here as income.</div>'}</div>`
@@ -186,7 +193,7 @@
                     acc: claim.account,
                     to: null,
                     date: today(),
-                    time: '',
+                    time: new Date().toTimeString().slice(0, 5),
                     note: `Cashback received for ${claim.expenseDate || expense?.date || 'linked expense'}`,
                     cashbackId: claim.id
                 };
@@ -205,6 +212,13 @@
             deleteClaim: deleteCashback,
             markReceived: markCashbackReceived
         });
+
+    document.addEventListener('pocket:action-menu', event => {
+        const { owner, action, entityId } = event.detail || {};
+        if (owner !== 'cashback') return;
+        if (action === 'edit') window.PocketFeatures.cash.editClaim(entityId);
+        else if (action === 'delete') window.PocketFeatures.cash.deleteClaim(entityId);
+    });
 
     window.PocketFeatures['cash'] = V.cash;
 })();

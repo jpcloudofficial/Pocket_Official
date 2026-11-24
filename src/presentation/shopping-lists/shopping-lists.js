@@ -83,7 +83,7 @@
                 eyebrow: 'GROCERY · SHOPPING LIST',
                 title: existingItem ? 'Edit item' : 'Add an item',
                 submitLabel: 'Save item',
-                content: `<label class="shopping-item-name-field" for="shopping-item-name">Item name *<input id="shopping-item-name" name="name" type="text" value="${esc(name)}" placeholder="What do you need?" autocomplete="off"></label><section class="shopping-item-amount-card"><label for="shopping-item-amount">Estimated amount * (₱)</label><div class="pocket-amount-input shopping-item-amount-input"><span aria-hidden="true">₱</span><input id="shopping-item-amount" name="estimatedAmount" type="number" min="0" step="0.01" value="${esc(amount)}" placeholder="0.00" inputmode="decimal" aria-describedby="shopping-item-amount-help"></div><small id="shopping-item-amount-help">Use an estimate now. Record the actual expense when you’re ready.</small></section>`,
+                content: `<label class="shopping-item-name-field" for="shopping-item-name">Item name *<input id="shopping-item-name" name="name" type="text" value="${esc(name)}" placeholder="What do you need?" autocomplete="off"></label><section class="shopping-item-amount-card"><label for="shopping-item-amount">Estimated amount * (₱)</label>${window.PocketAmountInput.render({ id: 'shopping-item-amount', name: 'estimatedAmount', type: 'number', inputMode: 'decimal', min: '0', step: '0.01', value: amount, placeholder: '0.00', ariaDescribedBy: 'shopping-item-amount-help', className: 'shopping-item-amount-input' })}<small id="shopping-item-amount-help">Use an estimate now. Record the actual expense when you’re ready.</small></section>`,
                 onSubmit: form => {
                     const itemName = form.querySelector('[name="name"]').value.trim(),
                         amountValue = form.querySelector('[name="estimatedAmount"]').value.trim(),
@@ -104,16 +104,38 @@
             const selectedList = D.shoppingLists.find(list => list.id === selectedShoppingListId);
             if (selectedShoppingListId && !selectedList) selectedShoppingListId = '';
             if (selectedList) {
-                const items = selectedList.items.length ? selectedList.items.map(item =>
-                    `<div class="shopping-list-item${item.checked ? ' is-checked' : ''}"><label><input type="checkbox"${item.checked ? ' checked' : ''} onchange="toggleShoppingItem('${selectedList.id}','${item.id}')"><span>${esc(item.name)}</span></label><b class="shopping-list-item-amount">${peso(item.estimatedAmount || 0)}</b><details class="shopping-list-item-menu"><summary class="ib" aria-label="Options for ${esc(item.name)}">${ic('more-horizontal')}</summary><div class="shopping-list-item-menu-options"><button type="button" onclick="shoppingItemForm('${selectedList.id}','${item.id}')">Edit item</button><button type="button" onclick="deleteShoppingItem('${selectedList.id}','${item.id}')">Remove item</button></div></details></div>`
-                ).join('') : '<div class="shopping-list-empty"><b>No items yet</b><small>Tap Add item to start your list.</small></div>';
+                const items = selectedList.items.length ? selectedList.items.map(item => {
+                    const itemMenu = window.PocketActionMenu.render({
+                        owner: 'shopping-list-item',
+                        entityId: item.id,
+                        label: `Options for ${item.name}`,
+                        className: 'shopping-list-item-menu',
+                        triggerIcon: ic('more-horizontal'),
+                        actions: [
+                            { action: 'edit', label: 'Edit item', icon: ic('pencil') },
+                            { action: 'delete', label: 'Remove item', icon: ic('trash-2'), destructive: true }
+                        ]
+                    });
+                    return `<div class="shopping-list-item${item.checked ? ' is-checked' : ''}"><label><input type="checkbox"${item.checked ? ' checked' : ''} onchange="toggleShoppingItem('${selectedList.id}','${item.id}')"><span>${esc(item.name)}</span></label><b class="shopping-list-item-amount">${peso(item.estimatedAmount || 0)}</b>${itemMenu}</div>`;
+                }).join('') : '<div class="shopping-list-empty"><b>No items yet</b><small>Tap Add item to start your list.</small></div>';
                 const linkedExpense = D.tx.find(transaction =>
                     transaction.id === selectedList.expenseTransactionId && transaction.type === 'expense'
                 );
                 const expenseAction = linkedExpense
                     ? `<div class="shopping-list-expense"><small>Expense recorded · ${peso(linkedExpense.amount)} · ${fd(linkedExpense.date)}</small><button type="button" class="chip" onclick="editTx('${linkedExpense.id}')">Edit expense</button></div>`
                     : `<small class="shopping-list-expense-status">Expense not recorded yet</small><button type="button" class="b1 shopping-list-action shopping-list-record-expense" onclick="recordShoppingListExpense('${selectedList.id}')">Record expense</button>`;
-                return `${window.PocketFormScreenHeader({ back: 'shoppingLists', close: 'shoppingDashboard', shoppingList: true })}${window.PocketPageHeader({ eyebrow: 'SHOPPING LIST', title: selectedList.name })}<section class="card shopping-list-total-card"><small>Estimated total</small><strong class="shopping-list-total-amount">${peso(shoppingListEstimate(selectedList))}</strong>${expenseAction}</section><section class="shopping-list-items-section"><div class="shopping-list-items-heading"><h3>Items</h3><small>${selectedList.items.length} item${selectedList.items.length === 1 ? '' : 's'}</small></div><div class="card shopping-list-items">${items}</div></section><div class="shopping-list-bottom-actions"><button type="button" class="b1 shopping-list-action" onclick="shoppingItemForm('${selectedList.id}')">${ic('plus')}<span>Add item</span></button><button type="button" class="b2 shopping-list-action shopping-list-back" onclick="closeShoppingList()">${ic('arrow-left')}<span>All lists</span></button></div>`
+                const listMenu = window.PocketActionMenu.render({
+                    owner: 'shopping-list',
+                    entityId: selectedList.id,
+                    label: `Shopping list options for ${selectedList.name}`,
+                    className: 'shopping-list-total-menu',
+                    triggerIcon: ic('more-horizontal'),
+                    actions: [
+                        { action: 'edit', label: 'Edit list', icon: ic('pencil') },
+                        { action: 'delete', label: 'Delete list', icon: ic('trash-2'), destructive: true }
+                    ]
+                });
+                return `${window.PocketFormScreenHeader({ back: 'shoppingLists', close: 'shoppingDashboard', shoppingList: true })}${window.PocketPageHeader({ eyebrow: 'SHOPPING LIST', title: selectedList.name })}<section class="card shopping-list-total-card"><div class="shopping-list-total-heading"><div class="shopping-list-total-copy"><small>Estimated total</small><strong class="shopping-list-total-amount">${peso(shoppingListEstimate(selectedList))}</strong></div>${listMenu}</div>${expenseAction}</section><section class="shopping-list-items-section"><div class="shopping-list-items-heading"><h3>Items</h3><small>${selectedList.items.length} item${selectedList.items.length === 1 ? '' : 's'}</small></div><div class="card shopping-list-items">${items}</div></section><div class="shopping-list-bottom-actions"><button type="button" class="b1 shopping-list-action" onclick="shoppingItemForm('${selectedList.id}')">${ic('plus')}<span>Add item</span></button><button type="button" class="b2 shopping-list-action shopping-list-back" onclick="closeShoppingList()">${ic('arrow-left')}<span>Cancel</span></button></div>`
             }
             const lists = D.shoppingLists.map(list => {
                 const estimate = shoppingListEstimate(list),
@@ -122,6 +144,17 @@
             }).join('');
             return `${window.PocketPageHeader({ eyebrow: 'BUY WITH A PLAN', title: 'Shopping lists', description: 'Organize what you need before you spend.' })}<div class="g g2 shopping-lists">${lists || '<div class="empty card">No shopping lists yet.</div>'}</div>`
         };
+
+        document.addEventListener('pocket:action-menu', event => {
+            const { owner, action, entityId } = event.detail || {};
+            if (owner === 'shopping-list') {
+                if (action === 'edit') shoppingListForm(entityId);
+                else if (action === 'delete') deleteShoppingList(entityId);
+            } else if (owner === 'shopping-list-item') {
+                if (action === 'edit') shoppingItemForm(selectedShoppingListId, entityId);
+                else if (action === 'delete') deleteShoppingItem(selectedShoppingListId, entityId);
+            }
+        });
 
     V.shop.openListForm = openShoppingListForm;
     V.shop.openItemForm = openShoppingItemForm;

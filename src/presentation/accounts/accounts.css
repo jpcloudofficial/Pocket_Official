@@ -29,16 +29,12 @@ body.pocket-modal-open .pocket-account-transfer{
             display: none !important
         }
 .pocket-account-transfer{
-            transition: transform .24s ease, opacity .24s ease
+            transition: transform .24s ease, opacity .5s ease
         }
 body.pocket-actions-scroll-hidden .pocket-account-transfer{
-            transform: translateX(calc(100% + 80px));
+            transform: translateY(calc(100vh + 100%));
             opacity: 0;
             pointer-events: none
-        }
-html[data-view="acc"] body.pocket-actions-scroll-hidden .fab.pocket-fab-labeled,
-html[data-view="acc"] body.pocket-actions-scroll-hidden .pocket-account-transfer{
-            transform: none
         }
 @media (max-width: 760px){
 .pocket-account-transfer{
@@ -453,10 +449,6 @@ html[data-view="acc"] .fab.pocket-fab-labeled{
             justify-content: center;
             color: #102015
         }
-html[data-view="acc"] body.pocket-actions-scroll-hidden .fab.pocket-fab-labeled,
-html[data-view="acc"] body.pocket-actions-scroll-hidden .pocket-account-transfer{
-            transform: none
-        }
 html[data-view="acc"] .pocket-fab-menu{
             display: none !important
         }
@@ -503,4 +495,33 @@ html[data-view="acc"] .pocket-account-transfer{
         }
 #f.pocket-account-form .account-balance-card > label{
             gap: 3px
+        }
+#f.pocket-account-form .account-balance-card .account-balance-input{
+            min-height: 52px;
+            gap: 7px;
+            padding: 0 14px;
+            border: 1px solid var(--bd);
+            border-radius: 12px;
+            background: var(--sq);
+            color: var(--mu);
+            font-size: 14px
+        }
+#f.pocket-account-form .account-balance-card .account-balance-input > span{
+            font-size: 14px;
+            font-weight: 400;
+            letter-spacing: normal
+        }
+#f.pocket-account-form .account-balance-card .account-balance-input input:not([type="hidden"]):not([type="checkbox"]):not([type="color"]){
+            min-height: 0;
+            padding: 0;
+            border: 0;
+            outline: 0;
+            background: transparent;
+            color: var(--tx);
+            font: inherit;
+            font-size: 14px
+        }
+#f.pocket-account-form .account-balance-card .account-balance-input:focus-within{
+            border-color: var(--in);
+            box-shadow: 0 0 0 2px color-mix(in srgb, var(--in) 18%, transparent)
         }

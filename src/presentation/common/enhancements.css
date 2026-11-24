@@ -208,7 +208,7 @@ h2.pocket-page-title {
 }
 
 body.pocket-actions-scroll-hidden .fab {
-    transform: translateX(calc(100% + 80px));
+    transform: translateY(calc(100vh + 100%));
     opacity: 0;
     pointer-events: none
 }
@@ -219,13 +219,7 @@ body.pocket-actions-scroll-hidden .fab {
 
 .fab {
     z-index: 22;
-    transition: opacity .2s ease, transform .2s ease
-}
-
-.fab.pocket-fab-open {
-    transform: scale(.7);
-    opacity: 0;
-    pointer-events: none
+    transition: transform .24s ease, opacity .5s ease
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -234,4 +228,20 @@ body.pocket-actions-scroll-hidden .fab {
     .page-menu-toggle span {
         transition: none !important
     }
+}
+
+html[data-focus-modality="pointer"] :is(input, select, textarea, .form-select-trigger):is(:focus, :focus-visible) {
+    outline: none !important;
+}
+
+html[data-focus-modality="pointer"] :is(
+    .div-pocket-amount-input,
+    .account-balance-input,
+    .goal-amount-input,
+    .onboarding-money-input,
+    .transaction-cashback-amount-input,
+    .transaction-search
+):focus-within {
+    border-color: var(--bd) !important;
+    box-shadow: none !important;
 }

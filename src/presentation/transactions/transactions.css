@@ -1,11 +1,46 @@
 :root[data-feature="tx"] { --pocket-feature-id: "tx"; }
 #f.pocket-transaction-form label[data-field="amount"]{
-    min-height: 150px;
+    align-content: start;
     padding: 14px 18px 16px;
     border: 1px solid var(--bd);
     border-radius: 20px;
     background: var(--cd);
     box-shadow: 0 12px 28px rgba(0, 0, 0, .20)
+}
+#f.pocket-transaction-form .transaction-cashback-amount-input{
+    min-height: 52px;
+    gap: 7px;
+    padding: 0 14px;
+    border: 1px solid var(--bd);
+    border-radius: 12px;
+    background: var(--sq);
+    color: var(--mu);
+    font-size: 14px
+}
+#f.pocket-transaction-form .transaction-cashback-amount-input > span{
+    font-size: 14px;
+    font-weight: 400;
+    letter-spacing: normal
+}
+#f.pocket-transaction-form label[data-field="cashbackAmount"] .transaction-cashback-amount-input input:not([type="hidden"]):not([type="checkbox"]):not([type="color"]){
+    min-height: 0;
+    padding: 0;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    color: var(--tx);
+    font: inherit;
+    font-size: 14px;
+    font-weight: 400;
+    letter-spacing: normal
+}
+#f.pocket-transaction-form label[data-field="cashbackAmount"] .transaction-cashback-amount-input input::placeholder{
+    color: var(--tx);
+    opacity: 1
+}
+#f.pocket-transaction-form .transaction-cashback-amount-input:focus-within{
+    border-color: var(--in);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--in) 18%, transparent)
 }
 .pocket-fab-menu{
             position: fixed;
@@ -15,8 +50,6 @@
             display: flex;
             flex-direction: column;
             gap: 8px;
-            transform-origin: bottom right;
-            transition: transform .24s ease, opacity .24s ease
         }
 .pocket-fab-menu button{
             display: flex;
@@ -44,42 +77,10 @@
 .pocket-fab-menu button[data-kind="expense"] .mini{ color: var(--ex) }
 .pocket-fab-menu button[data-kind="income"] .mini{ color: var(--in) }
 .pocket-fab-menu button[data-kind="transfer"] .mini{ color: var(--tr) }
-body.pocket-actions-scroll-hidden .pocket-fab-menu{
-            transform: translateX(calc(100% + 80px));
-            opacity: 0;
-            pointer-events: none
-        }
-.pocket-fab-menu.pocket-fab-opening{
-            animation: pocket-fab-menu-in .2s cubic-bezier(.2,.8,.2,1) both
-        }
-.pocket-fab-menu.pocket-fab-closing{
-            pointer-events: none;
-            animation: pocket-fab-menu-out .18s ease-in both
-        }
-.pocket-fab-menu.pocket-fab-opening button{
-            animation: pocket-fab-action-in .2s cubic-bezier(.2,.8,.2,1) both
-        }
-@keyframes pocket-fab-menu-in{
-            from{ opacity: 0; transform: scale(.7) translateY(8px) }
-            to{ opacity: 1; transform: scale(1) translateY(0) }
-        }
-@keyframes pocket-fab-menu-out{
-            from{ opacity: 1; transform: scale(1) translateY(0) }
-            to{ opacity: 0; transform: scale(.7) translateY(8px) }
-        }
-@keyframes pocket-fab-action-in{
-            from{ opacity: 0; transform: translateY(8px) scale(.94) }
-            to{ opacity: 1; transform: translateY(0) scale(1) }
-        }
 @media (max-width: 760px){
 .pocket-fab-menu{
                 right: 14px;
                 bottom: calc(82px + env(safe-area-inset-bottom,0px))
-            }
-}
-@media (prefers-reduced-motion: reduce){
-.pocket-fab-menu{
-                transition: none !important
             }
 }
 html[data-view="tx"],

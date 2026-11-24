@@ -210,6 +210,40 @@
 .onboarding-field select{
             min-width: 0
         }
+.div-pocket-amount-input.onboarding-money-input{
+            min-height: 42px;
+            gap: 7px;
+            padding: 0 10px;
+            border: 1px solid var(--bd);
+            border-radius: 10px;
+            background: var(--sq);
+            color: var(--tx);
+            font-size: 13px
+        }
+.div-pocket-amount-input.onboarding-money-input > span{
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: normal
+        }
+.onboarding-money-input input{
+            width: 100%;
+            min-height: 40px;
+            padding: 0;
+            border: 0;
+            outline: 0;
+            background: transparent;
+            color: var(--tx);
+            font: inherit;
+            font-size: 13px
+        }
+.div-pocket-amount-input.onboarding-money-input input::placeholder{
+            color: var(--mu);
+            opacity: 1
+        }
+.onboarding-money-input:focus-within{
+            border-color: var(--in);
+            box-shadow: 0 0 0 2px color-mix(in srgb, var(--in) 18%, transparent)
+        }
 .onboarding-custom-section,
 .onboarding-category-group,
 .onboarding-preference-block,

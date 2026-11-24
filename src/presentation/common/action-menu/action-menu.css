@@ -1,0 +1,85 @@
+.pocket-action-menu {
+    position: relative;
+    flex: none;
+    margin-left: auto
+}
+
+.pocket-action-menu-trigger {
+    display: grid;
+    width: 32px;
+    height: 32px;
+    place-items: center;
+    padding: 0;
+    border: 0;
+    border-radius: 9px;
+    background: transparent;
+    color: var(--mu);
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent
+}
+
+.pocket-action-menu-trigger:hover,
+.pocket-action-menu-trigger[aria-expanded="true"] {
+    background: var(--sq);
+    color: var(--tx)
+}
+
+.pocket-action-menu-trigger:focus-visible,
+.div-pocket-menu-options button:focus-visible {
+    outline: 2px solid var(--in);
+    outline-offset: 2px
+}
+
+.pocket-action-menu-trigger .ic {
+    width: 19px;
+    height: 19px
+}
+
+.div-pocket-menu-options {
+    position: absolute;
+    top: calc(100% + 5px);
+    right: 0;
+    z-index: 8;
+    display: grid;
+    width: 172px;
+    gap: 3px;
+    padding: 6px;
+    border: 1px solid var(--bd);
+    border-radius: 12px;
+    background: var(--cd);
+    box-shadow: 0 10px 24px #0005
+}
+
+.div-pocket-menu-options[hidden] {
+    display: none !important
+}
+
+.div-pocket-menu-options button {
+    display: flex;
+    min-height: 38px;
+    align-items: center;
+    gap: 9px;
+    padding: 7px 9px;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--tx);
+    font: inherit;
+    font-size: 13px;
+    text-align: left;
+    cursor: pointer
+}
+
+.div-pocket-menu-options button:hover {
+    background: var(--sq)
+}
+
+.div-pocket-menu-options button.is-destructive {
+    color: var(--ex)
+}
+
+.div-pocket-menu-options .ic {
+    width: 17px;
+    height: 17px;
+    flex: none
+}

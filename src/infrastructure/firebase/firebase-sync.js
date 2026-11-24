@@ -41,7 +41,7 @@ function updateProfileCard() {
   const profileData = window.pocketApp?.getData?.();
   const profileName = profileData?.name || user?.displayName || '';
   if (preview) preview.textContent = profileName || 'Your profile';
-  if (email) email.textContent = user?.email || 'Sign in to see your account email.';
+  if (email) email.textContent = user?.email || 'Sign in to view';
   const customPhoto = profileData?.profilePhoto;
   const photoUrl = typeof customPhoto === 'string' && customPhoto.startsWith('data:image/jpeg;base64,')
     ? customPhoto
@@ -80,7 +80,10 @@ function updatePanel() {
   updateProfileCard();
   const status = statusElement();
   if (!status) return;
-  status.textContent = statusMessage;
+  status.textContent = statusMessage.startsWith('Signed out') ? 'Signed out' : statusMessage;
+  status.setAttribute('aria-label', statusMessage);
+  const syncMode = document.querySelector('#cloud-sync-mode');
+  if (syncMode) syncMode.textContent = user ? 'Cloud sync' : 'Local copy';
   const accountEmail = document.querySelector('#cloud-sync-email');
   if (accountEmail) accountEmail.textContent = user?.email || '';
   const error = errorElement();

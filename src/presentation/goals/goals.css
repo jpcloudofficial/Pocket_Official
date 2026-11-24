@@ -272,11 +272,16 @@ html[data-view="goal"] #m .goal-estimate{
             color: var(--tx);
             font-size: 14px
         }
+#f.pocket-goal-form .goal-amount-input > span{
+            font-size: 14px;
+            font-weight: 400;
+            letter-spacing: normal
+        }
 #f.pocket-goal-form .goal-amount-input:focus-within{
             border-color: var(--in);
             box-shadow: 0 0 0 2px color-mix(in srgb, var(--in) 18%, transparent)
         }
-#f.pocket-goal-form .form-fields .goal-form-amount-card .goal-amount-input input{
+#f.pocket-goal-form .form-fields .goal-form-amount-card .goal-amount-input input:not([type="hidden"]):not([type="checkbox"]):not([type="color"]){
             width: 100%;
             min-width: 0;
             min-height: 0;

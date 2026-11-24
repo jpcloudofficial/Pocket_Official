@@ -41,7 +41,7 @@
                             l: 'Cashback (optional)',
                             t: 'text',
                             cls: 'form-field-full',
-                            placeholder: '₱0.00',
+                            placeholder: '0.00',
                             help: isTransfer ? 'Deposited to the From account.' : ''
                         }] : [{
                             k: 'title',
@@ -143,7 +143,7 @@
                         acc: values.acc,
                         to: isTransfer ? values.to : null,
                         date: values.date,
-                        time: values.time || transaction?.time || '',
+                        time: values.time || transaction?.time || (transaction ? '' : new Date().toTimeString().slice(0, 5)),
                         note: values.note,
                         ...(transaction?.cashbackId ? { cashbackId: transaction.cashbackId } : {})
                     };

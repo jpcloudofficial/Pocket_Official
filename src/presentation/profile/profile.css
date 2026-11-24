@@ -160,7 +160,7 @@
             min-height: 44px;
             margin: 0
         }
-.cloud-login-options{
+#cloud-login-options{
             display: grid;
             gap: 12px
         }
@@ -258,3 +258,147 @@ html:not([data-theme=light])[data-view="prof"] #m .b2{
                 color: #f2f6f3
             }
 }
+
+html[data-view="prof"] #m .profile-layout > .profile-card{
+            display: grid;
+            gap: 14px;
+            padding: 20px;
+            border-top: 0
+        }
+.profile-card-heading h3{
+            margin: 0 0 8px;
+            font-size: 16px
+        }
+.profile-card-heading p{
+            margin: 0;
+            color: var(--mu);
+            font-size: 12px;
+            line-height: 1.4
+        }
+.profile-photo-settings{
+            display: grid;
+            gap: 8px
+        }
+.profile-photo-actions{
+            display: grid;
+            gap: 8px;
+            margin: 0
+        }
+.profile-photo-button{
+            width: 100%;
+            min-height: 52px;
+            justify-content: center;
+            border-radius: 14px;
+            background: var(--sq);
+            color: var(--tx)
+        }
+.profile-remove-photo{
+            min-height: 36px;
+            border: 0;
+            border-radius: 10px;
+            background: transparent;
+            color: var(--mu);
+            font: inherit;
+            cursor: pointer
+        }
+.profile-photo-note,
+.profile-card-note{
+            color: var(--mu);
+            font-size: 12px;
+            line-height: 1.4
+        }
+.profile-name-field{
+            gap: 8px;
+            margin: 0;
+            font-size: 12px
+        }
+html[data-view="prof"] #m .profile-name-field input{
+            width: 100%;
+            min-height: 52px;
+            padding: 0 14px;
+            border: 1px solid var(--bd);
+            border-radius: 12px;
+            background: var(--bg);
+            color: var(--tx);
+            font: inherit;
+            font-size: 14px
+        }
+.profile-email-row{
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 0;
+            border: 0
+        }
+.profile-email-row strong{
+            color: var(--mu);
+            font-size: 12px;
+            text-align: right
+        }
+.profile-color-setting{
+            gap: 10px;
+            padding: 0;
+            border: 0
+        }
+.profile-color-options{
+            gap: 14px
+        }
+.profile-color-swatch{
+            width: 32px;
+            height: 32px;
+            padding: 0
+        }
+.profile-card-note{
+            margin: 0
+        }
+.cloud-sync-card{
+            align-content: start;
+            gap: 12px
+        }
+.cloud-sync-state{
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            min-width: 0
+        }
+.cloud-sync-status{
+            flex: 1 1 auto;
+            min-width: 0;
+            padding: 0;
+            border: 0;
+            border-radius: 0;
+            color: var(--tx);
+            overflow-wrap: anywhere
+        }
+.cloud-sync-mode{
+            flex: none;
+            color: var(--mu);
+            font-size: 11px
+        }
+.cloud-sync-local-note{
+            margin: 0;
+            color: var(--mu);
+            font-size: 12px
+        }
+#cloud-login-options{
+            display: grid;
+            gap: 12px
+        }
+#cloud-login-options[hidden]{
+            display: none
+        }
+#cloud-login-options .cloud-google-button{
+            min-height: 52px;
+            border-radius: 14px;
+            background: var(--in);
+            color: var(--bg);
+            font-size: 14px;
+            font-weight: 700
+        }
+html[data-theme=dark][data-view="prof"] #m .cloud-google-button,
+html:not([data-theme=light])[data-view="prof"] #m .cloud-google-button{
+            background: #b8ef76;
+            color: #122016
+        }

@@ -3,6 +3,14 @@
   const main = document.querySelector('#m');
   if (!main) return;
 
+  const setFocusModality = modality => {
+    document.documentElement.dataset.focusModality = modality;
+  };
+  document.addEventListener('pointerdown', () => setFocusModality('pointer'), true);
+  document.addEventListener('keydown', event => {
+    if (event.key === 'Tab') setFocusModality('keyboard');
+  }, true);
+
   const icon = name => {
     if (name === 'eye') {
       return '<img class="dashboard-icon" src="assets/dashboard-icons/eye.svg" width="24" height="24" alt="">';
@@ -261,32 +269,14 @@
   };
 
   const closeMenu = (menu, fab) => {
+    menu.classList.add('pocket-hidden');
     menu.setAttribute('aria-hidden', 'true');
     fab.setAttribute('aria-expanded', 'false');
-    fab.classList.remove('pocket-fab-open');
-    if (menu.classList.contains('pocket-hidden') || menu.classList.contains('pocket-fab-closing')) return;
-    window.clearTimeout(menu._pocketOpenTimer);
-    menu.classList.remove('pocket-fab-opening');
-    menu.classList.add('pocket-fab-closing');
-    menu._pocketCloseTimer = window.setTimeout(() => {
-      menu.classList.remove('pocket-fab-closing');
-      menu.classList.add('pocket-hidden');
-      menu._pocketCloseTimer = 0;
-    }, window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 180);
   };
   const openMenu = (menu, fab) => {
-    window.clearTimeout(menu._pocketCloseTimer);
-    window.clearTimeout(menu._pocketOpenTimer);
-    menu.classList.remove('pocket-hidden', 'pocket-fab-closing', 'pocket-fab-opening');
-    void menu.offsetWidth;
-    menu.classList.add('pocket-fab-opening');
+    menu.classList.remove('pocket-hidden');
     menu.setAttribute('aria-hidden', 'false');
     fab.setAttribute('aria-expanded', 'true');
-    fab.classList.add('pocket-fab-open');
-    menu._pocketOpenTimer = window.setTimeout(() => {
-      menu.classList.remove('pocket-fab-opening');
-      menu._pocketOpenTimer = 0;
-    }, window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 300);
   };
   let lastScrollY = window.scrollY;
   window.addEventListener('scroll', () => {
@@ -369,7 +359,7 @@
           return;
         }
         const opening = menu.classList.contains('pocket-hidden');
-        if (opening || menu.classList.contains('pocket-fab-closing')) openMenu(menu, fab);
+        if (opening) openMenu(menu, fab);
         else closeMenu(menu, fab);
       };
       menu.querySelectorAll('button').forEach(button => button.addEventListener('click', () => {

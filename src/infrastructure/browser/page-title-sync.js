@@ -9,7 +9,7 @@
                 shop: 'Shopping lists',
                 rep: 'Reports',
                 cat: 'Categories',
-                prof: 'Profile',
+                prof: 'Your profile',
                 set: 'Settings'
             };
             const main = document.querySelector('#m');

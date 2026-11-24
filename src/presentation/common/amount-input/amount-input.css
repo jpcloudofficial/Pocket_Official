@@ -1,4 +1,4 @@
-.pocket-amount-input{
+.div-pocket-amount-input{
     display: flex;
     width: 100%;
     min-width: 0;
@@ -7,14 +7,14 @@
     color: var(--tx)
 }
 
-.pocket-amount-input > span{
+.div-pocket-amount-input > span{
     flex: none;
     font-size: 38px;
     font-weight: 700;
     letter-spacing: -.04em
 }
 
-#f .form-fields .pocket-amount-input input:not([type="hidden"]):not([type="checkbox"]):not([type="color"]){
+#f .form-fields .div-pocket-amount-input input:not([type="hidden"]):not([type="checkbox"]):not([type="color"]){
     width: 100%;
     min-width: 0;
     min-height: 54px;
@@ -32,17 +32,17 @@
     -moz-appearance: textfield
 }
 
-.pocket-amount-input input::-webkit-inner-spin-button,
-.pocket-amount-input input::-webkit-outer-spin-button{
+.div-pocket-amount-input input::-webkit-inner-spin-button,
+.div-pocket-amount-input input::-webkit-outer-spin-button{
     margin: 0;
     appearance: none
 }
 
-.pocket-amount-input input::placeholder{
+.div-pocket-amount-input input::placeholder{
     color: var(--tx);
     opacity: 1
 }
 
-.pocket-amount-input input:focus-visible{
+.div-pocket-amount-input input:focus-visible{
     outline-offset: 0
 }

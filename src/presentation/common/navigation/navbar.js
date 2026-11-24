@@ -1,11 +1,21 @@
 (() => {
+    const nav = document.querySelector('#pocket-navbar');
     const buttons = Array.from(document.querySelectorAll('#pocket-navbar button[data-view]'));
-    const setActivePage = view => buttons.forEach(button => {
-        if (button.dataset.view === view) button.setAttribute('aria-current', 'page');
-        else button.removeAttribute('aria-current');
-    });
+    const setActivePage = view => {
+        const activeIndex = buttons.findIndex(button => button.dataset.view === view);
+        buttons.forEach((button, index) => {
+            if (index === activeIndex) button.setAttribute('aria-current', 'page');
+            else button.removeAttribute('aria-current');
+        });
+        if (activeIndex >= 0) {
+            nav.style.setProperty('--active-index', activeIndex);
+            nav.dataset.active = 'true';
+        } else {
+            nav.removeAttribute('data-active');
+        }
+    };
 
-    document.querySelector('#pocket-navbar').addEventListener('click', event => {
+    nav.addEventListener('click', event => {
         const button = event.target.closest('button[data-view]');
         if (button) window.parent.postMessage({ type: 'pocket-navbar-navigate', view: button.dataset.view }, '*');
     });
