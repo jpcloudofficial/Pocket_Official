@@ -168,7 +168,6 @@ ${window.PocketFormScreenHeader({ back: 'close', close: 'dismiss' })}
         function reportLegend(series) {
             return `<div class="report-legend">${series.map(item => `<span><i style="--report-color:${item.color}"></i>${esc(item.name)}</span>`).join('')}</div>`
         }
-        let reportChartInstances = [];
         const chartConfigAttribute = config => `data-chart-config="${esc(JSON.stringify(config))}"`;
         function reportLineChart(buckets, series, emptyMessage, area = false) {
             if (!buckets.length || !series.some(item => item.values.some(value => value !== 0))) return reportEmpty(emptyMessage);
@@ -204,84 +203,6 @@ ${window.PocketFormScreenHeader({ back: 'close', close: 'dismiss' })}
                 })
             });
             return compact ? `${reportLegend(series)}${svg}</svg>` : svg + '</svg>' + reportLegend(series)
-        }
-        const chartCssColor = name => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
-        function colorWithOpacity(color, opacity) {
-            const match = /^#([\da-f]{6})$/i.exec(color);
-            if (!match) return color;
-            const value = match[1];
-            return `rgba(${parseInt(value.slice(0, 2), 16)},${parseInt(value.slice(2, 4), 16)},${parseInt(value.slice(4, 6), 16)},${opacity})`
-        }
-        function createReportChart(canvas) {
-            const config = JSON.parse(canvas.dataset.chartConfig),
-                mutedColor = chartCssColor('--mu'),
-                gridColor = colorWithOpacity(chartCssColor('--bd'), .6);
-            return new Chart(canvas, {
-                type: 'line',
-                data: {
-                    labels: config.buckets.map(bucket => bucket.label),
-                    datasets: config.series.map(item => ({
-                        label: item.name,
-                        data: item.values,
-                        borderColor: item.color,
-                        backgroundColor: colorWithOpacity(item.color, .14),
-                        fill: config.area,
-                        tension: .35,
-                        borderWidth: 2.5,
-                        pointRadius: 2,
-                        pointHoverRadius: 5
-                    }))
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    animation: { duration: 180 },
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: {
-                            callbacks: {
-                                title(items) {
-                                    const bucket = config.buckets[items[0]?.dataIndex];
-                                    return bucket ? `${fd(bucket.start)}${bucket.start !== bucket.end ? ` – ${fd(bucket.end)}` : ''}` : ''
-                                },
-                                label(context) {
-                                    return `${config.series[context.datasetIndex].name}: ${peso(context.parsed.y)}`
-                                }
-                            }
-                        }
-                    },
-                    onClick(event, elements) {
-                        if (!elements.length) return;
-                        const element = elements[0],
-                            bucket = config.buckets[element.index],
-                            series = config.series[element.datasetIndex];
-                        if (bucket && series) {
-                            openReportTransactions(bucket.start, bucket.end, series.type || '', series.category || U.rc || '', U.ra || '')
-                        }
-                    },
-                    scales: {
-                        x: {
-                            grid: { display: false },
-                            ticks: { color: mutedColor, maxTicksLimit: 7, maxRotation: 0 }
-                        },
-                        y: {
-                            beginAtZero: true,
-                            grid: { color: gridColor },
-                            ticks: { color: mutedColor, callback: reportTick }
-                        }
-                    }
-                }
-            })
-        }
-        function destroyReportCharts() {
-            reportChartInstances.forEach(chart => chart.destroy());
-            reportChartInstances = []
-        }
-        function renderReportCharts(root) {
-            if (typeof Chart !== 'function') throw new Error('Chart.js did not load. Check vendor/chartjs/chart.umd.min.js.');
-            reportChartInstances = Array.from(root.querySelectorAll('canvas[data-chart-config]'))
-                .map(createReportChart);
-            return reportChartInstances
         }
         function reportAccountBars(accounts, endDate, emptyMessage) {
             if (!accounts.length) return reportEmpty(emptyMessage);
@@ -329,7 +250,9 @@ ${window.PocketFormScreenHeader({ back: 'close', close: 'dismiss' })}
             go('tx')
         }
 
-        V.rep = () => {
+        const reportChartCard = (title, chart, key, className = '') =>
+            `<section class="card report-card${className ? ` ${className}` : ''}" data-report-chart="${key}"><h3>${title}</h3>${chart}</section>`;
+        function buildReportChartModel() {
             const period = reportPeriod(),
                 rangeTransactions = period.valid ? reportRangeTransactions(D.tx, period.start, period.end) : [],
                 transactions = rangeTransactions.filter(transaction =>
@@ -400,30 +323,55 @@ ${window.PocketFormScreenHeader({ back: 'close', close: 'dismiss' })}
                 { name: 'Outflows', type: 'expense', color: REPORT_COLORS[1], values: expenseSeries.values },
                 { name: 'Net cash flow', type: 'flow', color: REPORT_COLORS[2], values: incomeSeries.values.map((value, index) => value - expenseSeries.values[index]) }
             ],
-                cashFlowChart = reportLineChart(buckets, cashFlowSeries),
+                cashFlowChart = reportLineChart(buckets, cashFlowSeries);
+            return {
+                period,
+                totalExpenses,
+                expenseBreakdown,
+                charts: {
+                    incomeExpenses: reportChartCard('Income vs. expenses', incomeExpenses, 'incomeExpenses', 'report-income-expenses'),
+                    spendingTrend: reportChartCard('Monthly Spending Trends', spendingTrend, 'spendingTrend'),
+                    budgetVsActual: reportChartCard('Budget vs. Actual', budgetVsActual, 'budgetVsActual'),
+                    savingsGrowth: reportChartCard('Savings Growth', savingsGrowth, 'savingsGrowth'),
+                    accountDistribution: reportChartCard('Account Distribution', accountDistribution, 'accountDistribution'),
+                    cashFlow: reportChartCard('Cash Flow', cashFlowChart, 'cashFlow')
+                }
+            }
+        }
+        function dashboardReportCharts(widgets) {
+            const chartKeys = ['incomeExpenses', 'budgetVsActual', 'savingsGrowth', 'accountDistribution', 'cashFlow'],
+                selectedCharts = chartKeys.filter(key => widgets[key]);
+            if (!selectedCharts.length) return '';
+            const model = buildReportChartModel();
+            if (!model.period.valid) return '<div class="empty card">The selected Reports date range is invalid.</div>';
+            return selectedCharts.map(key => model.charts[key]).join('')
+        }
+        V.rep = () => {
+            const model = buildReportChartModel(),
+                { period, charts, totalExpenses, expenseBreakdown } = model,
                 rangeLabel = REPORT_RANGES.find(([value]) => value === U.reportRange)?.[1] || 'Monthly',
                 selectedReportFilters = [U.ra ? A(U.ra)?.name : '', U.rc ? C(U.rc)?.name : ''].filter(Boolean),
                 activeReportFilterCount = Number(!!U.ra) + Number(!!U.rc);
-            const chartCard = (title, chart, className = '') => `<section class="card report-card${className ? ` ${className}` : ''}"><h3>${title}</h3>${chart}</section>`;
             return `${window.PocketPageHeader({ eyebrow: 'MAKE SENSE OF YOUR MONEY', title: 'Reports' })}
 <div class="card report-filter-toolbar"><div class="report-filter-toolbar-copy"><small>${rangeLabel} overview${selectedReportFilters.length ? ` · ${selectedReportFilters.map(esc).join(' · ')}` : ''}</small><b>${period.valid ? reportDateRangeLabel(period.start, period.end) : 'Choose a valid date range.'}</b></div><button type="button" class="b2" aria-label="Open report filters${activeReportFilterCount ? `, ${activeReportFilterCount} active` : ''}" onclick="PocketReports.openFilters()">Filters${ic('arrow-down')}</button></div>
 ${period.valid ? `<div class="g g2 report-grid">
-${chartCard('Income vs. expenses', incomeExpenses, 'report-income-expenses')}
+${charts.incomeExpenses}
 <section class="card report-card report-expense-card"><div class="report-expense-total"><small>Total expenses</small><strong>${peso(totalExpenses)}</strong></div><div class="report-expense-breakdown-heading"><h3>Expense breakdown</h3><span>By category</span></div><div class="report-expense-categories">${expenseBreakdown}</div></section>
-${chartCard('Monthly Spending Trends', spendingTrend)}
-${chartCard('Budget vs. Actual', budgetVsActual)}
-${chartCard('Savings Growth', savingsGrowth)}
-${chartCard('Account Distribution', accountDistribution)}
-${chartCard('Cash Flow', cashFlowChart)}
+${charts.spendingTrend}
+${charts.budgetVsActual}
+${charts.savingsGrowth}
+${charts.accountDistribution}
+${charts.cashFlow}
 </div>` : `<div class="empty card">The start date must be on or before the end date.</div>`}`
         };
 
     window.PocketReports = {
         openFilters: openReportFilters,
         applyFilters: applyReportFilters,
-        openTransactions: openReportTransactions
+        openTransactions: openReportTransactions,
+        dashboardCharts: dashboardReportCharts
     };
-    V.rep.destroyCharts = destroyReportCharts;
-    V.rep.afterRender = renderReportCharts;
+    V.rep.destroyCharts = () => window.PocketReportCharts.destroy();
+    V.rep.afterRender = root => window.PocketReportCharts.render(root);
     window.PocketFeatures['rep'] = V.rep;
 })();

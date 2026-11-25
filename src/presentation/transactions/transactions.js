@@ -291,7 +291,7 @@
         document.addEventListener('click', event => {
             const panel = document.querySelector('#transaction-advanced-filters'),
                 target = event.target;
-            if (!panel || panel.hidden || target.closest('.transaction-filter-row') || target.closest('.pocket-select-overlay')) return;
+            if (!panel || panel.hidden || target.closest('.transaction-search-wrap') || target.closest('.pocket-select-overlay')) return;
             closeFilters();
         });
         document.addEventListener('keydown', event => {
@@ -311,13 +311,12 @@
                 filtersOpen = transactionFiltersOpen || Boolean(U.ty);
             return `${window.PocketPageHeader({ eyebrow: 'YOUR MONEY, IN MOTION', title: 'Transactions' })}
 <div class="f transaction-filters">
-  <label class="transaction-search"><img src="assets/dashboard-icons/search.svg" width="24" height="24" alt=""><input aria-label="Search transactions" placeholder="Search transactions" value="${esc(U.q)}" oninput="U.q=this.value;PocketFeatures.tx.refreshList()"></label>
-  <div class="transaction-filter-row">
-    <div class="transaction-filter-chip"><select aria-label="Filter by category" onchange="U.c=this.value;PocketFeatures.tx.refreshList()">${options(D.cats, U.c, 'All categories')}</select></div>
-    <div class="transaction-filter-chip"><select aria-label="Filter by account" onchange="U.a=this.value;PocketFeatures.tx.refreshList()">${options(D.acc, U.a, 'All accounts')}</select></div>
-    <button type="button" class="transaction-filters-toggle" id="transaction-filters-toggle" aria-controls="transaction-advanced-filters" aria-expanded="${filtersOpen}" onclick="PocketFeatures.tx.toggleFilters()"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4"/></svg><span>Filters</span></button>
+  <div class="transaction-search-wrap">
+    <div class="transaction-search"><img src="assets/dashboard-icons/search.svg" width="24" height="24" alt=""><input aria-label="Search transactions" placeholder="Search transactions" value="${esc(U.q)}" oninput="U.q=this.value;PocketFeatures.tx.refreshList()"><button type="button" class="transaction-filters-toggle" id="transaction-filters-toggle" aria-controls="transaction-advanced-filters" aria-expanded="${filtersOpen}" onclick="PocketFeatures.tx.toggleFilters()"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4"/></svg><span>Filters</span></button></div>
     <div class="transaction-advanced-filters" id="transaction-advanced-filters"${filtersOpen ? '' : ' hidden'}>
-      <label>Type<select aria-label="Filter by type" onchange="U.ty=this.value;PocketFeatures.tx.refreshList()">${typeOptions.map(([value, label]) => `<option value="${value}"${value === U.ty ? ' selected' : ''}>${label}</option>`).join('')}</select></label>
+      <div class="transaction-advanced-filter"><span>Category</span><select aria-label="Filter by category" onchange="U.c=this.value;PocketFeatures.tx.refreshList()">${options(D.cats, U.c, 'All categories')}</select></div>
+      <div class="transaction-advanced-filter"><span>Account</span><select aria-label="Filter by account" onchange="U.a=this.value;PocketFeatures.tx.refreshList()">${options(D.acc, U.a, 'All accounts')}</select></div>
+      <div class="transaction-advanced-filter"><span>Type</span><select aria-label="Filter by type" onchange="U.ty=this.value;PocketFeatures.tx.refreshList()">${typeOptions.map(([value, label]) => `<option value="${value}"${value === U.ty ? ' selected' : ''}>${label}</option>`).join('')}</select></div>
     </div>
   </div>
   <div class="transaction-date-range">

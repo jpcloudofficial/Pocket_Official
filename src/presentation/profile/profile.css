@@ -366,3 +366,133 @@ html:not([data-theme=light])[data-view="prof"] #m .cloud-google-button{
             background: #b8ef76;
             color: #122016
         }
+
+.profile-about-card{
+            grid-column: 1 / -1;
+            display: grid;
+            gap: 16px
+        }
+.profile-about-title{
+            margin: 0;
+            font-size: 22px;
+            line-height: 1.25;
+            letter-spacing: -.02em
+        }
+html[data-view="prof"] #m .profile-about-card .profile-about-title{
+            margin: 0;
+            font-size: 22px
+        }
+.profile-about-header{
+            display: flex;
+            align-items: center;
+            gap: 14px
+        }
+.profile-about-avatar{
+            display: grid;
+            width: 56px;
+            height: 56px;
+            flex: none;
+            place-items: center;
+            overflow: hidden;
+            border-radius: 18px;
+            background: var(--sq);
+            color: var(--in)
+        }
+.profile-about-avatar img{
+            width: 100%;
+            height: 100%;
+            object-fit: cover
+        }
+.profile-about-identity{
+            display: grid;
+            min-width: 0;
+            gap: 3px
+        }
+.profile-about-identity strong{
+            font-size: 14px
+        }
+.profile-about-identity small{
+            color: var(--mu);
+            font-size: 12px
+        }
+.profile-about-copy{
+            display: grid;
+            gap: 10px
+        }
+.profile-about-copy h4{
+            margin: 0;
+            font-size: 17px;
+            line-height: 1.35
+        }
+.profile-about-copy p{
+            margin: 0;
+            color: var(--mu);
+            font-size: 13px;
+            line-height: 1.6
+        }
+.profile-about-more{
+            padding-top: 10px;
+            border-top: 1px solid var(--bd)
+        }
+.profile-about-more summary{
+            color: var(--in);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer
+        }
+.profile-about-more[open] summary{
+            margin-bottom: 10px
+        }
+.profile-about-more-copy{
+            display: grid;
+            gap: 8px
+        }
+.profile-about-links{
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+            gap: 8px
+        }
+.profile-about-link{
+            display: inline-flex;
+            width: 100%;
+            min-width: 0;
+            min-height: 44px;
+            align-items: center;
+            gap: 8px;
+            justify-content: flex-start;
+            padding: 9px 12px;
+            border: 1px solid var(--bd);
+            border-radius: 12px;
+            background: var(--sq);
+            color: var(--tx);
+            font-size: 12px;
+            font-weight: 600;
+            text-decoration: none
+        }
+.profile-about-link:hover{
+            border-color: var(--in)
+        }
+.profile-about-link-label{
+            flex: 1;
+            min-width: 0
+        }
+.profile-about-link:focus-visible{
+            outline: 2px solid var(--in);
+            outline-offset: 3px
+        }
+.profile-about-link-icon{
+            display: inline-flex;
+            color: var(--in)
+        }
+.profile-about-link-icon .ic{
+            width: 16px;
+            height: 16px
+        }
+.profile-about-link-arrow{
+            display: inline-flex;
+            color: var(--mu)
+        }
+.profile-about-link-arrow .ic{
+            width: 14px;
+            height: 14px
+        }

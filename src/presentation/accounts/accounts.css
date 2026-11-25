@@ -21,17 +21,12 @@
             padding: 0 16px;
             border: 0;
             border-radius: var(--pocket-fab-radius);
-            background: var(--cd);
+            background: #203329;
             color: var(--tx);
             box-shadow: var(--pocket-fab-shadow);
             font: inherit;
             font-weight: 700;
             cursor: pointer
-        }
-.pocket-account-transfer svg{
-            width: 24px;
-            height: 24px;
-            flex: none
         }
 body.pocket-modal-open .pocket-account-transfer{
             display: none !important

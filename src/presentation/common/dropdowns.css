@@ -127,6 +127,17 @@
     font-weight: 700
 }
 
+.pocket-select-empty {
+    display: flex;
+    min-height: 46px;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    padding: 8px 12px;
+    color: var(--mu);
+    text-align: center
+}
+
 .pocket-select-search-overlay {
     display: flex;
     align-items: flex-end;

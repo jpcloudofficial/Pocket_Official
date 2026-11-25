@@ -237,6 +237,9 @@
 .dashboard-empty-reports small{
             color: var(--mu)
         }
+.dashboard-report-grid{
+            margin-top: 14px
+        }
 :root[data-theme="dark"][data-view="dash"]{
             color-scheme: dark;
             --bg: #0b100e;

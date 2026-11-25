@@ -19,6 +19,7 @@ function loadClassicScript(path) {
 
 async function initialize() {
   await loadClassicScript('src/app/pocket-app-legacy.js');
+  await loadClassicScript('src/presentation/common/report-charts.js');
 
   const featureTemplates = await Promise.all(
     Object.entries(FEATURES).map(async ([id, feature]) => [id, await componentLoader.loadHtml(feature.html)]),
