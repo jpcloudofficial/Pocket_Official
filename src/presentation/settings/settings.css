@@ -197,6 +197,16 @@
     line-height: 1.5
 }
 
+html[data-theme=light] .settings-cta:hover,
+html[data-theme=light] .settings-card .dashboard-layout-setting:hover{
+    background: #E4F0E4
+}
+
+html[data-theme=light] .settings-theme-toggle:hover{
+    background: var(--sq);
+    color: var(--tx)
+}
+
 @media(max-width:760px) {
     .settings-grid{
         grid-template-columns: minmax(0, 1fr)

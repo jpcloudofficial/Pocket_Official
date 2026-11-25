@@ -4,10 +4,10 @@
     gap: 12px;
     margin: 0 0 16px;
     padding: 15px 16px;
-    border: 1px solid #554829;
+    border: 1px solid var(--warning-border);
     border-radius: 17px;
-    background: #30291b;
-    color: #f0cf75
+    background: var(--warning-bg);
+    color: var(--warning-text)
 }
 
 .budgets-overview-alert-icon {
@@ -35,7 +35,7 @@
 }
 
 .budgets-overview-alert small {
-    color: #d6bd79;
+    color: var(--warning-muted);
     font-size: 12px;
     line-height: 1.45
 }

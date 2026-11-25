@@ -447,3 +447,18 @@ html[data-view="cash"] #m .cashback-summary > b{
                 padding-top: 24px
             }
 }
+
+html[data-theme=light][data-view="cash"] #m .cashback-summary{
+            background: var(--sq)
+        }
+html[data-theme=light][data-view="cash"] #m .cashback-card-actions button{
+            background: var(--sq);
+            color: var(--tx)
+        }
+html[data-theme=light][data-view="cash"] #m .cashback-card-actions button:hover{
+            background: #E4F0E4
+        }
+html[data-theme=light][data-view="cash"] #m .cashback-card-actions button:focus-visible{
+            outline: 2px solid var(--in);
+            outline-offset: 2px
+        }
