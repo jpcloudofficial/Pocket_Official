@@ -1722,6 +1722,14 @@
             color: var(--ex)
         }
 
+        .quick-add-icon.transfer {
+            color: var(--tr)
+        }
+
+        .quick-add-options > button:hover .quick-add-icon {
+            color: #122016
+        }
+
         .quick-add-icon svg {
             width: 22px;
             height: 22px
@@ -1739,7 +1747,7 @@
             min-height: 52px;
             border: 0;
             border-radius: 14px;
-            background: var(--sq);
+            background: #203329;
             color: var(--tx);
             justify-content: center;
             text-align: center

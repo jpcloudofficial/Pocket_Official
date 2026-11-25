@@ -441,10 +441,6 @@ html[data-view="shop"] #m .shopping-list-item-amount{
             border-radius: var(--pocket-fab-radius);
             font-size: 14px
         }
-.shopping-list-action svg{
-            width: 16px;
-            height: 16px
-        }
 .shopping-list-bottom-actions{
             display: grid;
             grid-template-columns: repeat(2, minmax(0, 1fr));

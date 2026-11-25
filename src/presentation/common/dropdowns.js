@@ -122,6 +122,15 @@
                 optionButtons.push({ value: option.value, button: item });
                 optionsList.append(item)
             });
+            if (!searchable && availableOptions.length === 0) {
+                const emptyState = document.createElement('p');
+                emptyState.className = 'pocket-select-empty';
+                emptyState.setAttribute('role', 'status');
+                emptyState.textContent = /account/i.test(label) ? 'No accounts available.' : 'No options available.';
+                menu.removeAttribute('role');
+                menu.removeAttribute('aria-label');
+                menu.append(emptyState)
+            }
             if (searchable) {
                 searchInput.addEventListener('input', () => {
                     const query = searchInput.value.trim().toLocaleLowerCase();

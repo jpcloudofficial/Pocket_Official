@@ -54,13 +54,18 @@
                 `<div class="g g2">${reportCards.join('')}</div>` :
                 `<div class="card dashboard-empty-reports"><span aria-hidden="true">${ic('bar-chart-3')}</span><div><b>Your reports will appear here</b><small>Add your first transaction to see income, expenses, and trends.</small></div></div>` :
                 '';
+            const dashboardReportCards = window.PocketReports.dashboardCharts(widgets),
+                dashboardReportWidget = dashboardReportCards ?
+                    `<div class="g g2 dashboard-report-grid">${dashboardReportCards}</div>` :
+                    '';
             const emptyDashboard = DASHBOARD_WIDGETS.some(([id]) => widgets[id]) ? '' :
                 '<div class="empty card">No dashboard sections are visible. Go to Settings and select Customize Dashboard to add sections.</div>';
             const hour = new Date().getHours(),
                 greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening',
                 dashboardTitle = D.name ? `${greeting}, ${D.name}` : greeting;
-            return `${window.PocketPageHeader({ eyebrow: 'LET’S MAKE A FRESH START', title: dashboardTitle })}${budgetAlert}${summaryWidget}${gettingStartedChecklist()}${shortcutsWidget}<button type="button" class="dashboard-add-button" onclick="primaryAdd()">${ic('plus')}<span>Add transaction</span></button>${actionsWidget}${accountsWidget}${transactionsWidget}${reportsWidget}${emptyDashboard}`
+            return `${window.PocketPageHeader({ eyebrow: 'LET’S MAKE A FRESH START', title: dashboardTitle })}${budgetAlert}${summaryWidget}${gettingStartedChecklist()}${shortcutsWidget}<button type="button" class="dashboard-add-button" onclick="primaryAdd()">${ic('plus')}<span>Add transaction</span></button>${actionsWidget}${accountsWidget}${transactionsWidget}${reportsWidget}${dashboardReportWidget}${emptyDashboard}`
         };
 
+    V.dash.afterRender = root => window.PocketReportCharts.render(root);
     window.PocketFeatures['dash'] = V.dash;
 })();

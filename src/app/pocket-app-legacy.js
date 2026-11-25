@@ -67,7 +67,12 @@ function syncDateInput(input) {
             ['transactions', 'Recent transactions', true],
             ['spendingTrend', 'Spending trend report', false],
             ['accountBalanceHistory', 'Account balance history report', false],
-            ['monthlySavings', 'Monthly savings report', false]
+            ['monthlySavings', 'Monthly savings report', false],
+            ['incomeExpenses', 'Income vs. expenses report', false],
+            ['budgetVsActual', 'Budget vs. Actual report', false],
+            ['savingsGrowth', 'Savings Growth report', false],
+            ['accountDistribution', 'Account Distribution report', false],
+            ['cashFlow', 'Cash Flow report', false]
         ];
         const PROFILE_COLORS = [
             ['Green', '#16a34a'],
@@ -2498,7 +2503,7 @@ function syncDateInput(input) {
                 window.dispatchEvent(new CustomEvent('pocket:viewchange', { detail: { view: 'onboarding' } }));
                 document.querySelector('meta[name=theme-color]').content =
                     (onboardingDraft()?.theme || D.theme) === 'dark' ? '#000000' : '#f5f5f4';
-                window.PocketFeatures?.rep?.destroyCharts?.();
+                window.PocketReportCharts?.destroy();
                 $('#m').dataset.view = 'onboarding';
                 $('#m').innerHTML = renderFeatureTemplate('onboarding', window.PocketFeatures.onboarding());
                 wireRenderedSelects($('#m'));
@@ -2515,15 +2520,12 @@ function syncDateInput(input) {
                 : D.theme === 'dark' ? '#000000' : '#f5f5f4';
             syncNavbar();
             $('#m').dataset.view = U.v;
-            window.PocketFeatures?.rep?.destroyCharts?.();
+            window.PocketReportCharts?.destroy();
             $('#m').innerHTML = renderFeatureTemplate(U.v, renderDemoModeBanner() + V[U.v]());
-            if (U.v === 'rep') {
-                const reportRoot = $('#m');
-                const charts = window.PocketFeatures.rep.afterRender(reportRoot);
-                requestAnimationFrame(() => charts.forEach(chart => {
-                    if (chart.canvas?.isConnected) chart.resize()
-                }));
-            }
+            const charts = window.PocketFeatures[U.v]?.afterRender?.($('#m')) || [];
+            requestAnimationFrame(() => charts.forEach(chart => {
+                if (chart.canvas?.isConnected) chart.resize()
+            }));
             wireRenderedSelects($('#m'));
             setupTitleMenu();
             if (U.v === 'acc') wireAccountStack();

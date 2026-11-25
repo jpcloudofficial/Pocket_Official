@@ -1,6 +1,24 @@
 (() => {
     window.PocketFeatures = window.PocketFeatures || {};
 
+    const ABOUT_ME_LINKS = [
+        {
+            label: 'Buy me a Ko-fi',
+            href: 'https://ko-fi.com/jpcloud',
+            icon: 'heart'
+        },
+        {
+            label: 'Pocket repository on GitHub',
+            href: 'https://github.com/jpcloudofficial/Pocket_Official',
+            icon: 'laptop'
+        },
+        {
+            label: 'Send feedback or report a bug',
+            href: 'https://github.com/jpcloudofficial/Pocket_Official/issues',
+            icon: 'alert-triangle'
+        }
+    ];
+
     function profileSettingsCard() {
         const profileName = typeof D.name === 'string' ? D.name.trim() : '';
         const profileInitials = profileName.split(/\s+/).slice(0, 2).map(part => part.charAt(0)).join('').toUpperCase() || 'P';
@@ -19,8 +37,33 @@
   <div id="cloud-conflict" class="cloud-conflict" hidden><p>Cloud data changed while this device also has local changes. Choose which copy to keep.</p><div class="settings-actions"><button class="b1" type="button" data-cloud-action="use-cloud">Use cloud copy</button><button class="b2" type="button" data-cloud-action="keep-local">Keep this device</button></div></div>
 </div>`;
 
+    const aboutMeCard = () => {
+        const links = ABOUT_ME_LINKS.map(link =>
+            `<a class="profile-about-link" href="${esc(link.href)}" target="_blank" rel="noopener noreferrer"><span class="profile-about-link-icon" aria-hidden="true">${ic(link.icon)}</span><span class="profile-about-link-label">${esc(link.label)}</span><span class="profile-about-link-arrow" aria-hidden="true">${ic('arrow-up-right')}</span></a>`
+        ).join('');
+        return `<section class="card profile-about-card" aria-labelledby="profile-about-title">
+  <h3 class="profile-about-title" id="profile-about-title">About Me</h3>
+  <div class="profile-about-header">
+    <div class="profile-about-avatar" aria-hidden="true"><img src="src/presentation/profile/assets/cloud-avatar.png" alt=""></div>
+    <div class="profile-about-identity"><strong>Cloud</strong><small>Creator of Pocket</small></div>
+  </div>
+  <div class="profile-about-copy">
+    <h4>Hi, I'm the creator of Pocket.</h4>
+    <p>Pocket started as a personal project to make managing money, tracking expenses, and organizing financial goals easier.</p>
+    <details class="profile-about-more">
+      <summary>More about me</summary>
+      <div class="profile-about-more-copy">
+        <p>I built Pocket to create a personal finance tool that feels straightforward, flexible, and easy to use every day. It's a project that continues to evolve as I learn, improve, and add new features.</p>
+        <p>Thank you for using Pocket and being part of its journey.</p>
+      </div>
+    </details>
+  </div>
+  <nav class="profile-about-links" aria-label="About Cloud and Pocket links">${links}</nav>
+</section>`;
+    };
+
     V.prof = () =>
-        `${window.PocketPageHeader({ eyebrow: 'A LITTLE MORE YOU', title: 'Your profile' })}<div class="g g2 profile-layout">${profileSettingsCard()}${cloudSyncCard()}</div>`;
+        `${window.PocketPageHeader({ eyebrow: 'A LITTLE MORE YOU', title: 'Your profile' })}<div class="g g2 profile-layout">${profileSettingsCard()}${cloudSyncCard()}${aboutMeCard()}</div>`;
 
     V.prof.onEnter = () => {
         if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;

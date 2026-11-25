@@ -392,7 +392,7 @@
       transferButton.type = 'button';
       transferButton.className = 'pocket-account-transfer pocket-hidden';
       transferButton.setAttribute('aria-label', 'Transfer');
-      transferButton.innerHTML = `${icon('arrow')}<span>Transfer</span>`;
+      transferButton.innerHTML = '<span>Transfer</span>';
       transferButton.addEventListener('click', () => {
         if (typeof window.quickAdd === 'function') window.quickAdd('transfer');
       });

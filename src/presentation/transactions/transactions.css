@@ -231,11 +231,16 @@ html[data-view="tx"] body::-webkit-scrollbar-thumb:hover{
             min-width: 0;
             height: 52px;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
             padding: 0 14px;
             border: 1px solid var(--bd);
             border-radius: 14px;
             background: var(--cd)
+        }
+#m[data-view="tx"] .transaction-search-wrap{
+            position: relative;
+            width: 100%;
+            min-width: 0
         }
 #m[data-view="tx"] .transaction-search img{
             display: block;
@@ -244,8 +249,9 @@ html[data-view="tx"] body::-webkit-scrollbar-thumb:hover{
             flex: none
         }
 #m[data-view="tx"] .transaction-search input{
-            width: 100%;
+            width: auto;
             min-width: 0;
+            flex: 1;
             height: 100%;
             padding: 0;
             border: 0;
@@ -262,69 +268,27 @@ html[data-view="tx"] body::-webkit-scrollbar-thumb:hover{
 #m[data-view="tx"] .transaction-search:focus-within{
             border-color: var(--in)
         }
-#m[data-view="tx"] .transaction-filter-row{
-            position: relative;
-            display: grid;
-            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
-            gap: 8px
-        }
-#m[data-view="tx"] .transaction-filter-chip,
 #m[data-view="tx"] .transaction-filters-toggle{
             display: flex;
             min-width: 0;
-            min-height: 40px;
+            min-height: 36px;
             align-items: center;
             justify-content: center;
             border: 0;
             border-radius: 999px;
             background: var(--sq)
         }
-#m[data-view="tx"] .transaction-filter-chip select{
-            width: 100%;
-            min-width: 0;
-            height: 40px;
-            padding: 0 12px;
-            overflow: hidden;
-            border: 0;
-            border-radius: 999px;
-            appearance: none;
-            -webkit-appearance: none;
-            background: transparent;
-            background-image: none;
-            color: var(--tx);
-            font: inherit;
-            font-size: 11px;
-            text-overflow: ellipsis;
-            white-space: nowrap
-        }
-#m[data-view="tx"] .transaction-filter-chip .form-select-trigger{
-            width: 100%;
-            min-width: 0;
-            height: 40px;
-            padding: 0 12px;
-            overflow: hidden;
-            border: 0;
-            border-radius: 999px;
-            background-color: transparent;
-            background-image: none;
-            color: var(--tx);
-            font-size: 11px;
-            line-height: 1;
-            text-align: center;
-            text-overflow: ellipsis;
-            white-space: nowrap
-        }
-#m[data-view="tx"] .transaction-filter-chip select:focus-visible,
 #m[data-view="tx"] .transaction-filters-toggle:focus-visible{
             outline: 2px solid var(--in);
             outline-offset: 3px
         }
 #m[data-view="tx"] .transaction-filters-toggle{
             gap: 6px;
-            padding: 0 12px;
+            flex: none;
+            padding: 0 10px;
             color: var(--tx);
             font: inherit;
-            font-size: 11px;
+            font-size: 12px;
             font-weight: 500;
             cursor: pointer
         }
@@ -369,8 +333,10 @@ html[data-view="tx"] body::-webkit-scrollbar-thumb:hover{
             top: calc(100% + 8px);
             right: 0;
             z-index: 10;
-            width: min(260px, calc(100vw - 48px));
-            padding: 12px;
+            display: grid;
+            width: min(320px, calc(100vw - 48px));
+            gap: 12px;
+            padding: 14px;
             border: 1px solid var(--bd);
             border-radius: 14px;
             background: var(--cd);
@@ -379,15 +345,27 @@ html[data-view="tx"] body::-webkit-scrollbar-thumb:hover{
 #m[data-view="tx"] .transaction-advanced-filters[hidden]{
             display: none
         }
-#m[data-view="tx"] .transaction-advanced-filters label{
+#m[data-view="tx"] .transaction-advanced-filter{
             display: grid;
             gap: 6px;
             color: var(--mu);
             font-size: 12px
         }
-#m[data-view="tx"] .transaction-advanced-filters select{
+#m[data-view="tx"] .transaction-advanced-filters select,
+#m[data-view="tx"] .transaction-advanced-filters .form-select-trigger{
             width: 100%;
             min-width: 0
+        }
+#m[data-view="tx"] .transaction-advanced-filters .form-select-trigger{
+            height: 40px;
+            min-height: 40px;
+            padding: 0 12px;
+            border: 0;
+            border-radius: 999px;
+            background-color: var(--sq);
+            background-image: none;
+            color: var(--tx);
+            font-size: 12px
         }
 #m[data-view="tx"] #tl.transaction-list{
             width: 100%;
