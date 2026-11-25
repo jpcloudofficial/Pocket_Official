@@ -1354,3 +1354,53 @@ body.pocket-onboarding-active main{
                 transition: none
             }
 }
+
+html[data-theme=light] .onboarding-hero{
+            background: #E4F0E4;
+            color: var(--tx)
+        }
+html[data-theme=light] .onboarding-hero p,
+html[data-theme=light] .onboarding-flow-header > span{
+            color: var(--mu)
+        }
+html[data-theme=light] .onboarding-hero .onboarding-tagline{
+            color: var(--tx)
+        }
+html[data-theme=light] .onboarding-brand-icon{
+            background: var(--in);
+            color: #fff
+        }
+html[data-theme=light] .onboarding-primary{
+            background: #b8ef76;
+            color: #122016
+        }
+html[data-theme=light] .onboarding-sticky-header{
+            background: var(--bg);
+            color: var(--tx)
+        }
+html[data-theme=light] .onboarding-choice.is-selected{
+            background: #b8ef76;
+            color: #122016
+        }
+html[data-theme=light] .onboarding-primary:hover:not(:disabled),
+html[data-theme=light] .onboarding-choice.is-selected:hover:not(:disabled){
+            background: #c5f58f;
+            color: #122016
+        }
+html[data-theme=light] .onboarding-choice:hover:not(.is-selected):not(:disabled){
+            border-color: #C4D8C7;
+            background: var(--sq)
+        }
+html[data-theme=light] .onboarding-complete-hero{
+            background: #E4F0E4;
+            color: var(--tx)
+        }
+html[data-theme=light] .onboarding-complete-mark{
+            color: var(--in)
+        }
+html[data-theme=light] .onboarding-complete-hero h1{
+            color: var(--tx)
+        }
+html[data-theme=light] .onboarding-complete-hero p{
+            color: var(--mu)
+        }

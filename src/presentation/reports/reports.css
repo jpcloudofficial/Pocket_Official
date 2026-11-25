@@ -179,6 +179,10 @@
             background: var(--in);
             color: var(--bg)
         }
+:root[data-theme=light] #ov.report-filter-open .report-filter-sheet-actions .b1{
+            background: #b8ef76;
+            color: #122016
+        }
 #ov.report-filter-open .report-filter-sheet-actions .b2{
             border-color: transparent;
             background: var(--cd);

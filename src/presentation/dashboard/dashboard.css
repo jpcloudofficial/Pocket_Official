@@ -736,3 +736,65 @@ html:not([data-theme=light]) .dashboard-add-button{
             outline: 2px solid var(--in);
             outline-offset: 2px
         }
+
+:root[data-theme="light"][data-view="dash"]{
+            --dashboard-icon-bg: var(--sq);
+            --dashboard-nav-active: #E4F0E4
+        }
+html[data-theme="light"][data-view="dash"] #m .dashboard-balance-card{
+            background: #b8ef76;
+            color: #1C2A20
+        }
+html[data-theme="light"][data-view="dash"] #m .dashboard-balance-label small,
+html[data-theme="light"][data-view="dash"] #m .dashboard-balance-card .pocket-privacy-button,
+html[data-theme="light"][data-view="dash"] #m .dashboard-balance-card .hb,
+html[data-theme="light"][data-view="dash"] #m .dashboard-balance-card .hn{
+            color: #1C2A20 !important
+        }
+html[data-theme="light"][data-view="dash"] #m .dashboard-balance-card .pocket-summary-amounts,
+html[data-theme="light"][data-view="dash"] #m .dashboard-balance-card .two small{
+            color: #526357
+        }
+html[data-theme="light"][data-view="dash"] #m .dashboard-add-button{
+            border-color: transparent;
+            background: #b8ef76;
+            color: #122016
+        }
+html[data-theme="light"][data-view="dash"] #m .dashboard-add-button:hover{
+            background: #c5f58f
+        }
+#m[data-view="dash"] .quick-action-icon .dashboard-icon{
+            display: none
+        }
+#m[data-view="dash"] .quick-action-icon::before{
+            width: 24px;
+            height: 24px;
+            background: currentColor;
+            content: "";
+            -webkit-mask-position: center;
+            mask-position: center;
+            -webkit-mask-repeat: no-repeat;
+            mask-repeat: no-repeat;
+            -webkit-mask-size: contain;
+            mask-size: contain
+        }
+#m[data-view="dash"] .quick-action-budget::before{
+            -webkit-mask-image: url("../../../assets/dashboard-icons/chart.svg");
+            mask-image: url("../../../assets/dashboard-icons/chart.svg")
+        }
+#m[data-view="dash"] .quick-action-cashback::before{
+            -webkit-mask-image: url("../../../assets/dashboard-icons/gift.svg");
+            mask-image: url("../../../assets/dashboard-icons/gift.svg")
+        }
+#m[data-view="dash"] .quick-action-recurring::before{
+            -webkit-mask-image: url("../../../assets/dashboard-icons/repeat.svg");
+            mask-image: url("../../../assets/dashboard-icons/repeat.svg")
+        }
+#m[data-view="dash"] .quick-action-savings::before{
+            -webkit-mask-image: url("../../../assets/dashboard-icons/goal.svg");
+            mask-image: url("../../../assets/dashboard-icons/goal.svg")
+        }
+#m[data-view="dash"] .quick-action-shopping::before{
+            -webkit-mask-image: url("../../../assets/dashboard-icons/cart.svg");
+            mask-image: url("../../../assets/dashboard-icons/cart.svg")
+        }

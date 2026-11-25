@@ -462,6 +462,17 @@ html[data-view="shop"] #m .shopping-list-action{
             background: var(--in);
             color: var(--bg)
         }
+html[data-theme=light][data-view="shop"] #m .shopping-list-action{
+            background: #b8ef76;
+            color: #122016
+        }
+html[data-theme=light][data-view="shop"] #m .shopping-list-back{
+            background: var(--cd);
+            color: var(--tx)
+        }
+html[data-theme=light][data-view="shop"] #m .shopping-list-back:hover{
+            background: var(--sq)
+        }
 @media(max-width:760px) {
             .shopping-list-screen-header{
                 margin-top: -16px;

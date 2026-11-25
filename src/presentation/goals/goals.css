@@ -206,6 +206,17 @@ html[data-view="goal"] #m .goal-estimate{
             width: 18px;
             height: 18px
         }
+html[data-theme=light][data-view="goal"] #m .goal-fund-button{
+            background: var(--sq);
+            color: var(--tx)
+        }
+html[data-theme=light][data-view="goal"] #m .goal-fund-button:hover{
+            background: #E4F0E4
+        }
+html[data-theme=light][data-view="goal"] #m .goal-fund-button:focus-visible{
+            outline: 2px solid var(--in);
+            outline-offset: 2px
+        }
 #f.pocket-goal-form .form-screen-header{
             min-height: 64px;
             padding: 8px 24px 4px

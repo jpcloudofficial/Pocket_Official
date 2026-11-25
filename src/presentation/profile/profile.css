@@ -366,6 +366,10 @@ html:not([data-theme=light])[data-view="prof"] #m .cloud-google-button{
             background: #b8ef76;
             color: #122016
         }
+:root[data-theme=light][data-view="prof"] #m .cloud-google-button{
+            background: #b8ef76;
+            color: #122016
+        }
 
 .profile-about-card{
             grid-column: 1 / -1;
@@ -479,6 +483,9 @@ html[data-view="prof"] #m .profile-about-card .profile-about-title{
 .profile-about-link:focus-visible{
             outline: 2px solid var(--in);
             outline-offset: 3px
+        }
+.profile-about-link:focus:not(:focus-visible){
+            outline: none
         }
 .profile-about-link-icon{
             display: inline-flex;

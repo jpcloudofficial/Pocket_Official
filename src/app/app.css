@@ -1,14 +1,18 @@
 :root {
             color-scheme: light;
-            --bg: #f5f5f4;
-            --cd: #fff;
-            --tx: #1c1917;
-            --mu: #78716c;
-            --bd: #e7e5e4;
-            --in: #16a34a;
-            --ex: #ea580c;
+            --bg: #F6F8F5;
+            --cd: #FFFFFF;
+            --tx: #1C2A20;
+            --mu: #657367;
+            --bd: #DCE5DC;
+            --in: #287A48;
+            --ex: #B8493D;
             --tr: #2563eb;
-            --sq: #ece9e6;
+            --sq: #EDF3ED;
+            --warning-bg: #FFF7E6;
+            --warning-border: #F0D799;
+            --warning-text: #765400;
+            --warning-muted: #795D1E;
             box-sizing: border-box;
             overscroll-behavior-y: none;
             padding-top: env(safe-area-inset-top, 0px);
@@ -24,7 +28,11 @@
             --bd: #263a28;
             --sq: #223329;
             --in: #b8ef76;
-            --ex: #ffa899
+            --ex: #ffa899;
+            --warning-bg: #30291b;
+            --warning-border: #554829;
+            --warning-text: #f0cf75;
+            --warning-muted: #d6bd79
         }@media(prefers-color-scheme:dark) {
 
             :root:not([data-theme=light]) {
@@ -35,7 +43,11 @@
                 --bd: #263a28;
                 --sq: #223329;
                 --in: #b8ef76;
-                --ex: #ffa899
+                --ex: #ffa899;
+                --warning-bg: #30291b;
+                --warning-border: #554829;
+                --warning-text: #f0cf75;
+                --warning-muted: #d6bd79
             }
 }
 
@@ -437,6 +449,36 @@
 
         .b2 {
             background: var(--bd)
+        }
+
+        :root[data-theme=light] .b1 {
+            background: #b8ef76;
+            color: #122016
+        }
+
+        :root[data-theme=light] .b1:hover:not(:disabled) {
+            background: #c5f58f
+        }
+
+        :root[data-theme=light] .b2 {
+            background: var(--sq);
+            color: var(--tx)
+        }
+
+        :root[data-theme=light] .b2:hover:not(:disabled) {
+            background: #E4F0E4
+        }
+
+        :root[data-theme=light] .b1:focus-visible,
+        :root[data-theme=light] .b2:focus-visible {
+            outline: 2px solid var(--in);
+            outline-offset: 2px
+        }
+
+        :root[data-theme=light] .b1:disabled,
+        :root[data-theme=light] .b2:disabled {
+            cursor: not-allowed;
+            opacity: .55
         }
 
         .ib {
@@ -1359,6 +1401,10 @@
                 background: #142019;
                 overflow: hidden
             }
+
+            :root[data-theme=light] .pocket-navbar-frame {
+                background: var(--bg)
+            }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1582,6 +1628,11 @@
 
         .form-type-tabs button:not(.is-active) {
             background: #263a28;
+            color: var(--tx)
+        }
+
+        :root[data-theme=light] #f.pocket-transaction-form .form-type-tabs button:not(.is-active) {
+            background: var(--cd);
             color: var(--tx)
         }
 
@@ -2202,4 +2253,59 @@
         #f.pocket-recurring-form .date-input-wrap input[type="date"] {
             min-height: 50px;
             padding: 12px
+        }
+
+}
+
+        :root[data-theme=light] #f > .row.end .b1 {
+            border-color: transparent;
+            background: #b8ef76;
+            color: #122016
+        }
+
+        :root[data-theme=light] #f > .row.end .b1:hover:not(:disabled) {
+            background: #c5f58f
+        }
+
+        :root[data-theme=light] #f > .row.end .b2,
+        :root[data-theme=light] .form-screen-header button {
+            border-color: var(--bd);
+            background: var(--sq);
+            color: var(--tx)
+        }
+
+        :root[data-theme=light] .quick-add-options > button {
+            border-color: var(--bd);
+            background: var(--cd);
+            box-shadow: 0 10px 28px rgba(28, 42, 32, .12);
+            color: var(--tx)
+        }
+
+        :root[data-theme=light] .quick-add-options > button:hover {
+            border-color: transparent;
+            background: #b8ef76;
+            color: #122016
+        }
+
+        :root[data-theme=light] .quick-add-options > button:hover .quick-add-icon,
+        :root[data-theme=light] .quick-add-options > button:hover .quick-add-icon.expense,
+        :root[data-theme=light] .quick-add-options > button:hover .quick-add-icon.transfer {
+            color: #122016
+        }
+
+        :root[data-theme=light] .quick-add-footer .b2 {
+            background: var(--sq);
+            color: var(--tx)
+        }
+
+        :root[data-theme=light] .quick-add-footer {
+            box-shadow: 0 -8px 20px rgba(28, 42, 32, .08)
+        }
+
+        :root[data-theme=light] #f > .row.end .b1:focus-visible,
+        :root[data-theme=light] #f > .row.end .b2:focus-visible,
+        :root[data-theme=light] .form-screen-header button:focus-visible,
+        :root[data-theme=light] .quick-add-options > button:focus-visible {
+            outline: 2px solid var(--in);
+            outline-offset: 2px
         }

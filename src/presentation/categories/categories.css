@@ -232,4 +232,9 @@
         background: var(--in);
         color: var(--bg);
     }
+
+    :root[data-theme=light] #f.pocket-category-form .ip .ib.sel {
+        background: #b8ef76;
+        color: #122016;
+    }
 }

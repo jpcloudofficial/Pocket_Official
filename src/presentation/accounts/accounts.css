@@ -526,3 +526,18 @@ html[data-view="acc"] .pocket-account-transfer{
             border-color: var(--in);
             box-shadow: 0 0 0 2px color-mix(in srgb, var(--in) 18%, transparent)
         }
+
+html[data-theme=light][data-view="acc"] #m .accounts-balance-card{
+            background: var(--sq);
+            color: var(--tx)
+        }
+html[data-theme=light][data-view="acc"] .pocket-account-transfer{
+            background: var(--cd);
+            color: var(--tx)
+        }
+html[data-theme=light][data-view="acc"] .pocket-account-transfer:hover{
+            background: var(--sq)
+        }
+html[data-theme=light][data-view="acc"] .fab.pocket-fab-labeled{
+            color: #122016
+        }

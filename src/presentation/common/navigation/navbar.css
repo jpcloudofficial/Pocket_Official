@@ -103,3 +103,71 @@ body {
         transition: none
     }
 }
+
+html[data-theme="light"],
+html[data-theme="light"] body {
+    background: #F6F8F5
+}
+
+html[data-theme="light"] #pocket-navbar {
+    border-color: #DCE5DC;
+    background: #FFFFFF;
+    box-shadow: 0 8px 24px #1c2a2014
+}
+
+html[data-theme="light"] #pocket-navbar::before {
+    background: #E4F0E4
+}
+
+html[data-theme="light"] #pocket-navbar button {
+    color: #657367
+}
+
+html[data-theme="light"] #pocket-navbar button[aria-current="page"] {
+    color: #287A48
+}
+
+html[data-theme="light"] #pocket-navbar button:focus-visible {
+    outline-color: #287A48
+}
+
+html[data-theme="light"] #pocket-navbar button[aria-current="page"] svg {
+    color: #287A48
+}
+
+html[data-theme="light"] #pocket-navbar img {
+    display: none
+}
+
+html[data-theme="light"] #pocket-navbar button:not([data-view="acc"])::before {
+    width: 24px;
+    height: 24px;
+    background: currentColor;
+    content: "";
+    -webkit-mask-position: center;
+    mask-position: center;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-size: contain;
+    mask-size: contain
+}
+
+html[data-theme="light"] #pocket-navbar button[data-view="dash"]::before {
+    -webkit-mask-image: url("../../../../assets/dashboard-icons/home.svg");
+    mask-image: url("../../../../assets/dashboard-icons/home.svg")
+}
+
+html[data-theme="light"] #pocket-navbar button[data-view="tx"]::before {
+    -webkit-mask-image: url("../../../../assets/dashboard-icons/activity.svg");
+    mask-image: url("../../../../assets/dashboard-icons/activity.svg")
+}
+
+html[data-theme="light"] #pocket-navbar button[data-view="rep"]::before {
+    -webkit-mask-image: url("../../../../assets/dashboard-icons/chart.svg");
+    mask-image: url("../../../../assets/dashboard-icons/chart.svg")
+}
+
+html[data-theme="light"] #pocket-navbar button[data-view="set"]::before {
+    -webkit-mask-image: url("../../../../assets/dashboard-icons/settings.svg");
+    mask-image: url("../../../../assets/dashboard-icons/settings.svg")
+}
