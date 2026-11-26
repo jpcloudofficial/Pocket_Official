@@ -364,7 +364,13 @@ html[data-view="acc"] .pocket-account-transfer:focus-visible{
             cursor: pointer
         }
 #m[data-view="acc"] .accounts-view-toggle span{
+            display: inline-flex;
+            align-items: center;
             font-size: 14px
+        }
+#m[data-view="acc"] .accounts-view-toggle .ic{
+            width: 14px;
+            height: 14px
         }
 #m[data-view="acc"] .accounts-list{
             padding: 18px 20px;

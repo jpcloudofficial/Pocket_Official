@@ -40,8 +40,7 @@ function syncDateInput(input) {
         } [c]));
         const MO = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
             MONTHS_LONG = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-        const dashboardIcon = name =>
-            `<img class="dashboard-icon" src="assets/dashboard-icons/${name}.svg" width="24" height="24" alt="">`;
+        const dashboardIcon = name => window.PocketIcons.render(name, { className: 'dashboard-icon', size: 24 });
         const ICONS = ['wallet', 'banknote', 'landmark', 'smartphone', 'piggy-bank', 'credit-card', 'coins', 'tag',
             'bus', 'utensils', 'shopping-cart', 'cookie', 'heart', 'shopping-bag', 'home', 'zap', 'repeat', 'film',
             'activity', 'shield', 'trending-up', 'briefcase', 'laptop', 'gift', 'calendar', 'rotate-ccw',
@@ -60,19 +59,18 @@ function syncDateInput(input) {
         const ONBOARDING_STEPS = ['accounts', 'categories', 'preferences', 'optional'];
         const ONBOARDING_HISTORY_STEPS = ['welcome', ...ONBOARDING_STEPS, 'complete'];
         const DASHBOARD_WIDGETS = [
-            ['summary', 'Balance summary', true],
-            ['shortcuts', 'Dashboard shortcuts (mobile)', true],
-            ['actions', 'Transaction actions', false],
-            ['accounts', 'Accounts', true],
-            ['transactions', 'Recent transactions', true],
-            ['spendingTrend', 'Spending trend report', false],
-            ['accountBalanceHistory', 'Account balance history report', false],
-            ['monthlySavings', 'Monthly savings report', false],
-            ['incomeExpenses', 'Income vs. expenses report', false],
-            ['budgetVsActual', 'Budget vs. Actual report', false],
-            ['savingsGrowth', 'Savings Growth report', false],
-            ['accountDistribution', 'Account Distribution report', false],
-            ['cashFlow', 'Cash Flow report', false]
+            ['summary', 'Balance summary', true, 'sections'],
+            ['shortcuts', 'Dashboard shortcuts (mobile)', true, 'sections'],
+            ['actions', 'Transaction actions', false, 'sections'],
+            ['accounts', 'Accounts', true, 'sections'],
+            ['transactions', 'Recent transactions', true, 'sections'],
+            ['expenseBreakdown', 'Expense breakdown report', false, 'reports'],
+            ['spendingTrend', 'Spending trend report', false, 'reports'],
+            ['incomeExpenses', 'Income vs. expenses report', false, 'reports'],
+            ['budgetVsActual', 'Budget vs. Actual report', false, 'reports'],
+            ['savingsGrowth', 'Savings Growth report', false, 'reports'],
+            ['accountDistribution', 'Account Distribution report', false, 'reports'],
+            ['cashFlow', 'Cash Flow report', false, 'reports']
         ];
         const PROFILE_COLORS = [
             ['Green', '#16a34a'],
@@ -422,76 +420,8 @@ function syncDateInput(input) {
             const n = new Date();
             return [iso(new Date(n.getFullYear(), n.getMonth(), 1)), iso(new Date(n.getFullYear(), n.getMonth() + 1, 0))]
         }
-        const IP = {
-                wallet: '<rect x="3" y="6" width="18" height="14" rx="4"/><path d="M3 11h18M16.5 15.5h1"/>',
-                banknote: '<rect x="3" y="7" width="18" height="10" rx="2.5"/><circle cx="12" cy="12" r="2.2"/>',
-                landmark: '<path d="M3 9l9-5 9 5H3zM6 12v6M10 12v6M14 12v6M18 12v6M3 20h18"/>',
-                smartphone: '<rect x="7" y="2.5" width="10" height="19" rx="3"/><path d="M11 18h2"/>',
-                'piggy-bank': '<ellipse cx="11.5" cy="13" rx="8" ry="6"/><path d="M8 18.5V21M15 18.5V21M19.5 12.5l2-.5M9 7.5 10.5 5l2 2"/><circle cx="16" cy="11" r=".5"/>',
-                'credit-card': '<rect x="2.5" y="5" width="19" height="14" rx="3"/><path d="M2.5 10h19M6 15h4"/>',
-                coins: '<circle cx="9" cy="9" r="6"/><circle cx="16" cy="16" r="5"/>',
-                tag: '<path d="M3 3h9l9 9-9 9-9-9z"/><circle cx="7.5" cy="7.5" r="1"/>',
-                bus: '<rect x="4" y="3.5" width="16" height="14" rx="3"/><path d="M4 11h16M7 20v-2.5M17 20v-2.5"/><circle cx="8" cy="14.2" r=".6"/><circle cx="16" cy="14.2" r=".6"/>',
-                utensils: '<path d="M7 3v8M4.5 3v5a2.5 2.5 0 0 0 5 0V3M7 11v10M17 21V3c-2.5 1.5-3 5-3 8h3"/>',
-                'shopping-cart': '<path d="M3 4h2.5l2 11h10l2-8H7"/><circle cx="9" cy="19.5" r="1.3"/><circle cx="17" cy="19.5" r="1.3"/>',
-                cookie: '<circle cx="12" cy="12" r="9"/><circle cx="9" cy="9" r=".8"/><circle cx="15" cy="10" r=".8"/><circle cx="10" cy="15" r=".8"/><circle cx="15.5" cy="15.5" r=".8"/>',
-                heart: '<path d="M12 20s-8-4.8-8-10.5A4.5 4.5 0 0 1 12 7a4.5 4.5 0 0 1 8 2.5C20 15.2 12 20 12 20z"/>',
-                'shopping-bag': '<path d="M5 8h14l-1 12H6L5 8z"/><path d="M9 8V6.5a3 3 0 0 1 6 0V8"/>',
-                home: '<path d="M3.5 11 12 4l8.5 7M6 9.5V20h12V9.5M10 20v-5h4v5"/>',
-                zap: '<path d="M13 2.5 5 13.5h6l-1 8 8-11h-6l1-8z"/>',
-                repeat: '<path d="M4 11V9a3 3 0 0 1 3-3h12l-3-3M20 13v2a3 3 0 0 1-3 3H5l3 3"/>',
-                film: '<rect x="3" y="4" width="18" height="16" rx="3"/><path d="M8 4v16M16 4v16M3 9h5M16 9h5M3 15h5M16 15h5"/>',
-                activity: '<path d="M2.5 12h4l3-7 5 14 3-7h4"/>',
-                shield: '<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6l8-3z"/>',
-                'trending-up': '<path d="M3 17l6-6 4 4 8-8M15 7h6v6"/>',
-                briefcase: '<rect x="3" y="7" width="18" height="13" rx="3"/><path d="M9 7V5a1.5 1.5 0 0 1 1.5-1.5h3A1.5 1.5 0 0 1 15 5v2M3 13h18"/>',
-                laptop: '<rect x="5" y="5" width="14" height="10" rx="2"/><path d="M2.5 19h19"/>',
-                gift: '<rect x="3.5" y="9" width="17" height="11" rx="2"/><path d="M3.5 13h17M12 9v11M12 9c-3 0-4.5-1-4.5-2.5S10 4 12 9zM12 9c3 0 4.5-1 4.5-2.5S14 4 12 9z"/>',
-                calendar: '<rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/>',
-                'rotate-ccw': '<path d="M4 12a8 8 0 1 0 2.5-5.8M4 4v4.5h4.5"/>',
-                'arrow-left-right': '<path d="M4 8h16l-3.5-3.5M20 16H4l3.5 3.5"/>',
-                'arrow-left': '<path d="M19 12H5M12 19l-7-7 7-7"/>',
-                'arrow-right': '<path d="M5 12h14M12 5l7 7-7 7"/>',
-                'arrow-up': '<path d="M12 19V5M5 12l7-7 7 7"/>',
-                'arrow-down': '<path d="M12 5v14M19 12l-7 7-7-7"/>',
-                'arrow-down-up': '<path d="M7 20V4M4 7l3-3 3 3M17 4v16m-3-3 3 3 3-3"/>',
-                'arrow-up-right': '<path d="M7 17 17 7M8 7h9v9"/>',
-                'arrow-down-left': '<path d="M17 7 7 17M16 17H7V8"/>',
-                'chevron-left': '<path d="m15 18-6-6 6-6"/>',
-                'chevron-right': '<path d="m9 18 6-6-6-6"/>',
-                'more-horizontal': '<circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/>',
-                settings: '<circle cx="12" cy="12" r="3"/><path d="m19.4 15 .1.1 1.4 1.1-1.4 2.4-1.7-.7a8 8 0 0 1-1.7 1l-.3 1.8h-2.8l-.3-1.8a8 8 0 0 1-1.7-1l-1.7.7-1.4-2.4 1.4-1.1a7 7 0 0 1 0-2l-1.4-1.1 1.4-2.4 1.7.7a8 8 0 0 1 1.7-1l.3-1.8h2.8l.3 1.8a8 8 0 0 1 1.7 1l1.7-.7 1.4 2.4-1.4 1.1a7 7 0 0 1 0 2z"/>',
-                user: '<circle cx="12" cy="8" r="3.5"/><path d="M5 20v-1a7 7 0 0 1 14 0v1"/>',
-                car: '<path d="M4 16v-4l2-5h12l2 5v4M4 16h16M4 16v2.5M20 16v2.5"/><circle cx="7.5" cy="13.3" r=".7"/><circle cx="16.5" cy="13.3" r=".7"/>',
-                book: '<path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3V4z"/><path d="M5 17a3 3 0 0 1 3-3h11"/>',
-                plane: '<path d="M3 13l18-9-5 17-4-7-9-1z"/>',
-                target: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r=".8"/>',
-                plus: '<path d="M12 5v14M5 12h14"/>',
-                pencil: '<path d="M4 20l1-4L16.5 4.5a2.1 2.1 0 0 1 3 3L8 19l-4 1z"/>',
-                'trash-2': '<path d="M4 7h16M9 7V4.5h6V7M6.5 7l1 13h9l1-13"/>',
-                gauge: '<path d="M4 17a8 8 0 1 1 16 0M12 17l4-5"/>',
-                'file-text': '<path d="M6 3h8l4 4v14H6V3z"/><path d="M14 3v4h4M9 12h6M9 16h6"/>',
-                'bar-chart-3': '<path d="M5 20V10M12 20V4M19 20v-7"/>',
-                save: '<path d="M5 3h11l3 3v15H5V3z"/><path d="M8 3v5h7V3M8 21v-7h8v7"/>',
-                upload: '<path d="M12 16V4M7 9l5-5 5 5M4 20h16"/>',
-                download: '<path d="M12 4v12M7 11l5 5 5-5M4 20h16"/>',
-                sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2.5V5M12 19v2.5M2.5 12H5M19 12h2.5M5.3 5.3l1.8 1.8M16.9 16.9l1.8 1.8M5.3 18.7l1.8-1.8M16.9 7.1l1.8-1.8"/>',
-                moon: '<path d="M20 14.5A8.5 8.5 0 0 1 9.5 4 8.5 8.5 0 1 0 20 14.5z"/>',
-                eye: '<path d="M2.5 12s3.2-6 9.5-6 9.5 6 9.5 6-3.2 6-9.5 6-9.5-6-9.5-6z"/><circle cx="12" cy="12" r="2.5"/>',
-                check: '<path d="m5 12 4.5 4.5L19 7"/>',
-                circle: '<circle cx="12" cy="12" r="8"/>',
-                x: '<path d="m6 6 12 12M18 6 6 18"/>',
-                'alert-triangle': '<path d="M12 4 21.5 20h-19L12 4zM12 10v4.5M12 17.5v.1"/>'
-            },
-            ic = n =>
-            `<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${IP[n]||'<circle cx="12" cy="12" r="2"/>'}</svg>`,
+        const ic = n => window.PocketIcons.render(n),
             ym = d => d.slice(0, 7),
-            EM = Object.fromEntries(
-                'wallet👛 banknote💵 landmark🏦 smartphone📱 piggy-bank🐷 credit-card💳 coins🪙 tag🏷️ bus🚌 utensils🍴 shopping-cart🛒 cookie🍪 heart💗 shopping-bag🛍️ home🏠 zap⚡ repeat🔁 film🎬 activity🏃 shield🛡️ trending-up📈 briefcase💼 laptop💻 gift🎁 calendar📅 rotate-ccw↩️ arrow-left-right⇄ car🚗 book📖 plane✈️ target🎯 plus➕ pencil✏️ trash-2🗑️ layout-dashboard📊 gauge⏱️ bar-chart-3📊 settings⚙️ sun☀️ moon🌙 file-text📄 save💾 upload⬆️ alert-triangle⚠️ layout-grid▦ receipt🧾 pie-chart◔'
-                .split(' ').map(s => {
-                    const i = s.search(/[^a-z0-9-]/);
-                    return [s.slice(0, i), s.slice(i)]
-                })),
             lu = () => {};
 
         let modalScrollPosition = 0,
@@ -545,6 +475,7 @@ function syncDateInput(input) {
                 modalHistoryActive = true
             }
             $('#ov').classList.remove('report-filter-open');
+            $('#ovc').classList.remove('dashboard-widget-dialog');
             $('#ovc').innerHTML = h;
             if (!document.body.classList.contains('pocket-modal-open')) {
                 modalScrollPosition = window.scrollY || document.documentElement.scrollTop || 0;
@@ -668,7 +599,7 @@ function syncDateInput(input) {
                     optionSelected = option => selectedOption ? option[0] == v : !placeholder && option[0] === '';
                 const i = x.t === 'icons' ?
                     isAccountForm ?
-                    `<input type="hidden" name="${x.k}" value="${esc(v)}"><div class="account-icon-row"><span class="account-icon-preview">${ic(v||'wallet')}</span><span class="account-icon-name">${esc(String(v||'wallet').split('-').map(part=>part.charAt(0).toUpperCase()+part.slice(1)).join(' '))}</span><button type="button" class="account-icon-trigger" onclick="tg(this)">Change icon <span aria-hidden="true">→</span></button></div><div class="ip" hidden>${ICONS.map(o=>`<button type="button" class="ib${o[0]==v?' sel':''}" onclick="pick(this,'${o[0]}')">${ic(o[0])}</button>`).join('')}</div>` :
+                    `<input type="hidden" name="${x.k}" value="${esc(v)}"><div class="account-icon-row"><span class="account-icon-preview">${ic(v||'wallet')}</span><span class="account-icon-name">${esc(String(v||'wallet').split('-').map(part=>part.charAt(0).toUpperCase()+part.slice(1)).join(' '))}</span><button type="button" class="account-icon-trigger" onclick="tg(this)">Change icon ${ic('arrow-right')}</button></div><div class="ip" hidden>${ICONS.map(o=>`<button type="button" class="ib${o[0]==v?' sel':''}" onclick="pick(this,'${o[0]}')">${ic(o[0])}</button>`).join('')}</div>` :
                     `<input type="hidden" name="${x.k}" value="${esc(v)}"><button type="button" class="b2 it" onclick="tg(this)"><span>${ic(v||'tag')}</span> Change icon</button><div class="ip" hidden>${ICONS.map(o=>`<button type="button" class="ib${o[0]==v?' sel':''}" onclick="pick(this,'${o[0]}')">${ic(o[0])}</button>`).join('')}</div>` :
                     x.t === 'direction' ?
                     `<div class="transfer-direction" aria-hidden="true"><span>Move to</span>${ic('repeat')}</div>` :
@@ -845,21 +776,6 @@ function syncDateInput(input) {
             else if (U.v === 'cash') window.PocketFeatures.cash.openForm();
             else if (U.v === 'shop') shoppingListForm();
             else quickAddChooser()
-        }
-
-        function dashboardSettingsForm() {
-            const options = DASHBOARD_WIDGETS.map(([id, label]) =>
-                `<label class="dashboard-widget-option"><input type="checkbox" data-dashboard-widget="${id}"${D.dashboardWidgets[id]?' checked':''}><span>${label}</span></label>`
-            ).join('');
-            ov(`<h3>Customize Dashboard</h3><small>Choose which sections to show on your Dashboard.</small><div class="dashboard-widget-list">${options}</div><div class="row end"><button class="b2" onclick="cl()">Cancel</button><button class="b1" onclick="saveDashboardSettings()">Save</button></div>`);
-        }
-
-        function saveDashboardSettings() {
-            D.dashboardWidgets = Object.fromEntries([...document.querySelectorAll('[data-dashboard-widget]')]
-                .map(input => [input.dataset.dashboardWidget, input.checked]));
-            cl();
-            save();
-            render()
         }
 
         const RECURRENCES = [
@@ -2242,7 +2158,7 @@ function syncDateInput(input) {
                 titleMenu.id = 'page-title-menu';
                 titleMenu.setAttribute('role', 'dialog');
                 titleMenu.setAttribute('aria-modal', 'true');
-                titleMenu.setAttribute('aria-labelledby', 'page-title-menu-heading');
+                titleMenu.setAttribute('aria-label', 'Pocket menu');
                 titleMenu.setAttribute('aria-hidden', 'true');
                 titleMenu.hidden = true;
                 titleMenu.inert = true;
@@ -2293,7 +2209,7 @@ function syncDateInput(input) {
             const shoppingListActions = isShoppingListDetail
                 ? `<div class="page-title-menu-group page-title-menu-group-manage"><div class="page-title-menu-label">Current list</div><div class="page-title-menu-items"><button type="button" data-shopping-list-action="rename"><span class="page-title-menu-item-icon">${ic('pencil')}</span><span>Rename list</span></button><button type="button" data-shopping-list-action="delete"><span class="page-title-menu-item-icon">${ic('trash-2')}</span><span>Delete list</span></button></div></div>`
                 : '';
-            titleMenu.innerHTML = `<div class="page-title-menu-header"><div class="page-title-menu-profile"><span class="page-title-menu-avatar" id="page-title-menu-avatar" aria-hidden="true"><span class="profile-avatar-fallback">P</span></span><span class="page-title-menu-profile-name" id="page-title-menu-profile-name">Your profile</span></div><strong id="page-title-menu-heading">Pocket</strong></div>${TITLE_MENU_GROUPS.map(([group, label, items]) =>
+            titleMenu.innerHTML = `<div class="page-title-menu-header"><div class="page-title-menu-profile"><span class="page-title-menu-avatar" id="page-title-menu-avatar" aria-hidden="true"><span class="profile-avatar-fallback">P</span></span><span class="page-title-menu-profile-name" id="page-title-menu-profile-name">Your profile</span></div></div>${TITLE_MENU_GROUPS.map(([group, label, items]) =>
                 `<div class="page-title-menu-group page-title-menu-group-${group}">${label?`<div class="page-title-menu-label">${label}</div>`:''}<div class="page-title-menu-items">${items.map(([id, itemLabel, icon]) =>
                     `<button type="button" data-page="${id}"${U.v===id?' aria-current="page"':''}>${icon?`<span class="page-title-menu-item-icon">${ic(icon)}</span>`:''}<span>${itemLabel}</span></button>`
                 ).join('')}</div></div>`
@@ -2537,7 +2453,7 @@ function syncDateInput(input) {
             okD = s => /^\d{4}-\d\d-\d\d$/.test(s),
             nm = x => isFinite(+x) ? +x : 0,
             sx = (s, n = 200) => String(s ?? '').slice(0, n),
-            ic2 = i => typeof IP[i] === 'string' ? i : 'tag';
+            ic2 = i => window.PocketIcons.has(i) ? i : 'tag';
 
         function cleanBudgets(rawBudgets) {
             const budgets = {},

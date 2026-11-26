@@ -1,14 +1,5 @@
 (() => {
-    const iconMarkup = name => {
-        if (typeof window.ic === 'function') return window.ic(name);
-        const paths = {
-            x: '<path d="M18 6 6 18M6 6l12 12"></path>',
-            search: '<circle cx="11" cy="11" r="7"></circle><path d="m20 20-4-4"></path>'
-        };
-        return paths[name]
-            ? `<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths[name]}</svg>`
-            : '';
-    };
+    const iconMarkup = name => window.PocketIcons.render(name, { size: 18 });
 
     function wireSelectPicker(select, trigger, label, options = {}) {
         const searchable = options.mode === 'search',

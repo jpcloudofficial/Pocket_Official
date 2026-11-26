@@ -129,7 +129,13 @@
 .page-menu-toggle .dashboard-icon {
     display: block;
     width: 24px;
-    height: 24px
+    height: 24px;
+    transform-origin: center;
+    transition: transform .2s ease
+}
+
+.page-menu-toggle[aria-expanded="true"] .dashboard-icon {
+    transform: rotate(90deg)
 }
 
 .pocket-page-header {
@@ -230,8 +236,13 @@ body.pocket-actions-scroll-hidden .fab {
 @media (prefers-reduced-motion: reduce) {
     .fab,
     .page-menu-toggle,
-    .page-menu-toggle span {
+    .page-menu-toggle span,
+    .page-menu-toggle .dashboard-icon {
         transition: none !important
+    }
+
+    .page-menu-toggle[aria-expanded="true"] .dashboard-icon {
+        transform: none
     }
 }
 

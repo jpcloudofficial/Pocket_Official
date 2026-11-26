@@ -185,18 +185,54 @@
         }
 .dashboard-widget-list{
             display: grid;
-            gap: 8px;
-            margin: 14px 0
+            flex: 1 1 auto;
+            gap: 18px;
+            min-height: 0;
+            overflow-y: auto;
+            margin: 16px -6px 12px 0;
+            padding: 0 6px 12px 0;
+            overscroll-behavior: contain
+        }
+#ovc.dashboard-widget-dialog{
+            display: flex;
+            height: min(92vh, 720px);
+            flex-direction: column;
+            overflow: hidden
+        }
+.dashboard-widget-dialog-heading{
+            flex: none
+        }
+.dashboard-widget-dialog-heading h3{
+            margin: 0 0 6px;
+            font-size: 19px
+        }
+.dashboard-widget-dialog-heading p{
+            margin: 0;
+            color: var(--mu);
+            font-size: 13px
+        }
+.dashboard-widget-group{
+            display: grid;
+            gap: 8px
+        }
+.dashboard-widget-group h4{
+            margin: 0 0 2px;
+            color: var(--mu);
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: .06em;
+            text-transform: uppercase
         }
 .dashboard-widget-option{
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 9px;
             margin: 0;
-            padding: 10px 12px;
+            padding: 9px 10px;
             border: 1px solid var(--bd);
             border-radius: 12px;
-            font-size: 14px;
+            background: var(--bg);
+            font-size: 13px;
             cursor: pointer
         }
 .dashboard-widget-option input[type=checkbox]{
@@ -210,32 +246,18 @@
 .dashboard-widget-option > span{
             margin-top: 0
         }
-.dashboard-empty-reports{
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            margin-top: 14px;
-            padding: 18px
-        }
-.dashboard-empty-reports > span{
-            display: grid;
-            width: 42px;
-            height: 42px;
+.dashboard-widget-actions{
+            position: sticky;
+            bottom: 0;
             flex: none;
-            place-items: center;
-            border-radius: 12px;
-            background: var(--sq);
-            color: var(--in)
+            gap: 8px;
+            margin: 0 -20px -20px;
+            padding: 12px 20px 20px;
+            border-top: 1px solid var(--bd);
+            background: var(--cd)
         }
-.dashboard-empty-reports > span .ic{
-            width: 23px;
-            height: 23px
-        }
-.dashboard-empty-reports > div{
-            display: grid
-        }
-.dashboard-empty-reports small{
-            color: var(--mu)
+.dashboard-widget-actions button{
+            min-height: 44px
         }
 .dashboard-report-grid{
             margin-top: 14px
@@ -366,6 +388,11 @@
 #m[data-view="dash"] .dashboard-balance-card .two small{
             color: #344831;
             font-size: 11px
+        }
+#m[data-view="dash"] .dashboard-balance-card .two small .ic{
+            width: 14px;
+            height: 14px;
+            vertical-align: -2px
         }
 #m[data-view="dash"] .dashboard-balance-card .hn{
             color: #102015 !important;
@@ -764,37 +791,7 @@ html[data-theme="light"][data-view="dash"] #m .dashboard-add-button:hover{
             background: #c5f58f
         }
 #m[data-view="dash"] .quick-action-icon .dashboard-icon{
-            display: none
-        }
-#m[data-view="dash"] .quick-action-icon::before{
+            display: block;
             width: 24px;
-            height: 24px;
-            background: currentColor;
-            content: "";
-            -webkit-mask-position: center;
-            mask-position: center;
-            -webkit-mask-repeat: no-repeat;
-            mask-repeat: no-repeat;
-            -webkit-mask-size: contain;
-            mask-size: contain
-        }
-#m[data-view="dash"] .quick-action-budget::before{
-            -webkit-mask-image: url("../../../assets/dashboard-icons/chart.svg");
-            mask-image: url("../../../assets/dashboard-icons/chart.svg")
-        }
-#m[data-view="dash"] .quick-action-cashback::before{
-            -webkit-mask-image: url("../../../assets/dashboard-icons/gift.svg");
-            mask-image: url("../../../assets/dashboard-icons/gift.svg")
-        }
-#m[data-view="dash"] .quick-action-recurring::before{
-            -webkit-mask-image: url("../../../assets/dashboard-icons/repeat.svg");
-            mask-image: url("../../../assets/dashboard-icons/repeat.svg")
-        }
-#m[data-view="dash"] .quick-action-savings::before{
-            -webkit-mask-image: url("../../../assets/dashboard-icons/goal.svg");
-            mask-image: url("../../../assets/dashboard-icons/goal.svg")
-        }
-#m[data-view="dash"] .quick-action-shopping::before{
-            -webkit-mask-image: url("../../../assets/dashboard-icons/cart.svg");
-            mask-image: url("../../../assets/dashboard-icons/cart.svg")
+            height: 24px
         }

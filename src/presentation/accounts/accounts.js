@@ -29,7 +29,7 @@
                 accounts.length ? `<div class="accounts-list">${accountRows}</div>` :
                     '<div class="empty accounts-empty">No accounts yet. Add one to get started.</div>' :
                 stackView;
-            return `${window.PocketPageHeader({ eyebrow: 'EVERY BALANCE, TOGETHER', title: 'Accounts' })}<div class="accounts-page"><section class="accounts-balance-card" aria-label="Account balance summary"><small>Total balance · ${accountCount}</small><strong>${pesoBalance(totalBalance)}</strong><div><span>Savings</span><b>${pesoBalance(savingsBalance)}</b></div></section><div class="accounts-list-heading"><h3>Your accounts</h3><button type="button" class="accounts-view-toggle" onclick="toggleAccountViewMode()" aria-label="Switch to ${accountViewMode === 'list' ? 'card' : 'list'} view">${accountViewMode === 'list' ? 'List view' : 'Card view'}<span aria-hidden="true">⌄</span></button></div>${accountContent}</div>`
+            return `${window.PocketPageHeader({ eyebrow: 'EVERY BALANCE, TOGETHER', title: 'Accounts' })}<div class="accounts-page"><section class="accounts-balance-card" aria-label="Account balance summary"><small>Total balance · ${accountCount}</small><strong>${pesoBalance(totalBalance)}</strong><div><span>Savings</span><b>${pesoBalance(savingsBalance)}</b></div></section><div class="accounts-list-heading"><h3>Your accounts</h3><button type="button" class="accounts-view-toggle" onclick="toggleAccountViewMode()" aria-label="Switch to ${accountViewMode === 'list' ? 'card' : 'list'} view">${accountViewMode === 'list' ? 'List view' : 'Card view'}<span>${ic('chevron-down')}</span></button></div>${accountContent}</div>`
         };
 
     window.PocketFeatures['acc'] = V.acc;

@@ -250,8 +250,9 @@ ${window.PocketFormScreenHeader({ back: 'close', close: 'dismiss' })}
             go('tx')
         }
 
-        const reportChartCard = (title, chart, key, className = '') =>
-            `<section class="card report-card${className ? ` ${className}` : ''}" data-report-chart="${key}"><h3>${title}</h3>${chart}</section>`;
+        const reportChartCard = (title, chart, key, className = '') => {
+            return `<section class="card report-card${className ? ` ${className}` : ''}" data-report-chart="${key}"><div class="report-card-heading"><h3>${title}</h3></div>${chart}</section>`
+        };
         function buildReportChartModel() {
             const period = reportPeriod(),
                 rangeTransactions = period.valid ? reportRangeTransactions(D.tx, period.start, period.end) : [],
@@ -287,6 +288,7 @@ ${window.PocketFormScreenHeader({ back: 'close', close: 'dismiss' })}
                         onclick = `PocketReports.openTransactions('${esc(period.start)}','${esc(period.end)}','expense','${esc(entry.id)}','${esc(U.ra || '')}')`;
                     return `<button type="button" class="report-expense-category" style="--category-width:${width}%;--category-color:${color}" aria-label="Show ${esc(entry.name)} expenses, ${peso(entry.value)}" onclick="${onclick}"><span class="report-expense-category-label"><span>${esc(entry.name)}</span><b>${peso(entry.value)}</b></span><span class="report-expense-category-track" aria-hidden="true"><span></span></span></button>`
                 }).join('') : reportEmpty();
+            const expenseBreakdownCard = `<section class="card report-card report-expense-card" data-report-chart="expenseBreakdown"><div class="report-expense-total"><small>Total expenses</small><strong>${peso(totalExpenses)}</strong></div><div class="report-expense-breakdown-heading"><div class="report-expense-breakdown-copy"><h3>Expense breakdown</h3><span>By category</span></div></div><div class="report-expense-categories">${expenseBreakdown}</div></section>`;
             const budgetCategoryIds = [...new Set(Object.values(D.budgets).flatMap(monthBudgets => Object.keys(monthBudgets)))],
                 budgetCategories = budgetCategoryIds.filter(id => !U.rc || id === U.rc).map(id => ({
                 id,
@@ -326,9 +328,8 @@ ${window.PocketFormScreenHeader({ back: 'close', close: 'dismiss' })}
                 cashFlowChart = reportLineChart(buckets, cashFlowSeries);
             return {
                 period,
-                totalExpenses,
-                expenseBreakdown,
                 charts: {
+                    expenseBreakdown: expenseBreakdownCard,
                     incomeExpenses: reportChartCard('Income vs. expenses', incomeExpenses, 'incomeExpenses', 'report-income-expenses'),
                     spendingTrend: reportChartCard('Monthly Spending Trends', spendingTrend, 'spendingTrend'),
                     budgetVsActual: reportChartCard('Budget vs. Actual', budgetVsActual, 'budgetVsActual'),
@@ -339,7 +340,7 @@ ${window.PocketFormScreenHeader({ back: 'close', close: 'dismiss' })}
             }
         }
         function dashboardReportCharts(widgets) {
-            const chartKeys = ['incomeExpenses', 'budgetVsActual', 'savingsGrowth', 'accountDistribution', 'cashFlow'],
+            const chartKeys = ['expenseBreakdown', 'incomeExpenses', 'spendingTrend', 'budgetVsActual', 'savingsGrowth', 'accountDistribution', 'cashFlow'],
                 selectedCharts = chartKeys.filter(key => widgets[key]);
             if (!selectedCharts.length) return '';
             const model = buildReportChartModel();
@@ -348,7 +349,7 @@ ${window.PocketFormScreenHeader({ back: 'close', close: 'dismiss' })}
         }
         V.rep = () => {
             const model = buildReportChartModel(),
-                { period, charts, totalExpenses, expenseBreakdown } = model,
+                { period, charts } = model,
                 rangeLabel = REPORT_RANGES.find(([value]) => value === U.reportRange)?.[1] || 'Monthly',
                 selectedReportFilters = [U.ra ? A(U.ra)?.name : '', U.rc ? C(U.rc)?.name : ''].filter(Boolean),
                 activeReportFilterCount = Number(!!U.ra) + Number(!!U.rc);
@@ -356,7 +357,7 @@ ${window.PocketFormScreenHeader({ back: 'close', close: 'dismiss' })}
 <div class="card report-filter-toolbar"><div class="report-filter-toolbar-copy"><small>${rangeLabel} overview${selectedReportFilters.length ? ` · ${selectedReportFilters.map(esc).join(' · ')}` : ''}</small><b>${period.valid ? reportDateRangeLabel(period.start, period.end) : 'Choose a valid date range.'}</b></div><button type="button" class="b2" aria-label="Open report filters${activeReportFilterCount ? `, ${activeReportFilterCount} active` : ''}" onclick="PocketReports.openFilters()">Filters${ic('arrow-down')}</button></div>
 ${period.valid ? `<div class="g g2 report-grid">
 ${charts.incomeExpenses}
-<section class="card report-card report-expense-card"><div class="report-expense-total"><small>Total expenses</small><strong>${peso(totalExpenses)}</strong></div><div class="report-expense-breakdown-heading"><h3>Expense breakdown</h3><span>By category</span></div><div class="report-expense-categories">${expenseBreakdown}</div></section>
+${charts.expenseBreakdown}
 ${charts.spendingTrend}
 ${charts.budgetVsActual}
 ${charts.savingsGrowth}

@@ -3,7 +3,7 @@
         const TRANSACTION_PAGE_SIZE = 50,
             transactionMonthFormatter = new Intl.DateTimeFormat(undefined, { month: 'short', year: 'numeric' });
         let txPageLimit = TRANSACTION_PAGE_SIZE,
-            transactionFiltersOpen = false,
+            transactionFiltersOpen = null,
             transactionScrollHideTimer = 0,
             transactionFilterHideTimer = 0,
             transactionFilterHideHandler = null;
@@ -217,15 +217,13 @@
             const panel = document.querySelector('#transaction-advanced-filters'),
                 button = document.querySelector('#transaction-filters-toggle');
             if (!panel || !button) return;
-            if (!panel.hidden) {
-                closeFilters();
-                return
-            }
+            if (panel.getAttribute('aria-hidden') === 'false' && panel.classList.contains('is-open')) return;
             window.clearTimeout(transactionFilterHideTimer);
             if (transactionFilterHideHandler) {
                 panel.removeEventListener('transitionend', transactionFilterHideHandler);
                 transactionFilterHideHandler = null
             }
+            transactionFiltersOpen = true;
             panel.hidden = false;
             panel.inert = false;
             panel.setAttribute('aria-hidden', 'false');
@@ -238,7 +236,9 @@
         function closeFilters() {
             const panel = document.querySelector('#transaction-advanced-filters'),
                 button = document.querySelector('#transaction-filters-toggle');
-            if (!panel || !button || panel.hidden) return;
+            if (!panel || !button) return;
+            transactionFiltersOpen = false;
+            if (panel.hidden) return;
             button.setAttribute('aria-expanded', 'false');
             panel.setAttribute('aria-hidden', 'true');
             panel.inert = true;
@@ -250,6 +250,11 @@
             window.clearTimeout(transactionFilterHideTimer);
             transactionFilterHideHandler = event => {
                 if (event.target !== panel || event.propertyName !== 'opacity') return;
+                if (panel.getAttribute('aria-hidden') !== 'true' || panel.classList.contains('is-open')) {
+                    panel.removeEventListener('transitionend', transactionFilterHideHandler);
+                    transactionFilterHideHandler = null;
+                    return
+                }
                 panel.hidden = true;
                 panel.removeEventListener('transitionend', transactionFilterHideHandler);
                 transactionFilterHideHandler = null;
@@ -257,6 +262,7 @@
             };
             panel.addEventListener('transitionend', transactionFilterHideHandler);
             transactionFilterHideTimer = window.setTimeout(() => {
+                if (panel.getAttribute('aria-hidden') !== 'true' || panel.classList.contains('is-open')) return;
                 panel.hidden = true;
                 if (transactionFilterHideHandler) {
                     panel.removeEventListener('transitionend', transactionFilterHideHandler);
@@ -336,7 +342,9 @@
             if (event.key === 'Escape') closeFilters()
         });
         window.addEventListener('scroll', () => {
-            closeFilters();
+            const panel = document.querySelector('#transaction-advanced-filters'),
+                bounds = panel && !panel.hidden ? panel.getBoundingClientRect() : null;
+            if (bounds && (bounds.bottom <= 0 || bounds.top >= window.innerHeight)) closeFilters();
             loadMoreAtBottom();
             updateMonthIndicator()
         }, { passive: true });
@@ -347,11 +355,11 @@
                     `<option value="${esc(item.id)}"${selected === item.id ? ' selected' : ''}>${esc(item.name)}</option>`
                 ).join(''),
                 typeOptions = [['', 'All types'], ['income', 'Income'], ['expense', 'Expense'], ['transfer', 'Transfer'], ['flow', 'Income and expenses']],
-                filtersOpen = transactionFiltersOpen || Boolean(U.ty);
+                filtersOpen = transactionFiltersOpen ?? Boolean(U.ty);
             return `${window.PocketPageHeader({ eyebrow: 'YOUR MONEY, IN MOTION', title: 'Transactions' })}
 <div class="f transaction-filters">
   <div class="transaction-search-wrap">
-    <div class="transaction-search"><img src="assets/dashboard-icons/search.svg" width="24" height="24" alt=""><input aria-label="Search transactions" placeholder="Search transactions" value="${esc(U.q)}" oninput="U.q=this.value;PocketFeatures.tx.refreshList()"><button type="button" class="transaction-filters-toggle" id="transaction-filters-toggle" aria-controls="transaction-advanced-filters" aria-expanded="${filtersOpen}" onclick="PocketFeatures.tx.toggleFilters()"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4"/></svg><span>Filters</span></button></div>
+    <div class="transaction-search"><input aria-label="Search transactions" placeholder="Search transactions" value="${esc(U.q)}" oninput="U.q=this.value;PocketFeatures.tx.refreshList()"><button type="button" class="transaction-filters-toggle" id="transaction-filters-toggle" aria-controls="transaction-advanced-filters" aria-expanded="${filtersOpen}" onclick="PocketFeatures.tx.toggleFilters()">${ic('list-filter')}<span>Filters</span></button></div>
     <div class="transaction-advanced-filters${filtersOpen ? ' is-open' : ''}" id="transaction-advanced-filters" aria-hidden="${filtersOpen ? 'false' : 'true'}"${filtersOpen ? '' : ' inert hidden'}>
       <div class="transaction-advanced-filter"><span>Category</span><select aria-label="Filter by category" onchange="U.c=this.value;PocketFeatures.tx.refreshList()">${options(D.cats, U.c, 'All categories')}</select></div>
       <div class="transaction-advanced-filter"><span>Account</span><select aria-label="Filter by account" onchange="U.a=this.value;PocketFeatures.tx.refreshList()">${options(D.acc, U.a, 'All accounts')}</select></div>
