@@ -1,6 +1,17 @@
 (() => {
     const nav = document.querySelector('#pocket-navbar');
     const buttons = Array.from(document.querySelectorAll('#pocket-navbar button[data-view]'));
+    const iconNames = {
+        dash: 'house',
+        tx: 'activity',
+        acc: 'wallet',
+        rep: 'chart-no-axes-column-increasing',
+        set: 'settings'
+    };
+    if (!window.PocketIcons) throw new Error('Pocket icon renderer is not available.');
+    buttons.forEach(button => {
+        button.innerHTML = window.PocketIcons.render(iconNames[button.dataset.view], { size: 24 });
+    });
     const setActivePage = view => {
         const activeIndex = buttons.findIndex(button => button.dataset.view === view);
         buttons.forEach((button, index) => {

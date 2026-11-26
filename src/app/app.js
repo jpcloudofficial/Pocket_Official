@@ -18,6 +18,8 @@ function loadClassicScript(path) {
 }
 
 async function initialize() {
+  await loadClassicScript('src/presentation/common/lucide-paths.js');
+  await loadClassicScript('src/presentation/common/icons.js');
   await loadClassicScript('src/app/pocket-app-legacy.js');
   await loadClassicScript('src/presentation/common/report-charts.js');
 

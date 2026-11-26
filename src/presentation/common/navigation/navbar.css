@@ -77,20 +77,10 @@ body {
     outline-offset: 2px
 }
 
-#pocket-navbar img {
-    display: block;
-    width: 24px;
-    height: 24px
-}
-
 #pocket-navbar svg {
     display: block;
     width: 24px;
     height: 24px
-}
-
-#pocket-navbar button[aria-current="page"] img {
-    filter: brightness(0) saturate(100%) invert(88%) sepia(30%) saturate(690%) hue-rotate(34deg) brightness(104%) contrast(97%)
 }
 
 #pocket-navbar button[aria-current="page"] svg {
@@ -133,41 +123,4 @@ html[data-theme="light"] #pocket-navbar button:focus-visible {
 
 html[data-theme="light"] #pocket-navbar button[aria-current="page"] svg {
     color: #287A48
-}
-
-html[data-theme="light"] #pocket-navbar img {
-    display: none
-}
-
-html[data-theme="light"] #pocket-navbar button:not([data-view="acc"])::before {
-    width: 24px;
-    height: 24px;
-    background: currentColor;
-    content: "";
-    -webkit-mask-position: center;
-    mask-position: center;
-    -webkit-mask-repeat: no-repeat;
-    mask-repeat: no-repeat;
-    -webkit-mask-size: contain;
-    mask-size: contain
-}
-
-html[data-theme="light"] #pocket-navbar button[data-view="dash"]::before {
-    -webkit-mask-image: url("../../../../assets/dashboard-icons/home.svg");
-    mask-image: url("../../../../assets/dashboard-icons/home.svg")
-}
-
-html[data-theme="light"] #pocket-navbar button[data-view="tx"]::before {
-    -webkit-mask-image: url("../../../../assets/dashboard-icons/activity.svg");
-    mask-image: url("../../../../assets/dashboard-icons/activity.svg")
-}
-
-html[data-theme="light"] #pocket-navbar button[data-view="rep"]::before {
-    -webkit-mask-image: url("../../../../assets/dashboard-icons/chart.svg");
-    mask-image: url("../../../../assets/dashboard-icons/chart.svg")
-}
-
-html[data-theme="light"] #pocket-navbar button[data-view="set"]::before {
-    -webkit-mask-image: url("../../../../assets/dashboard-icons/settings.svg");
-    mask-image: url("../../../../assets/dashboard-icons/settings.svg")
 }

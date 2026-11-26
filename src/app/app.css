@@ -266,15 +266,10 @@
             min-width: 0;
             overflow: hidden;
             color: var(--tx);
-            font-size: 14px;
+            font-size: 16px;
             font-weight: 600;
             text-overflow: ellipsis;
             white-space: nowrap
-        }
-
-        .page-title-menu-header strong {
-            font-size: 22px;
-            line-height: 1.2
         }
 
         .page-title-menu-group {

@@ -11,7 +11,7 @@
 <div class="settings-preference-row"><span>Date format</span><select aria-label="Date format" onchange="D.dateFormat=this.value;save();render()">${DATE_FORMATS.map(format => `<option value="${format}"${currentDateFormat() === format ? ' selected' : ''}>${dateFormatLabel(format)}</option>`).join('')}</select></div>
 <div class="settings-preference-row"><span>Financial period</span><select aria-label="Financial period" onchange="D.financialPeriod=this.value;U.reportRange=this.value;save();render()">${[['weekly', 'Weekly'], ['monthly', 'Monthly'], ['yearly', 'Yearly']].map(([value, label]) => `<option value="${value}"${D.financialPeriod === value ? ' selected' : ''}>${label}</option>`).join('')}</select></div>
 <div class="settings-preference-row"><span>Theme</span><button type="button" class="settings-theme-toggle" aria-label="Toggle theme, currently ${D.theme === 'dark' ? 'Dark' : 'Light'}" onclick="D.theme=D.theme==='dark'?'light':'dark';save();render()"><span>${D.theme === 'dark' ? 'Dark' : 'Light'}</span><span class="settings-chevron" aria-hidden="true"></span></button></div>
-</div><button type="button" class="b2 settings-cta dashboard-layout-setting" onclick="dashboardSettingsForm()">Customize dashboard</button></section>
+</div><button type="button" class="b2 settings-cta dashboard-layout-setting" onclick="PocketFeatures.dash.openSettings()">Customize dashboard</button></section>
 <section class="card settings-card"><h3>Manage</h3><div class="settings-action-list">
 ${actionRow('Accounts', "go('acc')")}
 ${actionRow('Categories', "go('cat')")}
